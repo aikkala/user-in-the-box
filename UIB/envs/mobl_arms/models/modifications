@@ -1,0 +1,10 @@
+mobl_arms_muscles.xml
+  - Disable collisions
+  - Increase lengthrange to 25
+  - Changed shoulder_elv range to [0, 2.14]
+  - Changed elv_angle range to [-0.8, 1.8]
+  - Set joint default stiffness to 2
+  - Fingers modified to a pointing position (meshes updated)
+  - Changed r_z_constraint first polycoef to 0
+  - Added the "eye" and oculomotor control
+  - Removed wrist dofs (deviation, flexion, wrist_hand_r1, and wrist_hand_r3) and corresponding constraints
