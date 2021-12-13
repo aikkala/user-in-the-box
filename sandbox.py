@@ -7,6 +7,7 @@ import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
+from stable_baselines3.common.callbacks import CheckpointCallback
 
 
 def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_seconds=10):
@@ -64,7 +65,8 @@ if __name__=="__main__":
   experience_file = 'experience.npy'
   num_cpu = 7
   output_dir = os.path.join('output', env_name)
-  log_dir = os.path.join('log')
+  checkpoint_dir = os.path.join(output_dir, 'checkpoint')
+  log_dir = os.path.join(output_dir, 'log')
 
   # Leave for future kwargs
   env_kwargs = {}
@@ -90,10 +92,15 @@ if __name__=="__main__":
 
   # Do the training
   if train:
-    model.learn(total_timesteps=5_000_000)
-    model.save('controller')
+
+    # Initialise a callback for checkpoints
+    save_freq = 1000000 // num_cpu
+    checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
+
+    model.learn(total_timesteps=5_000_000, callback=[checkpoint_callback])
+    model.save(os.path.join(output_dir, 'controller'))
   else:
-    model = PPO.load('controller', env=parallel_envs)
+    model = PPO.load(os.path.join(output_dir, 'controller'), env=parallel_envs)
 
   # Visualise evaluations, perhaps save a video as well
   while True:
