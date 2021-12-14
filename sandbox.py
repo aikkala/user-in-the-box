@@ -60,9 +60,10 @@ def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_
 if __name__=="__main__":
 
   env_name = 'UIB:mobl-arms-muscles-v0'
-  train = True
-  generate_experience = True
-  experience_file = 'experience.npy'
+  train = False
+  start_method = 'forkserver'  # forkserver in linux, spawn in windows/wsl
+#  generate_experience = True
+#  experience_file = 'experience.npy'
   num_cpu = 7
   output_dir = os.path.join('output', env_name)
   checkpoint_dir = os.path.join(output_dir, 'checkpoint')
@@ -81,26 +82,33 @@ if __name__=="__main__":
 #  else:
 #    experience = np.load(experience_file)
 
-  parallel_envs = make_vec_env(env_name, n_envs=num_cpu, seed=0, vec_env_cls=SubprocVecEnv, env_kwargs=env_kwargs)
-
-  policy_kwargs = dict(activation_fn=torch.nn.Tanh,
-                       net_arch=[dict(pi=[64, 64], vf=[64, 64])],
-                       log_std_init=0.0)
-
-  model = PPO('MlpPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs,
-              tensorboard_log=log_dir)
-
   # Do the training
   if train:
+
+    # Initialise parallel envs
+    parallel_envs = make_vec_env(env_name, n_envs=num_cpu, seed=0, vec_env_cls=SubprocVecEnv, env_kwargs=env_kwargs,
+                                 vec_env_kwargs={'start_method': start_method})
+
+    # Policy parameters
+    policy_kwargs = dict(activation_fn=torch.nn.Tanh,
+                         net_arch=[dict(pi=[128, 128], vf=[128, 128])],
+                         log_std_init=0.0)
+
+    # Initialise policy
+    model = PPO('MlpPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs,
+                tensorboard_log=log_dir)
 
     # Initialise a callback for checkpoints
     save_freq = 1000000 // num_cpu
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
-    model.learn(total_timesteps=5_000_000, callback=[checkpoint_callback])
-    model.save(os.path.join(output_dir, 'controller'))
+    # Do the learning
+    model.learn(total_timesteps=20_000_000, callback=[checkpoint_callback])
+
   else:
-    model = PPO.load(os.path.join(output_dir, 'controller'), env=parallel_envs)
+
+    # Load previous policy
+    model = PPO.load(os.path.join(checkpoint_dir, 'model_6999888_steps'))
 
   # Visualise evaluations, perhaps save a video as well
   while True:

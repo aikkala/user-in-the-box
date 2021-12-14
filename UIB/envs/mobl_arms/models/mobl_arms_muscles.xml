@@ -9,7 +9,7 @@
     <site size="0.001"></site>
     <tendon width="0.001" rgba=".95 .3 .3 1" limited="false"></tendon>
     <default class="muscle">
-      <muscle ctrllimited="true" ctrlrange="0 1" scale="400"></muscle>
+      <muscle ctrllimited="true" ctrlrange="0 1" scale="200"></muscle>
     </default>
     <default class="motor">
       <general gainprm="5 0 0 0 0 0 0 0 0 0"></general>
@@ -165,7 +165,7 @@
                     <site name="EDCM-P1" pos="0.00051 -0.28984 0.01949"></site>
                     <site name="EDCI-P1" pos="0.00065 -0.28898 0.01869"></site>
                     <site name="EDM-P1" pos="0.00089 -0.28919 0.01847"></site>
-                    <joint name="shoulder_rot" type="hinge" pos="0 0 0" axis="  0.0048 0.999089   0.0424" limited="true" range=" -1.5708 0.349066" ref="0" user="1"></joint>
+                    <joint name="shoulder_rot" type="hinge" pos="0 0 0" axis="  0.0048 0.999089   0.0424" limited="true" range=" -1.57 1.57" ref="0" user="1"></joint>
                     <body name="ulna" pos="  0.0061  -0.2904  -0.0123" quat="1.0 0.0 0.0 0.0">
                       <geom name="ulna" type="mesh" mesh="ulna"></geom>
                       <inertial pos="0.00971783 -0.0959509 0.024286" mass="1.1053" fullinertia="0.00541309 0.00115318 0.00494361 0.00031686 -7.615e-05 0.00109169"></inertial>

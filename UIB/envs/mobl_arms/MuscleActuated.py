@@ -62,7 +62,8 @@ class MuscleActuated(gym.Env):
     motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
     muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])#np.array([0, 1])
     limits = np.float32(np.concatenate([motors_limits, muscles_limits]))
-    self.action_space = spaces.Box(low=limits[:, 0], high=limits[:, 1])
+    #self.action_space = spaces.Box(low=limits[:, 0], high=limits[:, 1])
+    self.action_space = spaces.MultiBinary(self.nmuscles)
 
     # Reset
     observation = self.reset()
@@ -93,8 +94,9 @@ class MuscleActuated(gym.Env):
 
     # Set motor and muscle control
     # Don't do anything with eyes for now
-    self.sim.data.ctrl[:] = sigmoid(action)
-    self.sim.data.ctrl[:2] = 0
+    #self.sim.data.ctrl[:] = sigmoid(action)
+    #self.sim.data.ctrl[:2] = 0
+    self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
 
     finished = False
     try:
@@ -105,7 +107,14 @@ class MuscleActuated(gym.Env):
 
     # Check if target is hit
     fingertip_idx = self.model._geom_name2id["hand_2distph"]
-    if False:#self.is_contact(fingertip_idx, self.model._geom_name2id["target-sphere"]):
+
+    # Get finger position
+    finger_position = self.sim.data.geom_xpos[fingertip_idx]
+
+    # Distance to target
+    dist = np.linalg.norm(self.target_position - (finger_position - self.target_origin))
+
+    if False:#dist < self.target_radius:
 
       # Spawn a new target
       self.spawn_target()
@@ -116,11 +125,8 @@ class MuscleActuated(gym.Env):
 
     else:
 
-      # Get finger position
-      finger_position = self.sim.data.geom_xpos[fingertip_idx]
-
-      # Use a fixed target position for now
-      reward = np.exp(-np.linalg.norm(self.target_position - (finger_position - self.target_origin))*10)
+      # Estimate reward
+      reward = np.exp(-dist*10)
 
       self.steps_since_last_hit += 1
       if self.steps_since_last_hit >= self.max_steps_without_hit:
@@ -173,11 +179,11 @@ class MuscleActuated(gym.Env):
   def spawn_target(self):
 
     # Sample a location
-    #target_y = self.rng.uniform(*self.target_limits_y)
-    #target_z = self.rng.uniform(*self.target_limits_z)
+    target_y = self.rng.uniform(*self.target_limits_y)
+    target_z = self.rng.uniform(*self.target_limits_z)
 
-    #self.target_position = np.array([0, target_y, target_z])
-    self.target_position = np.zeros((3,))
+    self.target_position = np.array([0, target_y, target_z])
+    #self.target_position = np.zeros((3,))
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
 
   def reset(self):
