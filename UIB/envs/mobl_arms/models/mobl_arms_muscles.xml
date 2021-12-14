@@ -951,7 +951,7 @@
     <joint name="r_z_constraint" active="true" joint1="r_z" polycoef="0        0        0        0        0"></joint>
     <weld name="origin_to_worldbody" body1="thorax" active="false"></weld>
   </equality>
-  <contact>
+  <!--contact>
     <pair name="fingertip_target" geom1="hand_2distph" geom2="target-sphere"/>
-  </contact>
+  </contact!-->
 </mujoco>
