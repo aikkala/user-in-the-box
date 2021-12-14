@@ -33,11 +33,14 @@ class MuscleActuated(gym.Env):
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])
     self.target_position = self.target_origin.copy()
-    self.target_limits_y = np.array([-0.3, 0.3])
+    self.target_limits_y = np.array([-0.3, 0.0])
     self.target_limits_z = np.array([-0.3, 0.3])
 
+    # Minimum distance to new spawned targets
+    self.new_target_distance_threshold = 0.1
+
     # Radius limits for target
-    self.target_radius_limit = np.array([0.05, 0.2])
+    self.target_radius_limit = np.array([0.01, 0.05])
 
     # RNG in case we need it
     self.rng = np.random.default_rng()
@@ -62,8 +65,8 @@ class MuscleActuated(gym.Env):
     motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
     muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])#np.array([0, 1])
     limits = np.float32(np.concatenate([motors_limits, muscles_limits]))
-    #self.action_space = spaces.Box(low=limits[:, 0], high=limits[:, 1])
-    self.action_space = spaces.MultiBinary(self.nmuscles)
+    self.action_space = spaces.Box(low=limits[:, 0], high=limits[:, 1])
+    #self.action_space = spaces.MultiBinary(self.nmuscles)
 
     # Reset
     observation = self.reset()
@@ -95,8 +98,9 @@ class MuscleActuated(gym.Env):
     # Set motor and muscle control
     # Don't do anything with eyes for now
     #self.sim.data.ctrl[:] = sigmoid(action)
+    self.sim.data.ctrl[:] = np.clip(self.sim.data.ctrl[:] + action*0.2, 0, 1)
     #self.sim.data.ctrl[:2] = 0
-    self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
+    #self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
 
     finished = False
     try:
@@ -114,14 +118,14 @@ class MuscleActuated(gym.Env):
     # Distance to target
     dist = np.linalg.norm(self.target_position - (finger_position - self.target_origin))
 
-    if False:#dist < self.target_radius:
+    if dist < self.target_radius:
 
       # Spawn a new target
       self.spawn_target()
 
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
-      #reward += 20
+      reward = 1
 
     else:
 
@@ -179,12 +183,26 @@ class MuscleActuated(gym.Env):
   def spawn_target(self):
 
     # Sample a location
-    target_y = self.rng.uniform(*self.target_limits_y)
-    target_z = self.rng.uniform(*self.target_limits_z)
-
-    self.target_position = np.array([0, target_y, target_z])
+    distance = self.new_target_distance_threshold
+    while distance <= self.new_target_distance_threshold:
+      target_y = self.rng.uniform(*self.target_limits_y)
+      target_z = self.rng.uniform(*self.target_limits_z)
+      new_position = np.array([0, target_y, target_z])
+      distance = np.linalg.norm(self.target_position - new_position)
+    self.target_position = new_position
     #self.target_position = np.zeros((3,))
+
+    # Set location
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
+
+    # Sample target radius
+    self.target_radius = self.rng.uniform(*self.target_radius_limit)
+    #self.target_radius = 0.05
+
+    # Set target radius
+    self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
+
+    self.sim.forward()
 
   def reset(self):
 
