@@ -64,8 +64,8 @@ class MuscleActuated(gym.Env):
     # Set action space -- motor actuators are always first
     motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
     muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])#np.array([0, 1])
-    limits = np.float32(np.concatenate([motors_limits, muscles_limits]))
-    self.action_space = spaces.Box(low=limits[:, 0], high=limits[:, 1])
+    limits = np.concatenate([motors_limits, muscles_limits])
+    self.action_space = spaces.Box(low=np.float32(muscles_limits[:, 0]), high=np.float32(muscles_limits[:, 1]))
     #self.action_space = spaces.MultiBinary(self.nmuscles)
 
     # Reset
@@ -98,7 +98,7 @@ class MuscleActuated(gym.Env):
     # Set motor and muscle control
     # Don't do anything with eyes for now
     #self.sim.data.ctrl[:] = sigmoid(action)
-    self.sim.data.ctrl[:] = np.clip(self.sim.data.act[:] + action*0.2, 0, 1)
+    self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action*0.2, 0, 1)
     #self.sim.data.ctrl[:2] = 0
     #self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
 
