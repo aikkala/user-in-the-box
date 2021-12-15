@@ -1,8 +1,8 @@
 import gym
-from gym.wrappers.time_limit import TimeLimit
 import os
 import torch
 import numpy as np
+from platform import uname
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -60,8 +60,8 @@ def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_
 if __name__=="__main__":
 
   env_name = 'UIB:mobl-arms-muscles-v0'
-  train = False
-  start_method = 'forkserver'  # forkserver in linux, spawn in windows/wsl
+  train = True
+  start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
 #  generate_experience = True
 #  experience_file = 'experience.npy'
   num_cpu = 7
@@ -71,10 +71,6 @@ if __name__=="__main__":
 
   # Leave for future kwargs
   env_kwargs = {}
-
-  # Initialise environment
-  env = gym.make(env_name, **env_kwargs)
-  env.step(env.action_space.sample())
 
 #  if generate_experience:
 #    experience = generate_random_trajectories(env, num_trajectories=1000, trajectory_length_seconds=10)
@@ -90,7 +86,7 @@ if __name__=="__main__":
                                  vec_env_kwargs={'start_method': start_method})
 
     # Policy parameters
-    policy_kwargs = dict(activation_fn=torch.nn.Tanh,
+    policy_kwargs = dict(activation_fn=torch.nn.LeakyReLU,
                          net_arch=[dict(pi=[128, 128], vf=[128, 128])],
                          log_std_init=0.0)
 
@@ -103,19 +99,25 @@ if __name__=="__main__":
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
     # Do the learning
-    model.learn(total_timesteps=20_000_000, callback=[checkpoint_callback])
+    model.learn(total_timesteps=50_000_000, callback=[checkpoint_callback])
 
   else:
 
     # Load previous policy
-    model = PPO.load(os.path.join(checkpoint_dir, 'model_6999888_steps'))
+    model = PPO.load(os.path.join(checkpoint_dir, 'model_2999997_steps'))
+
+
+  # Initialise environment
+  env = gym.make(env_name, **env_kwargs)
 
   # Visualise evaluations, perhaps save a video as well
-  while True:
+  while not train:
+
     obs = env.reset()
     env.render()
     done = False
     while not done:
       action, _states = model.predict(obs, deterministic=True)
       obs, rewards, done, info = env.step(action)
+      env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl[2:] * 0.7
       env.render()
