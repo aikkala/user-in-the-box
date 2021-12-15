@@ -7,7 +7,7 @@
     <joint limited="true" damping="0.5" armature="0.1" stiffness="2"></joint>
     <geom rgba="0.8 0.6 .4 1" margin="0.001"></geom>
     <site size="0.001"></site>
-    <tendon width="0.001" rgba=".95 .3 .3 1" limited="false"></tendon>
+    <tendon width="0.003" rgba=".95 .3 .3 1" limited="false"></tendon>
     <default class="muscle">
       <muscle ctrllimited="true" ctrlrange="0 1" scale="2000"></muscle>
     </default>
@@ -20,6 +20,9 @@
   </default>
   <option timestep="0.002" collision="predefined"></option>
   <size njmax="1000" nconmax="400" nuser_jnt="1"></size>
+  <visual>
+    <scale framewidth="0.01" framelength="0.1"/>
+  </visual>
   <worldbody>
     <body name="eye" pos="0 0 1.2" euler="0 -0.79 -1.57">
       <geom name="eye-ball" type="sphere" size="0.025"/>
