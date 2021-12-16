@@ -19,7 +19,7 @@ class MuscleActuated(gym.Env):
     self.project_path = pathlib.Path(__file__).parent.absolute()
 
     # Model file
-    xml_file = "models/mobl_arms_muscles.xml"
+    xml_file = "models/mobl_arms_muscles_modified.xml"
 
     # Set action sampling frequency
     self.action_sample_freq = 10

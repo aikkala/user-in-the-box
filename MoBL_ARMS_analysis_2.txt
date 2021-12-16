@@ -1,0 +1,209 @@
+Scale ratios of optimal fiber length: [0.5, 2]
+DELT1:
+	actuator_length (MuJoCo): 0.20435819728200882
+	tendon length LT (MuJoCo): 0.191226503131086
+	muscle length LM (MuJoCo): 0.013131694150922829
+
+	length range (MuJoCo): [0.20270193 0.23712821]
+	optimal fiber length LO (MuJoCo): 0.022950852437204555
+	optimal fiber length (OpenSim): 0.0976
+DELT2:
+	actuator_length (MuJoCo): 0.2324123429030693
+	tendon length LT (MuJoCo): 0.1175597297450375
+	muscle length LM (MuJoCo): 0.1148526131580318
+
+	length range (MuJoCo): [0.14745266 0.23713145]
+	optimal fiber length LO (MuJoCo): 0.05978586212530079
+	optimal fiber length (OpenSim): 0.1078
+DELT3:
+	actuator_length (MuJoCo): 0.15455769092509433
+	tendon length LT (MuJoCo): 0.06055869656621893
+	muscle length LM (MuJoCo): 0.0939989943588754
+
+	length range (MuJoCo): [0.08586332 0.16177718]
+	optimal fiber length LO (MuJoCo): 0.05060924372263259
+	optimal fiber length (OpenSim): 0.1367
+SUPSP:
+	actuator_length (MuJoCo): 0.10965110418729263
+	tendon length LT (MuJoCo): 0.05530741958994348
+	muscle length LM (MuJoCo): 0.054343684597349146
+
+	length range (MuJoCo): [0.06902402 0.11017383]
+	optimal fiber length LO (MuJoCo): 0.027433206821823958
+	optimal fiber length (OpenSim): 0.0682
+INFSP:
+	actuator_length (MuJoCo): 0.10224571497561087
+	tendon length LT (MuJoCo): 0.04411616318062456
+	muscle length LM (MuJoCo): 0.058129551794986314
+
+	length range (MuJoCo): [0.06177179 0.11473868]
+	optimal fiber length LO (MuJoCo): 0.03531125891562217
+	optimal fiber length (OpenSim): 0.0755
+SUBSC:
+	actuator_length (MuJoCo): 0.10863508806267397
+	tendon length LT (MuJoCo): 0.07321256006061763
+	muscle length LM (MuJoCo): 0.035422528002056336
+
+	length range (MuJoCo): [0.08674066 0.12732495]
+	optimal fiber length LO (MuJoCo): 0.027056195696751578
+	optimal fiber length (OpenSim): 0.0873
+TMIN:
+	actuator_length (MuJoCo): 0.12587729787557625
+	tendon length LT (MuJoCo): 0.08079839186413387
+	muscle length LM (MuJoCo): 0.04507890601144238
+
+	length range (MuJoCo): [0.09635053 0.14300692]
+	optimal fiber length LO (MuJoCo): 0.03110426645539785
+	optimal fiber length (OpenSim): 0.0741
+TMAJ:
+	actuator_length (MuJoCo): 0.13506646676379336
+	tendon length LT (MuJoCo): 0.09473507864298712
+	muscle length LM (MuJoCo): 0.040331388120806236
+
+	length range (MuJoCo): [0.12029011 0.19695519]
+	optimal fiber length LO (MuJoCo): 0.05111005511048781
+	optimal fiber length (OpenSim): 0.1624
+PECM1:
+	actuator_length (MuJoCo): 0.12530248257111629
+	tendon length LT (MuJoCo): 0.09460887332696867
+	muscle length LM (MuJoCo): 0.030693609244147615
+
+	length range (MuJoCo): [0.10962866 0.15468802]
+	optimal fiber length LO (MuJoCo): 0.03003957163854636
+	optimal fiber length (OpenSim): 0.1442
+PECM2:
+	actuator_length (MuJoCo): 0.177258636045875
+	tendon length LT (MuJoCo): 0.14195101818450687
+	muscle length LM (MuJoCo): 0.03530761786136813
+
+	length range (MuJoCo): [0.16719219 0.2429157 ]
+	optimal fiber length LO (MuJoCo): 0.05048234136407528
+	optimal fiber length (OpenSim): 0.1385
+PECM3:
+	actuator_length (MuJoCo): 0.17833034610144213
+	tendon length LT (MuJoCo): 0.1363006214661078
+	muscle length LM (MuJoCo): 0.04202972463533433
+
+	length range (MuJoCo): [0.17331494 0.28435788]
+	optimal fiber length LO (MuJoCo): 0.07402862797088698
+	optimal fiber length (OpenSim): 0.1385
+LAT1:
+	actuator_length (MuJoCo): 0.25481499056231915
+	tendon length LT (MuJoCo): 0.21112755479971498
+	muscle length LM (MuJoCo): 0.04368743576260417
+
+	length range (MuJoCo): [0.22319928 0.25941448]
+	optimal fiber length LO (MuJoCo): 0.024143460267294765
+	optimal fiber length (OpenSim): 0.254
+LAT2:
+	actuator_length (MuJoCo): 0.3096606602654518
+	tendon length LT (MuJoCo): 0.2567189526313739
+	muscle length LM (MuJoCo): 0.052941707634077906
+
+	length range (MuJoCo): [0.27084637 0.31322861]
+	optimal fiber length LO (MuJoCo): 0.028254829746338157
+	optimal fiber length (OpenSim): 0.2324
+LAT3:
+	actuator_length (MuJoCo): 0.3385997160084859
+	tendon length LT (MuJoCo): 0.28683120395595335
+	muscle length LM (MuJoCo): 0.05176851205253252
+
+	length range (MuJoCo): [0.30041832 0.34117969]
+	optimal fiber length LO (MuJoCo): 0.02717424199385669
+	optimal fiber length (OpenSim): 0.2789
+CORB:
+	actuator_length (MuJoCo): 0.1477679246396519
+	tendon length LT (MuJoCo): 0.12061484580735497
+	muscle length LM (MuJoCo): 0.027153078832296937
+
+	length range (MuJoCo): [0.14697475 0.22605448]
+	optimal fiber length LO (MuJoCo): 0.052719815994869045
+	optimal fiber length (OpenSim): 0.0932
+TRIlong:
+	actuator_length (MuJoCo): 0.2812712264939334
+	tendon length LT (MuJoCo): 0.24577370045938526
+	muscle length LM (MuJoCo): 0.035497526034548116
+
+	length range (MuJoCo): [0.27637568 0.3681816 ]
+	optimal fiber length LO (MuJoCo): 0.06120395012315164
+	optimal fiber length (OpenSim): 0.134
+TRIlat:
+	actuator_length (MuJoCo): 0.17011716405944907
+	tendon length LT (MuJoCo): 0.15245223726111995
+	muscle length LM (MuJoCo): 0.017664926798329122
+
+	length range (MuJoCo): [0.1665992  0.20904009]
+	optimal fiber length LO (MuJoCo): 0.02829392451709789
+	optimal fiber length (OpenSim): 0.1138
+TRImed:
+	actuator_length (MuJoCo): 0.15774496754040848
+	tendon length LT (MuJoCo): 0.14008004074207944
+	muscle length LM (MuJoCo): 0.01766492679832904
+
+	length range (MuJoCo): [0.154227   0.19666789]
+	optimal fiber length LO (MuJoCo): 0.028293924517097873
+	optimal fiber length (OpenSim): 0.1138
+ANC:
+	actuator_length (MuJoCo): 0.02297600359842848
+	tendon length LT (MuJoCo): 0.014019216014871855
+	muscle length LM (MuJoCo): 0.008956787583556624
+
+	length range (MuJoCo): [0.0215003  0.04394353]
+	optimal fiber length LO (MuJoCo): 0.014962159490703987
+	optimal fiber length (OpenSim): 0.027
+SUP:
+	actuator_length (MuJoCo): 0.0450445797036441
+	tendon length LT (MuJoCo): 0.03812655586216891
+	muscle length LM (MuJoCo): 0.0069180238414751904
+
+	length range (MuJoCo): [0.0411485  0.05021432]
+	optimal fiber length LO (MuJoCo): 0.006043883190678709
+	optimal fiber length (OpenSim): 0.033
+BIClong:
+	actuator_length (MuJoCo): 0.4308818131254402
+	tendon length LT (MuJoCo): 0.2881307767823492
+	muscle length LM (MuJoCo): 0.142751036343091
+
+	length range (MuJoCo): [0.32447265 0.43349828]
+	optimal fiber length LO (MuJoCo): 0.07268375002564238
+	optimal fiber length (OpenSim): 0.1157
+BICshort:
+	actuator_length (MuJoCo): 0.35163065137881894
+	tendon length LT (MuJoCo): 0.20779944850675144
+	muscle length LM (MuJoCo): 0.1438312028720675
+
+	length range (MuJoCo): [0.26226364 0.42565621]
+	optimal fiber length LO (MuJoCo): 0.10892838121447386
+	optimal fiber length (OpenSim): 0.1321
+BRA:
+	actuator_length (MuJoCo): 0.14425178341821962
+	tendon length LT (MuJoCo): 0.1208355459931426
+	muscle length LM (MuJoCo): 0.02341623742507702
+
+	length range (MuJoCo): [0.12711116 0.145938  ]
+	optimal fiber length LO (MuJoCo): 0.012551227863034068
+	optimal fiber length (OpenSim): 0.0858
+BRD:
+	actuator_length (MuJoCo): 0.3305371099148159
+	tendon length LT (MuJoCo): 0.15655690216474663
+	muscle length LM (MuJoCo): 0.17398020775006925
+
+	length range (MuJoCo): [0.20030112 0.33153377]
+	optimal fiber length LO (MuJoCo): 0.08748843486628992
+	optimal fiber length (OpenSim): 0.1726
+PT:
+	actuator_length (MuJoCo): 0.14742770010450085
+	tendon length LT (MuJoCo): 0.10704426024432073
+	muscle length LM (MuJoCo): 0.040383439860180115
+
+	length range (MuJoCo): [0.12282873 0.17018215]
+	optimal fiber length LO (MuJoCo): 0.0315689443636315
+	optimal fiber length (OpenSim): 0.0492
+PQ:
+	actuator_length (MuJoCo): 0.024939884076747576
+	tendon length LT (MuJoCo): 0.016665651292086553
+	muscle length LM (MuJoCo): 0.008274232784661023
+
+	length range (MuJoCo): [0.02179577 0.03718613]
+	optimal fiber length LO (MuJoCo): 0.010260241606393758
+	optimal fiber length (OpenSim): 0.0282
