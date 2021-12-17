@@ -137,6 +137,9 @@ class MuscleActuated(gym.Env):
         finished = True
         info["termination"] = "time_limit_reached"
 
+    # A small cost on controls
+    reward -= 1e-3 * np.sum(self.sim.data.ctrl)
+
     return self.get_observation(), reward, finished, info
 
   def get_state(self):
