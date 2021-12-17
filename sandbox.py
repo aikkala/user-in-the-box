@@ -9,6 +9,8 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback
 
+from UIB.sb3_additions.schedule import linear_schedule
+
 
 def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_seconds=10):
 
@@ -87,19 +89,24 @@ if __name__=="__main__":
 
     # Policy parameters
     policy_kwargs = dict(activation_fn=torch.nn.LeakyReLU,
-                         net_arch=[dict(pi=[128, 128], vf=[128, 128])],
+                         net_arch=[dict(pi=[256, 256], vf=[256, 256])],
                          log_std_init=0.0)
+    lr = 3e-4
 
     # Initialise policy
     model = PPO('MlpPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs,
-                tensorboard_log=log_dir)
+                tensorboard_log=log_dir, learning_rate=lr)
 
     # Initialise a callback for checkpoints
-    save_freq = 1000000 // num_cpu
+    save_freq = 5000000 // num_cpu
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
-    # Do the learning
-    model.learn(total_timesteps=50_000_000, callback=[checkpoint_callback])
+    # Do the learning first with constant learning rate
+    model.learn(total_timesteps=20_000_000, callback=[checkpoint_callback])
+
+    # Then some more learning with a decaying learning rate
+    model.learn(total_timesteps=10_000_000, callback=[checkpoint_callback], learning_rate=linear_schedule(lr),
+                reset_num_timesteps=False)
 
   else:
 
