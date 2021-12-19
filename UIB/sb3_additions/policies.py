@@ -35,6 +35,7 @@ class ActorCriticPolicy(BasePolicy):
   :param use_sde: Whether to use State Dependent Exploration or not
   :param log_std_init: Initial value for the log standard deviation
   :param std_decay_threshold: If a value (0, 1] is given then std is not learned and instead decays linearly
+  :param std_decay_min: Minimum std value
   :param full_std: Whether to use (n_features x n_actions) parameters
       for the std instead of only (n_features,) when using gSDE
   :param sde_net_arch: Network architecture for extracting features
@@ -67,6 +68,7 @@ class ActorCriticPolicy(BasePolicy):
       use_sde: bool = False,
       log_std_init: float = 0.0,
       std_decay_threshold: float = 0.0,
+      std_decay_min: float = 0.1,
       full_std: bool = True,
       sde_net_arch: Optional[List[int]] = None,
       use_expln: bool = False,
@@ -111,6 +113,7 @@ class ActorCriticPolicy(BasePolicy):
     self.normalize_images = normalize_images
     assert 0 <= std_decay_threshold <= 1, "std decay threshold must be included in range [0, 1]"
     self.std_decay_threshold = std_decay_threshold
+    self.std_decay_min = std_decay_min
     self.log_std_init = log_std_init
     dist_kwargs = None
     # Keyword arguments for gSDE distribution
