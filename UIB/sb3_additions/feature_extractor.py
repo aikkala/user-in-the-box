@@ -22,11 +22,11 @@ class VisualAndProprioceptionExtractor(BaseFeaturesExtractor):
         # Run through a simple CNN
         extractors[key] = nn.Sequential(
           nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, padding='same', stride=1),
-          nn.BatchNorm2d(32), nn.LeakyReLU(), nn.MaxPool2d(2),
+          nn.LeakyReLU(), nn.MaxPool2d(2),
           nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, padding='same', stride=1),
-          nn.BatchNorm2d(32), nn.LeakyReLU(), nn.MaxPool2d(2),
+          nn.LeakyReLU(), nn.MaxPool2d(2),
           nn.Conv2d(in_channels=32, out_channels=4, kernel_size=3, padding='same', stride=1),
-          nn.BatchNorm2d(4), nn.LeakyReLU(),
+          nn.LeakyReLU(),
           nn.Flatten())
         total_concat_size += subspace.shape[1] // 4 * subspace.shape[2] // 4 * 4
       elif key == "proprioception":
