@@ -125,7 +125,8 @@ class MuscleActuated(gym.Env):
 
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
-      reward = 20
+      velocity_factor = np.exp(-(self.sim.data.geom_xvelp[fingertip_idx]**2).sum()*10)
+      reward = 10 + velocity_factor*10
 
     else:
 
@@ -138,7 +139,7 @@ class MuscleActuated(gym.Env):
         info["termination"] = "time_limit_reached"
 
     # A small cost on controls
-    reward -= 1e-3 * np.sum(self.sim.data.ctrl)
+#    reward -= 1e-3 * np.sum(self.sim.data.ctrl)
 
     return self.get_observation(), reward, finished, info
 
