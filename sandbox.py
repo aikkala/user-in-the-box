@@ -10,7 +10,8 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from UIB.sb3_additions.schedule import linear_schedule
-
+from UIB.sb3_additions.policies import ActorCriticPolicy
+from UIB.sb3_additions.callbacks import LinearStdDecayCallback
 
 def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_seconds=10):
 
@@ -62,11 +63,11 @@ def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_
 if __name__=="__main__":
 
   env_name = 'UIB:mobl-arms-muscles-v0'
-  train = True
+  train = False
   start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
 #  generate_experience = True
 #  experience_file = 'experience.npy'
-  num_cpu = 7
+  num_cpu = 48
   output_dir = os.path.join('output', env_name)
   checkpoint_dir = os.path.join(output_dir, 'checkpoint')
   log_dir = os.path.join(output_dir, 'log')
@@ -94,24 +95,25 @@ if __name__=="__main__":
     lr = 3e-4
 
     # Initialise policy
-    model = PPO('MlpPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs,
-                tensorboard_log=log_dir, learning_rate=lr)
+    model = PPO('MlpPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log=log_dir)
+                #learning_rate=linear_schedule(initial_value=lr, min_value=1e-7, threshold=0.8))
 
     # Initialise a callback for checkpoints
-    save_freq = 5000000 // num_cpu
+    save_freq = 1000000 // num_cpu
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
-    # Do the learning first with constant learning rate
-    model.learn(total_timesteps=20_000_000, callback=[checkpoint_callback])
+    # Initialise a callback for linearly decaying standard deviation
+    #std_callback = LinearStdDecayCallback(initial_log_value=policy_kwargs['log_std_init'],
+    #                                      threshold=policy_kwargs['std_decay_threshold'],
+    #                                      min_value=policy_kwargs['std_decay_min'])
 
-    # Then some more learning with a decaying learning rate
-    model.learn(total_timesteps=10_000_000, callback=[checkpoint_callback], learning_rate=linear_schedule(lr),
-                reset_num_timesteps=False)
+    # Do the learning first with constant learning rate
+    model.learn(total_timesteps=100_000_000, callback=[checkpoint_callback])
 
   else:
 
     # Load previous policy
-    model = PPO.load(os.path.join(checkpoint_dir, 'model_2999997_steps'))
+    model = PPO.load(os.path.join(checkpoint_dir, 'model_75998784_steps'))
 
 
   # Initialise environment
@@ -121,10 +123,15 @@ if __name__=="__main__":
   while not train:
 
     obs = env.reset()
-    env.render()
+#    env.render()
     done = False
+    c = 0
+    r = 0
     while not done:
       action, _states = model.predict(obs, deterministic=True)
       obs, rewards, done, info = env.step(action)
       env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl[2:] * 0.7
-      env.render()
+#      env.render()
+      c += 1
+      r += rewards
+    print(c, r)
