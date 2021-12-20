@@ -18,7 +18,7 @@ from stable_baselines3.common.distributions import (
 )
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor, FlattenExtractor, MlpExtractor
 from stable_baselines3.common.type_aliases import Schedule
-from stable_baselines3.common.policies import BasePolicy, create_sde_features_extractor
+from stable_baselines3.common.policies import BasePolicy
 
 
 class ActorCriticPolicy(BasePolicy):
