@@ -33,7 +33,7 @@ class MuscleActuated(gym.Env):
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])
     self.target_position = self.target_origin.copy()
-    self.target_limits_y = np.array([-0.3, 0.0])
+    self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
 
     # Minimum distance to new spawned targets
@@ -64,8 +64,8 @@ class MuscleActuated(gym.Env):
     # Set action space -- motor actuators are always first
     motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
     muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])#np.array([0, 1])
-    limits = np.float32(np.concatenate([motors_limits, muscles_limits]))
-    self.action_space = spaces.Box(low=limits[:, 0], high=limits[:, 1])
+    limits = np.concatenate([motors_limits, muscles_limits])
+    self.action_space = spaces.Box(low=np.float32(muscles_limits[:, 0]), high=np.float32(muscles_limits[:, 1]))
     #self.action_space = spaces.MultiBinary(self.nmuscles)
 
     # Reset
@@ -98,7 +98,7 @@ class MuscleActuated(gym.Env):
     # Set motor and muscle control
     # Don't do anything with eyes for now
     #self.sim.data.ctrl[:] = sigmoid(action)
-    self.sim.data.ctrl[:] = np.clip(self.sim.data.ctrl[:] + action*0.2, 0, 1)
+    self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action*0.2, 0, 1)
     #self.sim.data.ctrl[:2] = 0
     #self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
 
@@ -125,7 +125,7 @@ class MuscleActuated(gym.Env):
 
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
-      reward = 1
+      reward = 20
 
     else:
 
@@ -136,6 +136,9 @@ class MuscleActuated(gym.Env):
       if self.steps_since_last_hit >= self.max_steps_without_hit:
         finished = True
         info["termination"] = "time_limit_reached"
+
+    # A small cost on controls
+    reward -= 1e-3 * np.sum(self.sim.data.ctrl)
 
     return self.get_observation(), reward, finished, info
 
@@ -173,12 +176,14 @@ class MuscleActuated(gym.Env):
     qpos = qpos - jnt_range[:, 0] / (jnt_range[:, 1] - jnt_range[:, 0])
     qpos = (qpos - 0.5)*2
     qvel = self.sim.data.qvel[self.independent_joints].copy()
+    qacc = self.sim.data.qacc[self.independent_joints].copy()
 
     act = (self.sim.data.act.copy() - 0.5)*2
     #act = self.sim.data.act.copy()
     fingertip = "hand_2distph"
     finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]]
-    return np.concatenate([qpos[2:], qvel[2:], finger_position-self.target_origin, self.target_position, act])
+    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position,
+                           np.array([self.target_radius]), act])
 
   def spawn_target(self):
 

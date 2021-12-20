@@ -1,8 +1,8 @@
 import gym
-from gym.wrappers.time_limit import TimeLimit
 import os
 import torch
 import numpy as np
+from platform import uname
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -10,6 +10,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from utils import opensim_file
+from UIB.sb3_additions.schedule import linear_schedule
 
 def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_seconds=10, render_mode="human"):
 
@@ -171,7 +172,7 @@ if __name__=="__main__":
   env_name = 'UIB:mobl-arms-muscles-v0'
   train = True
   render_mode = "human"  #"human", "rgb-array"
-  start_method = 'forkserver'  # forkserver in linux, spawn in windows/wsl
+  start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
   generate_experience = False
   experience_file = 'experience.npy'
   num_cpu = 7
@@ -238,32 +239,43 @@ if __name__=="__main__":
                                  vec_env_kwargs={'start_method': start_method})
 
     # Policy parameters
-    policy_kwargs = dict(activation_fn=torch.nn.Tanh,
-                         net_arch=[dict(pi=[128, 128], vf=[128, 128])],
+    policy_kwargs = dict(activation_fn=torch.nn.LeakyReLU,
+                         net_arch=[dict(pi=[256, 256], vf=[256, 256])],
                          log_std_init=0.0)
+    lr = 3e-4
 
     # Initialise policy
     model = PPO('MlpPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs,
-                tensorboard_log=log_dir)
+                tensorboard_log=log_dir, learning_rate=lr)
 
     # Initialise a callback for checkpoints
-    save_freq = 1000000 // num_cpu
+    save_freq = 5000000 // num_cpu
     checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
-    # Do the learning
+    # Do the learning first with constant learning rate
     model.learn(total_timesteps=20_000_000, callback=[checkpoint_callback])
+
+    # Then some more learning with a decaying learning rate
+    model.learn(total_timesteps=10_000_000, callback=[checkpoint_callback], learning_rate=linear_schedule(lr),
+                reset_num_timesteps=False)
 
   else:
 
     # Load previous policy
-    model = PPO.load(os.path.join(checkpoint_dir, 'model_6999888_steps'))
+    model = PPO.load(os.path.join(checkpoint_dir, 'model_2999997_steps'))
+
+
+  # Initialise environment
+  env = gym.make(env_name, **env_kwargs)
 
   # Visualise evaluations, perhaps save a video as well
-  while True:
+  while not train:
+
     obs = env.reset()
     env.render(mode=render_mode)
     done = False
     while not done:
       action, _states = model.predict(obs, deterministic=True)
       obs, rewards, done, info = env.step(action)
+      env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl[2:] * 0.7
       env.render(mode=render_mode)
