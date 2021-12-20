@@ -5,5 +5,5 @@ setup(name='UIB',
       author="Aleksi Ikkala",
       author_email="aleksi.ikkala@aalto.fi",
       packages=["UIB"],
-      install_requires=['gym', 'mujoco_py']
+      install_requires=['gym', 'mujoco_py', 'stable-baselines3', 'tensorboard', 'pytorch']
 )
