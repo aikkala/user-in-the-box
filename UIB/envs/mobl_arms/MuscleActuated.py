@@ -13,13 +13,14 @@ def sigmoid(x):
 class MuscleActuated(gym.Env):
   metadata = {'render.modes': ['human']}
 
-  def __init__(self):
+  def __init__(self, xml_file=None, sample_target=True):
 
     # Get project path
     self.project_path = pathlib.Path(__file__).parent.absolute()
 
     # Model file
-    xml_file = "models/mobl_arms_muscles_modified.xml"
+    if not xml_file:
+      xml_file = "models/mobl_arms_muscles.xml"
 
     # Set action sampling frequency
     self.action_sample_freq = 10
@@ -69,7 +70,7 @@ class MuscleActuated(gym.Env):
     #self.action_space = spaces.MultiBinary(self.nmuscles)
 
     # Reset
-    observation = self.reset()
+    observation = self.reset(sample_target=sample_target)
 
     # Set observation space
     low = np.ones_like(observation)*-float('inf')
@@ -185,31 +186,35 @@ class MuscleActuated(gym.Env):
     return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position,
                            np.array([self.target_radius]), act])
 
-  def spawn_target(self):
+  def spawn_target(self, sample_target=True):
 
     # Sample a location
-    distance = self.new_target_distance_threshold
-    while distance <= self.new_target_distance_threshold:
-      target_y = self.rng.uniform(*self.target_limits_y)
-      target_z = self.rng.uniform(*self.target_limits_z)
-      new_position = np.array([0, target_y, target_z])
-      distance = np.linalg.norm(self.target_position - new_position)
-    self.target_position = new_position
-    #self.target_position = np.zeros((3,))
+    if sample_target:
+      distance = self.new_target_distance_threshold
+      while distance <= self.new_target_distance_threshold:
+        target_y = self.rng.uniform(*self.target_limits_y)
+        target_z = self.rng.uniform(*self.target_limits_z)
+        new_position = np.array([0, target_y, target_z])
+        distance = np.linalg.norm(self.target_position - new_position)
+      self.target_position = new_position
+    else:
+      self.target_position = np.zeros((3,))
 
     # Set location
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
 
     # Sample target radius
-    self.target_radius = self.rng.uniform(*self.target_radius_limit)
-    #self.target_radius = 0.05
+    if sample_target:
+      self.target_radius = self.rng.uniform(*self.target_radius_limit)
+    else:
+      self.target_radius = 0.05
 
     # Set target radius
     self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
 
     self.sim.forward()
 
-  def reset(self):
+  def reset(self, sample_target=True):
 
     self.sim.reset()
     self.steps_since_last_hit = 0
@@ -232,7 +237,7 @@ class MuscleActuated(gym.Env):
     self.sim.data.act[:] = act
 
     # Spawn target
-    self.spawn_target()
+    self.spawn_target(sample_target=sample_target)
 
     # Do a forward so everything will be set
     self.sim.forward()
