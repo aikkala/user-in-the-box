@@ -4,6 +4,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation
 import sys
+import opensim as osim  #required to compute fpmax
 
 class opensim_file(object):
   """
@@ -82,6 +83,51 @@ class opensim_file(object):
     return values_dict
 
 
+def adjust_mujoco_model_pt0(mujoco_xml, osim_file):
+  """
+  Adjusts the musculotendon properties of a MuJoCo model, using the corresponding OpenSim model as reference.
+  Pt. 0: Sets tendon spatial properties (damping, stiffness, and springlength),
+  and (re-)adds all tendon path points from the OpenSim model as sites to the MuJoCo model.
+  :param mujoco_xml: MuJoCo model (filepath or parsed dict obtained from xmltodict.parse())
+  :param osim_file: OpenSim model (filepath or parsed opensim_file class)
+  :return: None [if mujoco_xml is of type dict, it is updated inplace; the model file is not overwritten here!]
+  """
+
+  if type(osim_file) == str:
+    osim_file = opensim_file(osim_file)
+
+  # MUJOCO MODEL ADJUSTMENT: Clear tendon spring-damper properties:
+  spatial_tendons = mujoco_xml['mujoco']['tendon']['spatial']
+  for spatial_tendon in spatial_tendons:
+    if '@springlength' in spatial_tendon:
+        spatial_tendon.pop('@springlength')
+    if '@damping' in spatial_tendon:
+        spatial_tendon.pop('@damping')
+  # TODO: set "tendon_stiffness" to "stiffness_at_one_norm_force" from OpenSim model?
+
+  # # Append OpenSim path points as sites to MuJoCo model:
+  # #TODO
+  #
+  # # Reference sites in tendon paths:
+  # ## To keep order of sites, we first need to remove all existing sites
+  # spatial_tendons = mujoco_xml['mujoco']['tendon']['spatial']
+  # for spatial_tendon in spatial_tendons:
+  #   if 'site' in spatial_tendon:
+  #       spatial_tendon.pop('site')
+  #   if 'geom' in spatial_tendon:
+  #       spatial_tendon.pop('geom')
+  #
+  # for key, osim_path_point in {**osim_file.PathPoint, **osim_file.MovingPathPoint, **osim_file.MovingPathPoint}.items():
+  #   tendon_name = key.split("/")[0] + '_tendon'
+  #   if type(osim_path_point) == list:
+  #     for path_point in osim_path_point:
+  #       if True: #TODO: #wrap_path['wrap_object'] not in failed_objects:
+  #           _append_OpenSim_path_point_to_MuJoCo_model(mujoco_xml, tendon_name, path_point)
+  #   else:
+  #     if True: #TODO: #osim_wrap_path['wrap_object'] not in failed_objects:
+  #         _append_OpenSim_path_point_to_MuJoCo_model(mujoco_xml, tendon_name, osim_path_point)
+
+
 def adjust_mujoco_model_pt1(mujoco_xml, osim_file):
   """
   Adjusts the musculotendon properties of a MuJoCo model, using the corresponding OpenSim model as reference.
@@ -120,7 +166,7 @@ def adjust_mujoco_model_pt1(mujoco_xml, osim_file):
     if type(osim_wrap_path) == list:
       for wrap_path in osim_wrap_path:
         if wrap_path['wrap_object'] not in failed_objects:
-          wrap_path_range = wrap_path['range'] if 'range' in osim_wrap_path else "-1 -1"
+          wrap_path_range = wrap_path['range'] if 'range' in wrap_path else "-1 -1"
           if any(strinterval_to_nparray(wrap_path_range) != np.array([-1, -1])):
             append_OpenSim_wrap_path_to_MuJoCo_model(mujoco_xml, tendon_name, wrap_path)
     else:
@@ -135,7 +181,7 @@ def adjust_mujoco_model_pt1(mujoco_xml, osim_file):
     if type(osim_wrap_path) == list:
       for wrap_path in osim_wrap_path:
         if wrap_path['wrap_object'] not in failed_objects:
-          wrap_path_range = wrap_path['range'] if 'range' in osim_wrap_path else "-1 -1"
+          wrap_path_range = wrap_path['range'] if 'range' in wrap_path else "-1 -1"
           if all(strinterval_to_nparray(wrap_path_range) == np.array([-1, -1])):
             append_OpenSim_wrap_path_to_MuJoCo_model(mujoco_xml, tendon_name, wrap_path)
     else:
@@ -177,11 +223,17 @@ def adjust_mujoco_model_pt2(env, osim_file, scale_ratio=None):
         for actuator_id in actuator_indexlist:  # only consider tendon actuators
             actuator_name = env.sim.model.actuator_id2name(actuator_id)
             actuator_aflc_name = f"{actuator_name}/{actuator_name}_ActiveForceLengthCurve"
+            actuator_pflc_name = f"{actuator_name}/{actuator_name}_FiberForceLengthCurve"
             actuator_fvc_name = f"{actuator_name}/{actuator_name}_ForceVelocityCurve"
             env.sim.model.actuator_gainprm[actuator_id, 4] = float(osim_file.min_norm_active_fiber_length[actuator_aflc_name])  #lmin
             env.sim.model.actuator_gainprm[actuator_id, 5] = float(osim_file.max_norm_active_fiber_length[actuator_aflc_name])  #lmax
             env.sim.model.actuator_gainprm[actuator_id, 6] = float(osim_file.max_contraction_velocity[actuator_name])  #vmax
-            #env.sim.model.actuator_gainprm[actuator_id, 7] = float(osim_file.min_norm_active_fiber_length[actuator_fvc_name])  #fpmax  #TODO
+            # fpmax is not stored in OpenSim file and needs to be computed as passive-force-length curve value at lmax:
+            osim_pflc_args = [float(getattr(osim_file, osim_pflc_property)[actuator_pflc_name]) for osim_pflc_property in [
+                "strain_at_zero_force", "strain_at_one_norm_force", "stiffness_at_low_force", "stiffness_at_one_norm_force", "curviness"]]
+            osim_pflc = osim.FiberForceLengthCurve(*osim_pflc_args)
+            assert abs(osim_pflc.calcValue(1 + osim_pflc_args[1]) - 1) < 1e6  # verify that passive-force-length curve behaves as expected
+            env.sim.model.actuator_gainprm[actuator_id, 7] = osim_pflc.calcValue(env.sim.model.actuator_gainprm[actuator_id, 5])  #fpmax
             env.sim.model.actuator_gainprm[actuator_id, 8] = float(osim_file.max_eccentric_velocity_force_multiplier[actuator_fvc_name])  #fvmax
     else:
         #raise NotImplementedError
@@ -446,7 +498,7 @@ def append_OpenSim_wrap_path_to_MuJoCo_model(mujoco_xml, tendon_name, wrap_path)
     """
     References a tendon wrapping object (referenced in OpenSim wrap_path) within a tendon spatial path.
     WARNING: MuJoCo requires two tendon wrapping objects to be separated by a site. If multiple wrapping objects are
-    to be placed between the same two sites, only the geometry with largest size is used.
+     to be placed between the same two sites, only the geometry with largest size is used.
     :param mujoco_xml: MuJoCo model (filepath or parsed dict obtained from xmltodict.parse())
     :param tendon_name: name of tendon to whose spatial path the geometries within wrap_path are to be added (str)
     :param wrap_path: reference within OpenSim tendon wrapping path (OrderedDict,
@@ -564,7 +616,47 @@ def append_OpenSim_wrap_path_to_MuJoCo_model(mujoco_xml, tendon_name, wrap_path)
     # assert tendon_found, f"Tendon '{tendon_name}' was not found in MuJoCo model."
 
     if len(spatial_tendons) == 1:
-        spatial_tendons = spatial_tendons[0]
+        mujoco_xml['mujoco']['tendon']['spatial'] = spatial_tendons[0]
+
+
+def _append_OpenSim_path_point_to_MuJoCo_model(mujoco_xml, tendon_name, path_point):
+    """
+    References a path point object (referenced in OpenSim path_point) within a tendon spatial path.
+    WARNING: Since MuJoCo only allows for static path points, both ConditionalPathPoint and MovingPathPoint objects
+     need to be transferred to regular PathPoint objects.
+    :param mujoco_xml: MuJoCo model (filepath or parsed dict obtained from xmltodict.parse())
+    :param tendon_name: name of tendon to whose spatial path the geometries within wrap_path are to be added (str)
+    :param path_point: reference within OpenSim tendon path point (OrderedDict,
+                        typically included in opensim_file.PathPoint[tendon_name])
+    :return: None
+    """
+
+    if type(mujoco_xml) == str:
+        filepath = mujoco_xml
+        with open(filepath, "r") as f:
+            text = f.read()
+        mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
+
+    spatial_tendons = mujoco_xml['mujoco']['tendon']['spatial']
+    if type(spatial_tendons) == dict:
+        spatial_tendons = [spatial_tendons]
+
+    for spatial_tendon in spatial_tendons:  # find corresponding 'spatial' tag in tendon object
+        if spatial_tendon['@name'] == tendon_name:
+            if 'site' not in spatial_tendon:
+                spatial_tendon['site'] = []
+            elif type(spatial_tendon['site']) == dict:
+                spatial_tendon['site'] = [spatial_tendon['site']]
+
+            site_dict = {'@site': path_point['@name']}
+            if site_dict not in spatial_tendon['site']:
+                spatial_tendon['site'].append(site_dict)
+            else:
+                pass
+            break
+
+    if len(spatial_tendons) == 1:
+        mujoco_xml['mujoco']['tendon']['spatial'] = spatial_tendons[0]
 
 
 def compute_time_activation_constants(osim_file_or_path, act_linearization=0.5, ctrl_linearization=0.5):

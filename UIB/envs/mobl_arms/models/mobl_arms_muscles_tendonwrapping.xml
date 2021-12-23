@@ -636,7 +636,7 @@
 		<material name="MatPlane" reflectance="0.0" texture="texplane" texrepeat="1 1" texuniform="true"></material>
 	</asset>
 	<tendon>
-		<spatial name="DELT1_tendon" springlength="0.093" damping="0.017">
+		<spatial name="DELT1_tendon">
 			<site site="DELT1-P1"></site>
 			<geom geom="delt2hum"></geom>
 			<site site="DELT1-P2"></site>
@@ -645,7 +645,7 @@
 			<geom geom="delt2hum"></geom>
 			<site site="DELT1-P4"></site>
 		</spatial>
-		<spatial name="DELT2_tendon" springlength="0.1095" damping="0.017">
+		<spatial name="DELT2_tendon">
 			<site site="DELT2-P1"></site>
 			<geom geom="Deltoid2" sidesite="Deltoid2-sidesite"></geom>
 			<site site="DELT2-P2"></site>
@@ -654,46 +654,46 @@
 			<geom geom="Deltoid2" sidesite="Deltoid2-sidesite"></geom>
 			<site site="DELT2-P4"></site>
 		</spatial>
-		<spatial name="DELT3_tendon" springlength="0.038" damping="0.017">
+		<spatial name="DELT3_tendon">
 			<site site="DELT3-P1"></site>
 			<geom geom="Delt3" sidesite="Delt3-sidesite_torus"></geom>
 			<site site="DELT3-P2"></site>
 			<geom geom="DELT_TMAJ_LAT_PEC_CORBhh"></geom>
 			<site site="DELT3-P3"></site>
 		</spatial>
-		<spatial name="SUPSP_tendon" springlength="0.0395" damping="0.017">
+		<spatial name="SUPSP_tendon">
 			<site site="SUPSP-P1"></site>
 			<geom geom="SUPSP"></geom>
 			<site site="SUPSP-P2"></site>
 			<geom geom="SUPSP"></geom>
 			<site site="SUPSP-P3"></site>
 		</spatial>
-		<spatial name="INFSP_tendon" springlength="0.0308" damping="0.017">
+		<spatial name="INFSP_tendon">
 			<site site="INFSP-P1"></site>
 			<geom geom="infsp_new" sidesite="infsp_new-sidesite"></geom>
 			<site site="INFSP-P2"></site>
 		</spatial>
-		<spatial name="SUBSC_tendon" springlength="0.033" damping="0.017">
+		<spatial name="SUBSC_tendon">
 			<site site="SUBSC-P1"></site>
 			<geom geom="SUBSCAP"></geom>
 			<site site="SUBSC-P2"></site>
 			<geom geom="SUBSCAP"></geom>
 			<site site="SUBSC-P3"></site>
 		</spatial>
-		<spatial name="TMIN_tendon" springlength="0.0713" damping="0.017">
+		<spatial name="TMIN_tendon">
 			<site site="TMIN-P1"></site>
 			<geom geom="TMIN" sidesite="TMIN-sidesite"></geom>
 			<site site="TMIN-P2"></site>
 			<site site="TMIN-P3"></site>
 		</spatial>
-		<spatial name="TMAJ_tendon" springlength="0.02" damping="0.017">
+		<spatial name="TMAJ_tendon">
 			<site site="TMAJ-P1"></site>
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="TMAJ-P2"></site>
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="TMAJ-P3"></site>
 		</spatial>
-		<spatial name="PECM1_tendon" springlength="0.0028" damping="0.017">
+		<spatial name="PECM1_tendon">
 			<site site="PECM1-P1"></site>
 			<geom geom="Thorax"></geom>
 			<site site="PECM1-P2"></site>
@@ -702,7 +702,7 @@
 			<geom geom="Thorax"></geom>
 			<site site="PECM1-P4"></site>
 		</spatial>
-		<spatial name="PECM2_tendon" springlength="0.089" damping="0.017">
+		<spatial name="PECM2_tendon">
 			<site site="PECM2-P1"></site>
 			<geom geom="Thorax"></geom>
 			<site site="PECM2-P2"></site>
@@ -713,7 +713,7 @@
 			<geom geom="Thorax"></geom>
 			<site site="PECM2-P5"></site>
 		</spatial>
-		<spatial name="PECM3_tendon" springlength="0.132" damping="0.017">
+		<spatial name="PECM3_tendon">
 			<site site="PECM3-P1"></site>
 			<geom geom="Thorax"></geom>
 			<site site="PECM3-P2"></site>
@@ -724,7 +724,7 @@
 			<geom geom="Thorax"></geom>
 			<site site="PECM3-P5"></site>
 		</spatial>
-		<spatial name="LAT1_tendon" springlength="0.12" damping="0.017">
+		<spatial name="LAT1_tendon">
 			<site site="LAT1-P1"></site>
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="LAT1-P2"></site>
@@ -735,7 +735,7 @@
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="LAT1-P5"></site>
 		</spatial>
-		<spatial name="LAT2_tendon" springlength="0.1765" damping="0.017">
+		<spatial name="LAT2_tendon">
 			<site site="LAT2-P1"></site>
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="LAT2-P2"></site>
@@ -746,7 +746,7 @@
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="LAT2-P5"></site>
 		</spatial>
-		<spatial name="LAT3_tendon" springlength="0.1403" damping="0.017">
+		<spatial name="LAT3_tendon">
 			<site site="LAT3-P1"></site>
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="LAT3-P2"></site>
@@ -757,14 +757,14 @@
 			<geom geom="LAT_TMAJ2hh"></geom>
 			<site site="LAT3-P5"></site>
 		</spatial>
-		<spatial name="CORB_tendon" springlength="0.097" damping="0.017">
+		<spatial name="CORB_tendon">
 			<site site="CORB-P1"></site>
 			<geom geom="TMAJ_LAT_PEC_CORBhh"></geom>
 			<site site="CORB-P2"></site>
 			<geom geom="TMAJ_LAT_PEC_CORBhh"></geom>
 			<site site="CORB-P3"></site>
 		</spatial>
-		<spatial name="TRIlong_tendon" springlength="0.143" damping="0.017">
+		<spatial name="TRIlong_tendon">
 			<site site="TRIlong-P1"></site>
 			<geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite"></geom>
 			<site site="TRIlong-P2"></site>
@@ -775,7 +775,7 @@
 			<geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite"></geom>
 			<site site="TRIlong-P5"></site>
 		</spatial>
-		<spatial name="TRIlat_tendon" springlength="0.098" damping="0.017">
+		<spatial name="TRIlat_tendon">
 			<site site="TRIlat-P1"></site>
 			<geom geom="TRI"></geom>
 			<site site="TRIlat-P2"></site>
@@ -786,7 +786,7 @@
 			<geom geom="TRI"></geom>
 			<site site="TRIlat-P5"></site>
 		</spatial>
-		<spatial name="TRImed_tendon" springlength="0.0908" damping="0.017">
+		<spatial name="TRImed_tendon">
 			<site site="TRImed-P1"></site>
 			<geom geom="TRI"></geom>
 			<site site="TRImed-P2"></site>
@@ -797,19 +797,19 @@
 			<geom geom="TRI"></geom>
 			<site site="TRImed-P5"></site>
 		</spatial>
-		<spatial name="ANC_tendon" springlength="0.018" damping="0.017">
+		<spatial name="ANC_tendon">
 			<site site="ANC-P1"></site>
 			<geom geom="ANC" sidesite="ANC-sidesite"></geom>
 			<site site="ANC-P2"></site>
 		</spatial>
-		<spatial name="SUP_tendon" springlength="0.028" damping="0.017">
+		<spatial name="SUP_tendon">
 			<site site="SUP-P1"></site>
 			<geom geom="SUP" sidesite="SUP-sidesite"></geom>
 			<site site="SUP-P2"></site>
 			<geom geom="SUP" sidesite="SUP-sidesite"></geom>
 			<site site="SUP-P3"></site>
 		</spatial>
-		<spatial name="BIClong_tendon" springlength="0.2723" damping="0.017">
+		<spatial name="BIClong_tendon">
 			<site site="BIClong-P1"></site>
 			<geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite"></geom>
 			<site site="BIClong-P2"></site>
@@ -830,7 +830,7 @@
 			<geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite"></geom>
 			<site site="BIClong-P11"></site>
 		</spatial>
-		<spatial name="BICshort_tendon" springlength="0.1923" damping="0.017">
+		<spatial name="BICshort_tendon">
 			<site site="BICshort-P1"></site>
 			<geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite"></geom>
 			<site site="BICshort-P2"></site>
@@ -845,20 +845,20 @@
 			<geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite"></geom>
 			<site site="BICshort-P8"></site>
 		</spatial>
-		<spatial name="BRA_tendon" springlength="0.0535" damping="0.017">
+		<spatial name="BRA_tendon">
 			<site site="BRA-P1"></site>
 			<site site="BRA-P2"></site>
 			<site site="BRA-P3"></site>
 			<site site="BRA-P4"></site>
 		</spatial>
-		<spatial name="BRD_tendon" springlength="0.133" damping="0.017">
+		<spatial name="BRD_tendon">
 			<site site="BRD-P1"></site>
 			<geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite"></geom>
 			<site site="BRD-P2"></site>
 			<geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite"></geom>
 			<site site="BRD-P3"></site>
 		</spatial>
-		<spatial name="PT_tendon" springlength="0.098" damping="0.017">
+		<spatial name="PT_tendon">
 			<site site="PT-P1"></site>
 			<geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite"></geom>
 			<site site="PT-P2"></site>
@@ -869,7 +869,7 @@
 			<geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite"></geom>
 			<site site="PT-P5"></site>
 		</spatial>
-		<spatial name="PQ_tendon" springlength="0.005" damping="0.017">
+		<spatial name="PQ_tendon">
 			<site site="PQ-P1"></site>
 			<geom geom="PQ1"></geom>
 			<site site="PQ-P2"></site>

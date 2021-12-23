@@ -651,7 +651,7 @@
         <weld name="origin_to_worldbody" body1="thorax" relpose="0 -1 0 0.707107 -0.707107 0 0" active="false" />
     </equality>
     <tendon>
-        <spatial name="DELT1_tendon" damping="0.017" springlength="0.093">
+        <spatial name="DELT1_tendon">
             <site site="DELT1-P1" />
             <geom geom="delt2hum" />
             <site site="DELT1-P2" />
@@ -660,7 +660,7 @@
             <geom geom="delt2hum" />
             <site site="DELT1-P4" />
         </spatial>
-        <spatial name="DELT2_tendon" damping="0.017" springlength="0.1095">
+        <spatial name="DELT2_tendon">
             <site site="DELT2-P1" />
             <geom geom="Deltoid2" sidesite="Deltoid2-sidesite" />
             <site site="DELT2-P2" />
@@ -669,46 +669,46 @@
             <geom geom="Deltoid2" sidesite="Deltoid2-sidesite" />
             <site site="DELT2-P4" />
         </spatial>
-        <spatial name="DELT3_tendon" damping="0.017" springlength="0.038">
+        <spatial name="DELT3_tendon">
             <site site="DELT3-P1" />
             <geom geom="Delt3" sidesite="Delt3-sidesite_torus" />
             <site site="DELT3-P2" />
             <geom geom="DELT_TMAJ_LAT_PEC_CORBhh" />
             <site site="DELT3-P3" />
         </spatial>
-        <spatial name="SUPSP_tendon" damping="0.017" springlength="0.0395">
+        <spatial name="SUPSP_tendon">
             <site site="SUPSP-P1" />
             <geom geom="SUPSP" />
             <site site="SUPSP-P2" />
             <geom geom="SUPSP" />
             <site site="SUPSP-P3" />
         </spatial>
-        <spatial name="INFSP_tendon" damping="0.017" springlength="0.0308">
+        <spatial name="INFSP_tendon">
             <site site="INFSP-P1" />
             <geom geom="infsp_new" sidesite="infsp_new-sidesite" />
             <site site="INFSP-P2" />
         </spatial>
-        <spatial name="SUBSC_tendon" damping="0.017" springlength="0.033">
+        <spatial name="SUBSC_tendon">
             <site site="SUBSC-P1" />
             <geom geom="SUBSCAP" />
             <site site="SUBSC-P2" />
             <geom geom="SUBSCAP" />
             <site site="SUBSC-P3" />
         </spatial>
-        <spatial name="TMIN_tendon" damping="0.017" springlength="0.0713">
+        <spatial name="TMIN_tendon">
             <site site="TMIN-P1" />
             <geom geom="TMIN" sidesite="TMIN-sidesite" />
             <site site="TMIN-P2" />
             <site site="TMIN-P3" />
         </spatial>
-        <spatial name="TMAJ_tendon" damping="0.017" springlength="0.02">
+        <spatial name="TMAJ_tendon">
             <site site="TMAJ-P1" />
             <geom geom="LAT_TMAJ2hh" />
             <site site="TMAJ-P2" />
             <geom geom="LAT_TMAJ2hh" />
             <site site="TMAJ-P3" />
         </spatial>
-        <spatial name="PECM1_tendon" damping="0.017" springlength="0.0028">
+        <spatial name="PECM1_tendon">
             <site site="PECM1-P1" />
             <geom geom="Thorax" />
             <site site="PECM1-P2" />
@@ -717,7 +717,7 @@
             <geom geom="Thorax" />
             <site site="PECM1-P4" />
         </spatial>
-        <spatial name="PECM2_tendon" damping="0.017" springlength="0.089">
+        <spatial name="PECM2_tendon">
             <site site="PECM2-P1" />
             <geom geom="Thorax" />
             <site site="PECM2-P2" />
@@ -728,7 +728,7 @@
             <geom geom="Thorax" />
             <site site="PECM2-P5" />
         </spatial>
-        <spatial name="PECM3_tendon" damping="0.017" springlength="0.132">
+        <spatial name="PECM3_tendon">
             <site site="PECM3-P1" />
             <geom geom="Thorax" />
             <site site="PECM3-P2" />
@@ -739,7 +739,7 @@
             <geom geom="Thorax" />
             <site site="PECM3-P5" />
         </spatial>
-        <spatial name="LAT1_tendon" damping="0.017" springlength="0.12">
+        <spatial name="LAT1_tendon">
             <site site="LAT1-P1" />
             <geom geom="LAT_TMAJ2hh" />
             <site site="LAT1-P2" />
@@ -750,7 +750,7 @@
             <geom geom="LAT_TMAJ2hh" />
             <site site="LAT1-P5" />
         </spatial>
-        <spatial name="LAT2_tendon" damping="0.017" springlength="0.1765">
+        <spatial name="LAT2_tendon">
             <site site="LAT2-P1" />
             <geom geom="LAT_TMAJ2hh" />
             <site site="LAT2-P2" />
@@ -761,7 +761,7 @@
             <geom geom="LAT_TMAJ2hh" />
             <site site="LAT2-P5" />
         </spatial>
-        <spatial name="LAT3_tendon" damping="0.017" springlength="0.1403">
+        <spatial name="LAT3_tendon">
             <site site="LAT3-P1" />
             <geom geom="LAT_TMAJ2hh" />
             <site site="LAT3-P2" />
@@ -772,14 +772,14 @@
             <geom geom="LAT_TMAJ2hh" />
             <site site="LAT3-P5" />
         </spatial>
-        <spatial name="CORB_tendon" damping="0.017" springlength="0.097">
+        <spatial name="CORB_tendon">
             <site site="CORB-P1" />
             <geom geom="TMAJ_LAT_PEC_CORBhh" />
             <site site="CORB-P2" />
             <geom geom="TMAJ_LAT_PEC_CORBhh" />
             <site site="CORB-P3" />
         </spatial>
-        <spatial name="TRIlong_tendon" damping="0.017" springlength="0.143">
+        <spatial name="TRIlong_tendon">
             <site site="TRIlong-P1" />
             <geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite" />
             <site site="TRIlong-P2" />
@@ -790,7 +790,7 @@
             <geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite" />
             <site site="TRIlong-P5" />
         </spatial>
-        <spatial name="TRIlat_tendon" damping="0.017" springlength="0.098">
+        <spatial name="TRIlat_tendon">
             <site site="TRIlat-P1" />
             <geom geom="TRI" />
             <site site="TRIlat-P2" />
@@ -801,7 +801,7 @@
             <geom geom="TRI" />
             <site site="TRIlat-P5" />
         </spatial>
-        <spatial name="TRImed_tendon" damping="0.017" springlength="0.0908">
+        <spatial name="TRImed_tendon">
             <site site="TRImed-P1" />
             <geom geom="TRI" />
             <site site="TRImed-P2" />
@@ -812,19 +812,19 @@
             <geom geom="TRI" />
             <site site="TRImed-P5" />
         </spatial>
-        <spatial name="ANC_tendon" damping="0.017" springlength="0.018">
+        <spatial name="ANC_tendon">
             <site site="ANC-P1" />
             <geom geom="ANC" sidesite="ANC-sidesite" />
             <site site="ANC-P2" />
         </spatial>
-        <spatial name="SUP_tendon" damping="0.017" springlength="0.028">
+        <spatial name="SUP_tendon">
             <site site="SUP-P1" />
             <geom geom="SUP" sidesite="SUP-sidesite" />
             <site site="SUP-P2" />
             <geom geom="SUP" sidesite="SUP-sidesite" />
             <site site="SUP-P3" />
         </spatial>
-        <spatial name="BIClong_tendon" damping="0.017" springlength="0.2723">
+        <spatial name="BIClong_tendon">
             <site site="BIClong-P1" />
             <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P2" />
@@ -845,7 +845,7 @@
             <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P11" />
         </spatial>
-        <spatial name="BICshort_tendon" damping="0.017" springlength="0.1923">
+        <spatial name="BICshort_tendon">
             <site site="BICshort-P1" />
             <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P2" />
@@ -860,20 +860,20 @@
             <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P8" />
         </spatial>
-        <spatial name="BRA_tendon" damping="0.017" springlength="0.0535">
+        <spatial name="BRA_tendon">
             <site site="BRA-P1" />
             <site site="BRA-P2" />
             <site site="BRA-P3" />
             <site site="BRA-P4" />
         </spatial>
-        <spatial name="BRD_tendon" damping="0.017" springlength="0.133">
+        <spatial name="BRD_tendon">
             <site site="BRD-P1" />
             <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BRD-P2" />
             <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BRD-P3" />
         </spatial>
-        <spatial name="PT_tendon" damping="0.017" springlength="0.098">
+        <spatial name="PT_tendon">
             <site site="PT-P1" />
             <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PT-P2" />
@@ -884,7 +884,7 @@
             <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PT-P5" />
         </spatial>
-        <spatial name="PQ_tendon" damping="0.017" springlength="0.005">
+        <spatial name="PQ_tendon">
             <site site="PQ-P1" />
             <geom geom="PQ1" />
             <site site="PQ-P2" />
@@ -893,31 +893,31 @@
     <actuator>
         <general name="oculomotor-rx" class="oculomotor" joint="eye-rx" gainprm="0.5 1.5 0 0 0 0 0 0 0 0" />
         <general name="oculomotor-ry" class="oculomotor" joint="eye-ry" gainprm="0.5 1.5 0 0 0 0 0 0 0 0" />
-        <general name="DELT1" class="muscle" tendon="DELT1_tendon" lengthrange="0.138247 0.228739" gainprm="0.5 1.5 1218.9 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 1218.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="DELT2" class="muscle" tendon="DELT2_tendon" lengthrange="0.161563 0.26569" gainprm="0.5 1.5 1103.5 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 1103.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="DELT3" class="muscle" tendon="DELT3_tendon" lengthrange="0.103005 0.233014" gainprm="0.5 1.5 201.6 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 201.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="SUPSP" class="muscle" tendon="SUPSP_tendon" lengthrange="0.0733464 0.141037" gainprm="0.5 1.5 499.2 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 499.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="INFSP" class="muscle" tendon="INFSP_tendon" lengthrange="0.0664937 0.13788" gainprm="0.5 1.5 1075.8 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 1075.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="SUBSC" class="muscle" tendon="SUBSC_tendon" lengthrange="0.0740173 0.156053" gainprm="0.5 1.5 1306.9 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 1306.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TMIN" class="muscle" tendon="TMIN_tendon" lengthrange="0.105147 0.17284" gainprm="0.5 1.5 269.5 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 269.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TMAJ" class="muscle" tendon="TMAJ_tendon" lengthrange="0.0980541 0.254163" gainprm="0.5 1.5 144 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 144 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PECM1" class="muscle" tendon="PECM1_tendon" lengthrange="0.0717499 0.209648" gainprm="0.5 1.5 444.3 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 444.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PECM2" class="muscle" tendon="PECM2_tendon" lengthrange="0.151241 0.275725" gainprm="0.5 1.5 658.3 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 658.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PECM3" class="muscle" tendon="PECM3_tendon" lengthrange="0.194762 0.320285" gainprm="0.5 1.5 498.1 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 498.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="LAT1" class="muscle" tendon="LAT1_tendon" lengthrange="0.235101 0.465303" gainprm="0.5 1.5 290.5 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 290.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="LAT2" class="muscle" tendon="LAT2_tendon" lengthrange="0.286369 0.506108" gainprm="0.5 1.5 317.5 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 317.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="LAT3" class="muscle" tendon="LAT3_tendon" lengthrange="0.270489 0.530863" gainprm="0.5 1.5 189 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 189 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="CORB" class="muscle" tendon="CORB_tendon" lengthrange="0.138521 0.221563" gainprm="0.5 1.5 208.2 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 208.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TRIlong" class="muscle" tendon="TRIlong_tendon" lengthrange="0.208536 0.339607" gainprm="0.5 1.5 771.8 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 771.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TRIlat" class="muscle" tendon="TRIlat_tendon" lengthrange="0.1542 0.266598" gainprm="0.5 1.5 717.5 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TRImed" class="muscle" tendon="TRImed_tendon" lengthrange="0.147 0.259398" gainprm="0.5 1.5 717.5 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="ANC" class="muscle" tendon="ANC_tendon" lengthrange="0.0314996 0.0585001" gainprm="0.5 1.5 283.2 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 283.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="SUP" class="muscle" tendon="SUP_tendon" lengthrange="0.0444998 0.0775001" gainprm="0.5 1.5 379.6 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 379.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BIClong" class="muscle" tendon="BIClong_tendon" lengthrange="0.33015 0.44585" gainprm="0.5 1.5 525.1 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 525.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BICshort" class="muscle" tendon="BICshort_tendon" lengthrange="0.25835 0.39045" gainprm="0.5 1.5 316.8 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 316.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BRA" class="muscle" tendon="BRA_tendon" lengthrange="0.0963994 0.1822" gainprm="0.5 1.5 1177.37 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 1177.37 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BRD" class="muscle" tendon="BRD_tendon" lengthrange="0.2193 0.3919" gainprm="0.5 1.5 276 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 276 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PT" class="muscle" tendon="PT_tendon" lengthrange="0.122226 0.170679" gainprm="0.5 1.5 557.2 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 557.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PQ" class="muscle" tendon="PQ_tendon" lengthrange="0.0188851 0.0466577" gainprm="0.5 1.5 284.7 2000 0.4327 1.595 10 1.3 1.4 0" biasprm="0.75 1.05 284.7 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="DELT1" class="muscle" tendon="DELT1_tendon" lengthrange="0.138247 0.228739" gainprm="0.5 1.5 1218.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1218.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="DELT2" class="muscle" tendon="DELT2_tendon" lengthrange="0.161563 0.26569" gainprm="0.5 1.5 1103.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1103.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="DELT3" class="muscle" tendon="DELT3_tendon" lengthrange="0.103005 0.233014" gainprm="0.5 1.5 201.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 201.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="SUPSP" class="muscle" tendon="SUPSP_tendon" lengthrange="0.0733464 0.141037" gainprm="0.5 1.5 499.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 499.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="INFSP" class="muscle" tendon="INFSP_tendon" lengthrange="0.0664937 0.13788" gainprm="0.5 1.5 1075.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1075.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="SUBSC" class="muscle" tendon="SUBSC_tendon" lengthrange="0.0740173 0.156053" gainprm="0.5 1.5 1306.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1306.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TMIN" class="muscle" tendon="TMIN_tendon" lengthrange="0.105147 0.17284" gainprm="0.5 1.5 269.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 269.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TMAJ" class="muscle" tendon="TMAJ_tendon" lengthrange="0.0980541 0.254163" gainprm="0.5 1.5 144 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 144 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PECM1" class="muscle" tendon="PECM1_tendon" lengthrange="0.0717499 0.209648" gainprm="0.5 1.5 444.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 444.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PECM2" class="muscle" tendon="PECM2_tendon" lengthrange="0.151241 0.275725" gainprm="0.5 1.5 658.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 658.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PECM3" class="muscle" tendon="PECM3_tendon" lengthrange="0.194762 0.320285" gainprm="0.5 1.5 498.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 498.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="LAT1" class="muscle" tendon="LAT1_tendon" lengthrange="0.235101 0.465303" gainprm="0.5 1.5 290.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 290.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="LAT2" class="muscle" tendon="LAT2_tendon" lengthrange="0.286369 0.506108" gainprm="0.5 1.5 317.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 317.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="LAT3" class="muscle" tendon="LAT3_tendon" lengthrange="0.270489 0.530863" gainprm="0.5 1.5 189 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 189 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="CORB" class="muscle" tendon="CORB_tendon" lengthrange="0.138521 0.221563" gainprm="0.5 1.5 208.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 208.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TRIlong" class="muscle" tendon="TRIlong_tendon" lengthrange="0.208536 0.339607" gainprm="0.5 1.5 771.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 771.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TRIlat" class="muscle" tendon="TRIlat_tendon" lengthrange="0.1542 0.266598" gainprm="0.5 1.5 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TRImed" class="muscle" tendon="TRImed_tendon" lengthrange="0.147 0.259398" gainprm="0.5 1.5 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="ANC" class="muscle" tendon="ANC_tendon" lengthrange="0.0314996 0.0585001" gainprm="0.5 1.5 283.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 283.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="SUP" class="muscle" tendon="SUP_tendon" lengthrange="0.0444998 0.0775001" gainprm="0.5 1.5 379.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 379.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BIClong" class="muscle" tendon="BIClong_tendon" lengthrange="0.33015 0.44585" gainprm="0.5 1.5 525.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 525.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BICshort" class="muscle" tendon="BICshort_tendon" lengthrange="0.25835 0.39045" gainprm="0.5 1.5 316.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 316.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BRA" class="muscle" tendon="BRA_tendon" lengthrange="0.0963994 0.1822" gainprm="0.5 1.5 1177.37 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1177.37 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BRD" class="muscle" tendon="BRD_tendon" lengthrange="0.2193 0.3919" gainprm="0.5 1.5 276 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 276 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PT" class="muscle" tendon="PT_tendon" lengthrange="0.122226 0.170679" gainprm="0.5 1.5 557.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 557.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PQ" class="muscle" tendon="PQ_tendon" lengthrange="0.0188851 0.0466577" gainprm="0.5 1.5 284.7 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 284.7 2000 0.5 1.6 1.5 1.3 1.2 0" />
     </actuator>
 </mujoco>

@@ -5,6 +5,7 @@ import gym
 import mujoco_py
 
 from utils import opensim_file, adjust_mujoco_model_pt1, adjust_mujoco_model_pt2, print_musculotendon_properties
+from utils import adjust_mujoco_model_pt0
 
 if __name__=="__main__":
     env_name = 'UIB:mobl-arms-muscles-v0'
@@ -22,6 +23,18 @@ if __name__=="__main__":
     with open(mujoco_input, "r") as f:
         text = f.read()
     mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
+
+    # Adjust musculotendon properties of MuJoCo model (pt0; via xml file)
+    adjust_mujoco_model_pt0(mujoco_xml, osim_file)
+    # # Store new (intermediate) MuJoCo model
+    # mujoco_xml['mujoco']['compiler']['lengthrange']['@mode'] = "none"  # disable automatic length range computation at compile time, since we compute them manually below
+    # out = xmltodict.unparse(mujoco_xml, pretty=True, ordered_mixed_children=True)
+    # with open(mujoco_intermediate, 'w') as f:
+    #     f.write(out)
+    # # Read and parse MuJoCo model
+    # with open(mujoco_intermediate, "r") as f:
+    #     text = f.read()
+    # mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
 
     # Adjust musculotendon properties of MuJoCo model (pt1; via xml file)
     adjust_mujoco_model_pt1(mujoco_xml, osim_file)
