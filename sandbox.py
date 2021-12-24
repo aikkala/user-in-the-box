@@ -3,6 +3,7 @@ import os
 import torch
 import numpy as np
 from platform import uname
+import pathlib
 
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -19,7 +20,12 @@ if __name__=="__main__":
   env_name = 'UIB:mobl-arms-muscles-v1'
   start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
   num_cpu = 48
-  output_dir = os.path.join('output', env_name)
+
+  # Get project path
+  project_path = pathlib.Path(__file__).parent.absolute()
+
+  # Define output directories
+  output_dir = os.path.join(project_path, 'output', env_name)
   checkpoint_dir = os.path.join(output_dir, 'checkpoint')
   log_dir = os.path.join(output_dir, 'log')
 
