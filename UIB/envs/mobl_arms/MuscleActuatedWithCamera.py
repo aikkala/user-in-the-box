@@ -100,7 +100,7 @@ class MuscleActuatedWithCamera(gym.Env):
     # Set motor and muscle control
     # Don't do anything with eyes for now
     #self.sim.data.ctrl[:] = sigmoid(action)
-    self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action*0.2, 0, 1)
+    self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action, 0, 1)
     #self.sim.data.ctrl[:2] = 0
     #self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
 
@@ -128,12 +128,12 @@ class MuscleActuatedWithCamera(gym.Env):
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
       velocity_factor = np.exp(-(self.sim.data.geom_xvelp[fingertip_idx]**2).sum()*10)
-      reward = 10 + velocity_factor*10
+      reward = 4 + velocity_factor*4
 
     else:
 
       # Estimate reward
-      reward = np.exp(-dist*10)
+      reward = np.exp(-dist*10)/10
 
       self.steps_since_last_hit += 1
       if self.steps_since_last_hit >= self.max_steps_without_hit:

@@ -18,7 +18,7 @@ if __name__=="__main__":
 
   env_name = 'UIB:mobl-arms-muscles-v1'
   start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
-  num_cpu = 7
+  num_cpu = 48
   output_dir = os.path.join('output', env_name)
   checkpoint_dir = os.path.join(output_dir, 'checkpoint')
   log_dir = os.path.join(output_dir, 'log')
@@ -26,28 +26,24 @@ if __name__=="__main__":
   # Leave for future kwargs
   env_kwargs = {}
 
-  # Initialise environment
-  env = gym.make(env_name, **env_kwargs)
-  env.step(env.action_space.sample())
-
   # Initialise parallel envs
   parallel_envs = make_vec_env(env_name, n_envs=num_cpu, seed=0, vec_env_cls=SubprocVecEnv, env_kwargs=env_kwargs,
                                vec_env_kwargs={'start_method': start_method})
 
   # Policy parameters
   policy_kwargs = dict(activation_fn=torch.nn.LeakyReLU,
-                       net_arch=[256, dict(vf=[128], pi=[128])],
-                       log_std_init=0.0, features_extractor_class=VisualAndProprioceptionExtractor,
+                       net_arch=[256, 256],
+                       log_std_init=-0.7, features_extractor_class=VisualAndProprioceptionExtractor,
                        normalize_images=False)
-  lr = 3e-4
+  lr = 1e-4
 
   # Initialise policy
   model = PPO('MultiInputPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log=log_dir,
-              n_steps=400, batch_size=200)
+              n_steps=2000, batch_size=100)
               #learning_rate=linear_schedule(initial_value=lr, min_value=1e-7, threshold=0.8))
 
   # Initialise a callback for checkpoints
-  save_freq = 1000000 // num_cpu
+  save_freq = 10000000 // num_cpu
   checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
   # Initialise a callback for linearly decaying standard deviation
