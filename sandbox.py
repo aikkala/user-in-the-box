@@ -19,7 +19,7 @@ if __name__=="__main__":
 
   env_name = 'UIB:mobl-arms-muscles-v1'
   start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
-  num_cpu = 48
+  num_cpu = 5
 
   # Get project path
   project_path = pathlib.Path(__file__).parent.absolute()
@@ -30,7 +30,7 @@ if __name__=="__main__":
   log_dir = os.path.join(output_dir, 'log')
 
   # Leave for future kwargs
-  env_kwargs = {}
+  env_kwargs = {"target_radius_limit": np.array([0.1, 0.1])}
 
   # Initialise parallel envs
   parallel_envs = make_vec_env(env_name, n_envs=num_cpu, seed=0, vec_env_cls=SubprocVecEnv, env_kwargs=env_kwargs,
@@ -45,11 +45,11 @@ if __name__=="__main__":
 
   # Initialise policy
   model = PPO('MultiInputPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log=log_dir,
-              n_steps=2000, batch_size=100)
+              n_steps=10000, batch_size=100)
               #learning_rate=linear_schedule(initial_value=lr, min_value=1e-7, threshold=0.8))
 
   # Initialise a callback for checkpoints
-  save_freq = 10000000 // num_cpu
+  save_freq = 1000000 // num_cpu
   checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
   # Initialise a callback for linearly decaying standard deviation

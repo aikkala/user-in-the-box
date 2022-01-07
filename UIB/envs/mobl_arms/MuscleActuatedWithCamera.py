@@ -13,7 +13,7 @@ def sigmoid(x):
 class MuscleActuatedWithCamera(gym.Env):
   metadata = {'render.modes': ['human']}
 
-  def __init__(self):
+  def __init__(self, **kwargs):
 
     # Get project path
     self.project_path = pathlib.Path(__file__).parent.absolute()
@@ -36,11 +36,14 @@ class MuscleActuatedWithCamera(gym.Env):
     self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
 
-    # Minimum distance to new spawned targets
-    self.new_target_distance_threshold = 0.1
-
     # Radius limits for target
-    self.target_radius_limit = np.array([0.01, 0.05])
+    if "target_radius_limit" in kwargs:
+      self.target_radius_limit = kwargs["target_radius_limit"]
+    else:
+      self.target_radius_limit = np.array([0.01, 0.05])
+
+    # Minimum distance to new spawned targets is twice the max target radius limit
+    self.new_target_distance_threshold = 2*self.target_radius_limit[1]
 
     # RNG in case we need it
     self.rng = np.random.default_rng()
@@ -99,10 +102,7 @@ class MuscleActuatedWithCamera(gym.Env):
 
     # Set motor and muscle control
     # Don't do anything with eyes for now
-    #self.sim.data.ctrl[:] = sigmoid(action)
     self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action, 0, 1)
-    #self.sim.data.ctrl[:2] = 0
-    #self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
 
     finished = False
     try:
@@ -161,8 +161,8 @@ class MuscleActuatedWithCamera(gym.Env):
     finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]] - self.target_origin
 
     # Get depth array and normalise
-    depth = self.render(camera_name='oculomotor', mode='depth_array', width=120, height=80)
-    depth = (depth - 0.5)*2
+    depth = self.sim.render(width=10, height=10, camera_name='oculomotor', depth=True)[1]
+    depth = np.flipud((depth - 0.5)*2)
 
     return {'proprioception': np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, act]),
             'visual': np.expand_dims(depth, 0),
@@ -178,14 +178,12 @@ class MuscleActuatedWithCamera(gym.Env):
       new_position = np.array([0, target_y, target_z])
       distance = np.linalg.norm(self.target_position - new_position)
     self.target_position = new_position
-    #self.target_position = np.zeros((3,))
 
     # Set location
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
 
     # Sample target radius
     self.target_radius = self.rng.uniform(*self.target_radius_limit)
-    #self.target_radius = 0.05
 
     # Set target radius
     self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
