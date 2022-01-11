@@ -20,18 +20,30 @@ class VisualAndProprioceptionExtractor(BaseFeaturesExtractor):
     for key, subspace in observation_space.spaces.items():
       if key == "visual":
         # Run through a simple CNN
-        extractors[key] = nn.Sequential(
-          nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, padding='same', stride=1),
+        cnn = nn.Sequential(
+          nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5, padding=0, stride=2),
           nn.LeakyReLU(),
-          nn.Conv2d(in_channels=16, out_channels=16, kernel_size=3, padding='same', stride=1),
+          nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, padding=0, stride=2),
           nn.LeakyReLU(),
-          nn.Conv2d(in_channels=16, out_channels=4, kernel_size=3, padding='same', stride=1),
+          nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, padding=0, stride=1),
           nn.LeakyReLU(),
           nn.Flatten())
-        total_concat_size += subspace.shape[1] * subspace.shape[2] * 4
+
+        # Compute shape by doing one forward pass
+        with th.no_grad():
+            n_flatten = cnn(th.as_tensor(observation_space["visual"].sample()[None])).shape[1]
+
+        extractors[key] = nn.Sequential(
+          cnn,
+          nn.Linear(in_features=n_flatten, out_features=64),
+          nn.LeakyReLU())
+        #total_concat_size += subspace.shape[1] * subspace.shape[2] * 1
+        total_concat_size += 64
       elif key == "proprioception":
         # Run through a simple MLP
-        extractors[key] = nn.Linear(subspace.shape[0], 64)
+        extractors[key] = nn.Sequential(
+          nn.Linear(subspace.shape[0], 64),
+          nn.LeakyReLU())
         total_concat_size += 64
       elif key == "ocular":
         # Do nothing with this for now
