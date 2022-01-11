@@ -19,7 +19,7 @@ if __name__=="__main__":
 
   env_name = 'UIB:mobl-arms-muscles-v1'
   start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
-  num_cpu = 5
+  num_cpu = 6
 
   # Get project path
   project_path = pathlib.Path(__file__).parent.absolute()
@@ -31,6 +31,7 @@ if __name__=="__main__":
 
   # Leave for future kwargs
   env_kwargs = {"target_radius_limit": np.array([0.1, 0.1])}
+  env = gym.make(env_name, **env_kwargs)
 
   # Initialise parallel envs
   parallel_envs = make_vec_env(env_name, n_envs=num_cpu, seed=0, vec_env_cls=SubprocVecEnv, env_kwargs=env_kwargs,
@@ -39,13 +40,13 @@ if __name__=="__main__":
   # Policy parameters
   policy_kwargs = dict(activation_fn=torch.nn.LeakyReLU,
                        net_arch=[256, 256],
-                       log_std_init=-0.7, features_extractor_class=VisualAndProprioceptionExtractor,
+                       log_std_init=0.0, features_extractor_class=VisualAndProprioceptionExtractor,
                        normalize_images=False)
-  lr = 1e-4
+  lr = 1e-5
 
   # Initialise policy
   model = PPO('MultiInputPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log=log_dir,
-              n_steps=10000, batch_size=100)
+              n_steps=4000, batch_size=100)
               #learning_rate=linear_schedule(initial_value=lr, min_value=1e-7, threshold=0.8))
 
   # Initialise a callback for checkpoints
