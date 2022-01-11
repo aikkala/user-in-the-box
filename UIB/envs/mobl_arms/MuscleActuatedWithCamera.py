@@ -30,6 +30,10 @@ class MuscleActuatedWithCamera(gym.Env):
     self.steps_since_last_hit = 0
     self.max_steps_without_hit = self.action_sample_freq*4
 
+    # Max episode length
+    self.steps = 0
+    self.max_episode_length = self.action_sample_freq*60
+
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])
     self.target_position = self.target_origin.copy()
@@ -139,6 +143,10 @@ class MuscleActuatedWithCamera(gym.Env):
       if self.steps_since_last_hit >= self.max_steps_without_hit:
         finished = True
         info["termination"] = "time_limit_reached"
+      self.steps += 1
+      if self.steps >= self.max_episode_length:
+        finished = True
+        info["termination"] = "episode_length_reached"
 
     return self.get_observation(), reward, finished, info
 
@@ -161,22 +169,27 @@ class MuscleActuatedWithCamera(gym.Env):
     finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]] - self.target_origin
 
     # Get depth array and normalise
-    depth = self.sim.render(width=10, height=10, camera_name='oculomotor', depth=True)[1]
+    render = self.sim.render(width=80, height=120, camera_name='oculomotor', depth=True)
+    depth = render[1]
     depth = np.flipud((depth - 0.5)*2)
+    rgb = render[0]
+    rgb = np.flipud((rgb/255.0 - 0.5)*2)
 
     return {'proprioception': np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, act]),
+            #'visual': np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), (2, 0, 1)),
             'visual': np.expand_dims(depth, 0),
             'ocular': np.concatenate([qpos[:2], qvel[:2], qacc[:2]])}
 
   def spawn_target(self):
 
-    # Sample a location
-    distance = self.new_target_distance_threshold
-    while distance <= self.new_target_distance_threshold:
+    # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
+    for _ in range(10):
       target_y = self.rng.uniform(*self.target_limits_y)
       target_z = self.rng.uniform(*self.target_limits_z)
       new_position = np.array([0, target_y, target_z])
       distance = np.linalg.norm(self.target_position - new_position)
+      if distance > self.new_target_distance_threshold:
+        break
     self.target_position = new_position
 
     # Set location
@@ -194,6 +207,7 @@ class MuscleActuatedWithCamera(gym.Env):
 
     self.sim.reset()
     self.steps_since_last_hit = 0
+    self.steps = 0
 
     # Randomly sample qpos, qvel, act
     nq = len(self.independent_joints)
