@@ -70,9 +70,11 @@ class MuscleActuatedWithCamera(gym.Env):
 
     # Set action space -- motor actuators are always first
     motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
-    muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])#np.array([0, 1])
-    limits = np.concatenate([motors_limits, muscles_limits])
+    muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])
     self.action_space = spaces.Box(low=np.float32(muscles_limits[:, 0]), high=np.float32(muscles_limits[:, 1]))
+
+    # Fingertip is tracked for e.g. reward calculation and logging
+    self.fingertip = "hand_2distph"
 
     # Set camera stuff, self._viewers needs to be initialised before self.get_observation() is called
     self.viewer = None
@@ -82,6 +84,8 @@ class MuscleActuatedWithCamera(gym.Env):
       'video.frames_per_second': int(np.round(1.0 / (self.model.opt.timestep * self.frame_skip))),
       "imagesize": (1280, 800)
     }
+    self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([1.5, -1.5, 0.9])
+    self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([0.6582, 0.6577, 0.2590, 0.2588])
 
     # Reset
     observation = self.reset()
@@ -115,11 +119,8 @@ class MuscleActuatedWithCamera(gym.Env):
       finished = True
       info["termination"] = "MujocoException"
 
-    # Check if target is hit
-    fingertip_idx = self.model._geom_name2id["hand_2distph"]
-
     # Get finger position
-    finger_position = self.sim.data.geom_xpos[fingertip_idx]
+    finger_position = self.sim.data.get_geom_xpos(self.fingertip)
 
     # Distance to target
     dist = np.linalg.norm(self.target_position - (finger_position - self.target_origin))
@@ -131,7 +132,7 @@ class MuscleActuatedWithCamera(gym.Env):
 
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
-      velocity_factor = np.exp(-(self.sim.data.geom_xvelp[fingertip_idx]**2).sum()*10)
+      velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
       reward = 4 + velocity_factor*4
 
     else:
@@ -165,8 +166,7 @@ class MuscleActuatedWithCamera(gym.Env):
     act = (self.sim.data.act.copy() - 0.5)*2
 
     # Estimate fingertip position, normalise to target_origin
-    fingertip = "hand_2distph"
-    finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]] - self.target_origin
+    finger_position = self.sim.data.get_geom_xpos(self.fingertip) - self.target_origin
 
     # Get depth array and normalise
     render = self.sim.render(width=80, height=120, camera_name='oculomotor', depth=True)
@@ -233,6 +233,18 @@ class MuscleActuatedWithCamera(gym.Env):
     self.sim.forward()
 
     return self.get_observation()
+
+  def get_state(self):
+    state = {"step": self.steps, "timestep": self.sim.data.time,
+             "qpos": self.sim.data.qpos[self.independent_joints],
+             "qvel": self.sim.data.qvel[self.independent_joints],
+             "qacc": self.sim.data.qacc[self.independent_joints],
+             "act": self.sim.data.act,
+             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip),
+             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip),
+             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip),
+             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip)}
+    return state
 
   def render(self, mode='human', width=1280, height=800, camera_id=None, camera_name=None):
 

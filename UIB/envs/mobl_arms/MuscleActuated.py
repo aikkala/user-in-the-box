@@ -13,7 +13,7 @@ def sigmoid(x):
 class MuscleActuated(gym.Env):
   metadata = {'render.modes': ['human']}
 
-  def __init__(self):
+  def __init__(self, **kwargs):
 
     # Get project path
     self.project_path = pathlib.Path(__file__).parent.absolute()
@@ -30,17 +30,24 @@ class MuscleActuated(gym.Env):
     self.steps_since_last_hit = 0
     self.max_steps_without_hit = self.action_sample_freq*4
 
+    # Max episode length
+    self.steps = 0
+    self.max_episode_length = self.action_sample_freq*60
+
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])
     self.target_position = self.target_origin.copy()
     self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
 
-    # Minimum distance to new spawned targets
-    self.new_target_distance_threshold = 0.1
-
     # Radius limits for target
-    self.target_radius_limit = np.array([0.01, 0.05])
+    if "target_radius_limit" in kwargs:
+      self.target_radius_limit = kwargs["target_radius_limit"]
+    else:
+      self.target_radius_limit = np.array([0.01, 0.05])
+
+    # Minimum distance to new spawned targets is twice the max target radius limit
+    self.new_target_distance_threshold = 2*self.target_radius_limit[1]
 
     # RNG in case we need it
     self.rng = np.random.default_rng()
@@ -63,10 +70,11 @@ class MuscleActuated(gym.Env):
 
     # Set action space -- motor actuators are always first
     motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
-    muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])#np.array([0, 1])
-    limits = np.concatenate([motors_limits, muscles_limits])
+    muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])
     self.action_space = spaces.Box(low=np.float32(muscles_limits[:, 0]), high=np.float32(muscles_limits[:, 1]))
-    #self.action_space = spaces.MultiBinary(self.nmuscles)
+
+    # Fingertip is tracked for e.g. reward calculation and logging
+    self.fingertip = "hand_2distph"
 
     # Reset
     observation = self.reset()
@@ -84,6 +92,9 @@ class MuscleActuated(gym.Env):
       'video.frames_per_second': int(np.round(1.0 / (self.model.opt.timestep * self.frame_skip))),
       "imagesize": (1280, 800)
     }
+    self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([1.5, -1.5, 0.9])
+    self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([0.6582, 0.6577, 0.2590, 0.2588])
+
 
   def is_contact(self, idx1, idx2):
     for contact in self.sim.data.contact:
@@ -97,10 +108,7 @@ class MuscleActuated(gym.Env):
 
     # Set motor and muscle control
     # Don't do anything with eyes for now
-    #self.sim.data.ctrl[:] = sigmoid(action)
-    self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action*0.2, 0, 1)
-    #self.sim.data.ctrl[:2] = 0
-    #self.sim.data.ctrl[2:] = np.clip(self.sim.data.ctrl[2:] + (action-0.5)*0.4, 0, 1)
+    self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action, 0, 1)
 
     finished = False
     try:
@@ -109,11 +117,8 @@ class MuscleActuated(gym.Env):
       finished = True
       info["termination"] = "MujocoException"
 
-    # Check if target is hit
-    fingertip_idx = self.model._geom_name2id["hand_2distph"]
-
     # Get finger position
-    finger_position = self.sim.data.geom_xpos[fingertip_idx]
+    finger_position = self.sim.data.get_geom_xpos(self.fingertip)
 
     # Distance to target
     dist = np.linalg.norm(self.target_position - (finger_position - self.target_origin))
@@ -125,8 +130,8 @@ class MuscleActuated(gym.Env):
 
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
-      velocity_factor = np.exp(-(self.sim.data.geom_xvelp[fingertip_idx]**2).sum()*10)
-      reward = 10 + velocity_factor*10
+      velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
+      reward = 10 #+ velocity_factor*10
 
     else:
 
@@ -137,37 +142,12 @@ class MuscleActuated(gym.Env):
       if self.steps_since_last_hit >= self.max_steps_without_hit:
         finished = True
         info["termination"] = "time_limit_reached"
-
-    # A small cost on controls
-#    reward -= 1e-3 * np.sum(self.sim.data.ctrl)
+      self.steps += 1
+      if self.steps >= self.max_episode_length:
+        finished = True
+        info["termination"] = "episode_length_reached"
 
     return self.get_observation(), reward, finished, info
-
-  def get_state(self):
-
-    # Get cartesian positions of target geoms
-    xpos = self.sim.data.geom_xpos[self.geom_target_indices, :].copy()
-
-    # Get quaternions of target geoms
-    xquat = R.from_matrix(np.reshape(self.sim.data.geom_xmat[self.geom_target_indices, :].copy(),
-                                     (len(self.geom_target_indices), 3, 3))).as_quat()
-
-    # Get translation velocity of target geoms
-    xvelp = self.sim.data.geom_xvelp[self.geom_target_indices, :].copy()
-
-    # Get get angular velocity of target geoms
-    #xvelr = self.sim.data.geom_xvelr[self.geom_target_indices, :].copy()
-
-    # Needed for egocentric observaitons
-    v_pelvis = self.sim.data.geom_xpos[self.model._geom_name2id["pelvis"], : ] - \
-               self.sim.data.geom_xpos[self.model._geom_name2id["l_pelvis"], :]
-
-    # State includes everything
-    state = {"xpos": xpos, "xquat": xquat, "xvelp": xvelp, "root_xpos": xpos[0, :], "root_xquat": xquat[0, :],
-             "qpos": self.sim.data.qpos.copy(), "qvel": self.sim.data.qvel.copy(), "qacc": self.sim.data.qacc.copy(),
-             "v_pelvis": v_pelvis, "act": self.sim.data.act.copy()}
-
-    return state
 
   def get_observation(self):
     # Ignore eye qpos and qvel for now
@@ -180,30 +160,28 @@ class MuscleActuated(gym.Env):
     qacc = self.sim.data.qacc[self.independent_joints].copy()
 
     act = (self.sim.data.act.copy() - 0.5)*2
-    #act = self.sim.data.act.copy()
-    fingertip = "hand_2distph"
-    finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]]
+    finger_position = self.sim.data.get_geom_xpos(self.fingertip) - self.target_origin
+
     return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position,
                            np.array([self.target_radius]), act])
 
   def spawn_target(self):
 
-    # Sample a location
-    distance = self.new_target_distance_threshold
-    while distance <= self.new_target_distance_threshold:
+    # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
+    for _ in range(10):
       target_y = self.rng.uniform(*self.target_limits_y)
       target_z = self.rng.uniform(*self.target_limits_z)
       new_position = np.array([0, target_y, target_z])
       distance = np.linalg.norm(self.target_position - new_position)
+      if distance > self.new_target_distance_threshold:
+        break
     self.target_position = new_position
-    #self.target_position = np.zeros((3,))
 
     # Set location
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
 
     # Sample target radius
     self.target_radius = self.rng.uniform(*self.target_radius_limit)
-    #self.target_radius = 0.05
 
     # Set target radius
     self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
@@ -214,6 +192,7 @@ class MuscleActuated(gym.Env):
 
     self.sim.reset()
     self.steps_since_last_hit = 0
+    self.steps = 0
 
     # Randomly sample qpos, qvel, act
     nq = len(self.independent_joints)
@@ -239,6 +218,18 @@ class MuscleActuated(gym.Env):
     self.sim.forward()
 
     return self.get_observation()
+
+  def get_state(self):
+    state = {"step": self.steps, "timestep": self.sim.data.time,
+             "qpos": self.sim.data.qpos[self.independent_joints],
+             "qvel": self.sim.data.qvel[self.independent_joints],
+             "qacc": self.sim.data.qacc[self.independent_joints],
+             "act": self.sim.data.act,
+             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip),
+             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip),
+             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip),
+             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip)}
+    return state
 
   def render(self, mode='human', width=1280, height=800, camera_id=None, camera_name=None):
 
