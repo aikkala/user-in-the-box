@@ -51,63 +51,6 @@ if __name__=="__main__":
     env = gym.make(env_name, xml_file=mujoco_intermediate.split("envs/mobl_arms/")[-1], sample_target=False)
     adjust_mujoco_model_pt2(env, osim_file)
 
-
-    ##########
-
-
-    import time
-    start_time = time.time()
-
-    model = mujoco_py.load_model_from_path("/home/florian/user-in-the-box/UIB/envs/mobl_arms/models/test.xml")
-    print(env.sim.model.tex_rgb, model.tex_rgb, sum(model.tex_rgb == 255), len(model.tex_rgb))
-    #from mujoco_py.utils import rec_assign, rec_copy
-    #rec_assign(env.sim.model.tex_rgb, rec_copy(model.tex_rgb))
-    import sys, ctypes
-    def mutate(obj,
-               new_obj):  # from https://stackoverflow.com/questions/49841577/updating-a-variable-by-its-id-within-python
-        if sys.getsizeof(obj) != sys.getsizeof(new_obj):
-            raise ValueError('objects must have same size')
-        mem = (ctypes.c_byte * sys.getsizeof(obj)).from_address(id(obj))
-        new_mem = (ctypes.c_byte * sys.getsizeof(new_obj)).from_address(id(new_obj))
-        for i in range(len(mem)):
-            mem[i] = new_mem[i]
-    from mujoco_py.modder import TextureModder
-    modder = TextureModder(env.sim)
-    print([i.tex_rgb for i in modder.textures])
-    for render_context in env.sim.render_contexts:
-        render_context.upload_texture(0)
-
-    mutate(env.sim.model.tex_rgb, model.tex_rgb)
-    # mujoco_py.cymj._mjr_uploadTexture(env.sim.model, mujoco_py.cymj.MjRenderContextWindow, 0)
-    for render_context in env.sim.render_contexts:
-        render_context.upload_texture(0)
-    print(env.sim.model.tex_rgb, model.tex_rgb, sum(model.tex_rgb == 255), len(model.tex_rgb))
-    input([i.tex_rgb for i in modder.textures])
-
-    import _ctypes
-    input((model.uintptr))
-    import pyximport
-
-    pyximport.install()
-    import buf_test
-
-    data = _ctypes.PyObj_FromPtr(id(model.uintptr))
-    data = model.qpos_spring
-    buf_test.test_double(data)  # works fine - but interprets as unsigned char
-    # we can also use casts and the Python
-    # standard memoryview object to get it as a double array
-    buf_test.test_double(memoryview(data).cast('d'))
-
-    mutate(model.qpos0, model.qpos_spring)
-    # from mujoco_py.utils import rec_assign, rec_copy
-    # rec_assign(model.qpos_spring, rec_copy(model.qpos0))
-    model.qpos_spring[:] = [7] * model.nq
-    print(model.qpos0, model.qpos_spring)
-    input(_ctypes.PyObj_FromPtr(model.uintptr))
-    print(id(model.qpos0), id(model.qpos_spring))
-    input(time.time() - start_time)
-    ##########
-
     # Store new MuJoCo model
     mujoco_py.cymj._mj_saveLastXML(mujoco_output, env.sim.model, "NULL", 0)
     print(f"MuJoCo model successfully adjusted and stored at\n{mujoco_output}")
