@@ -35,10 +35,10 @@ class VisualAndProprioceptionExtractor(BaseFeaturesExtractor):
 
         extractors[key] = nn.Sequential(
           cnn,
-          nn.Linear(in_features=n_flatten, out_features=64),
+          nn.Linear(in_features=n_flatten, out_features=128),
           nn.LeakyReLU())
         #total_concat_size += subspace.shape[1] * subspace.shape[2] * 1
-        total_concat_size += 64
+        total_concat_size += 128
       elif key == "proprioception":
         # Run through a simple MLP
         extractors[key] = nn.Sequential(

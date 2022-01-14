@@ -133,7 +133,7 @@ class MuscleActuatedWithCamera(gym.Env):
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
       velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
-      reward = 4 + velocity_factor*4
+      reward = 2 #+ velocity_factor*2
 
     else:
 

@@ -11,7 +11,7 @@ from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 from UIB.sb3_additions.schedule import linear_schedule
-from UIB.sb3_additions.policies import ActorCriticPolicy
+from UIB.sb3_additions.policies import MultiInputActorCriticPolicyTanhActions
 from UIB.sb3_additions.feature_extractor import VisualAndProprioceptionExtractor
 
 
@@ -30,8 +30,7 @@ if __name__=="__main__":
   log_dir = os.path.join(output_dir, 'log')
 
   # Leave for future kwargs
-  env_kwargs = {"target_radius_limit": np.array([0.1, 0.1])}
-  env = gym.make(env_name, **env_kwargs)
+  env_kwargs = {"target_radius_limit": np.array([0.05, 0.15])}
 
   # Initialise parallel envs
   parallel_envs = make_vec_env(env_name, n_envs=num_cpu, seed=0, vec_env_cls=SubprocVecEnv, env_kwargs=env_kwargs,
@@ -42,12 +41,12 @@ if __name__=="__main__":
                        net_arch=[256, 256],
                        log_std_init=0.0, features_extractor_class=VisualAndProprioceptionExtractor,
                        normalize_images=False)
-  lr = 1e-5
+  lr = 1e-4
 
   # Initialise policy
-  model = PPO('MultiInputPolicy', parallel_envs, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log=log_dir,
-              n_steps=4000, batch_size=100)
-              #learning_rate=linear_schedule(initial_value=lr, min_value=1e-7, threshold=0.8))
+  model = PPO(MultiInputActorCriticPolicyTanhActions, parallel_envs, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log=log_dir,
+              n_steps=4000, batch_size=400, target_kl=5.0, #learning_rate=lr,
+              learning_rate=linear_schedule(initial_value=lr, min_value=1e-7, threshold=0.8))
 
   # Initialise a callback for checkpoints
   save_freq = 1000000 // num_cpu
@@ -59,4 +58,4 @@ if __name__=="__main__":
   #                                      min_value=policy_kwargs['std_decay_min'])
 
   # Do the learning first with constant learning rate
-  model.learn(total_timesteps=100_000_000, callback=[checkpoint_callback])
+  model.learn(total_timesteps=50_000_000, callback=[checkpoint_callback])
