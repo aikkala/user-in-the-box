@@ -67,7 +67,7 @@ if __name__=="__main__":
   train = True
   render_mode = "human"  #"human", "rgb-array"
   start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
-  generate_experience = False
+  generate_experience = True
   experience_file = 'experience.npy'
   num_cpu = 7
   output_dir = os.path.join('output', env_name)

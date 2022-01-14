@@ -627,7 +627,7 @@
       <site site="BRD-P2"></site>
       <site site="BRD-P3"></site>
     </spatial>
-    <!--spatial name="ECRL_tendon" springlength="0.244" damping="0.017">
+    <spatial name="ECRL_tendon" springlength="0.244" damping="0.017">
       <site site="ECRL-P1"></site>
       <site site="ECRL-P2"></site>
       <site site="ECRL-P3"></site>
@@ -663,7 +663,7 @@
       <site site="PL-P2"></site>
       <site site="PL-P3"></site>
       <site site="PL-P4"></site>
-    </spatial!-->
+    </spatial>
     <spatial name="PT_tendon" springlength="0.098" damping="0.017">
       <site site="PT-P1"></site>
       <site site="PT-P2"></site>
@@ -675,7 +675,7 @@
       <site site="PQ-P1"></site>
       <site site="PQ-P2"></site>
     </spatial>
-    <!--spatial name="FDSL_tendon" springlength="0.3386" damping="0.017">
+    <spatial name="FDSL_tendon" springlength="0.3386" damping="0.017">
       <site site="FDSL-P1"></site>
       <site site="FDSL-P2"></site>
       <site site="FDSL-P3"></site>
@@ -694,7 +694,7 @@
       <site site="FDSR-P6"></site>
       <site site="FDSR-P7"></site>
       <site site="FDSR-P8"></site>
-    </spatial!>
+    </spatial>
     <spatial name="FDSM_tendon" springlength="0.295" damping="0.017">
       <site site="FDSM-P1"></site>
       <site site="FDSM-P2"></site>
@@ -883,7 +883,7 @@
       <site site="APL-P7"></site>
       <site site="APL-P8"></site>
       <site site="APL-P9"></site>
-    </spatial!-->
+    </spatial>
   </tendon>
   <actuator>
     <general name="oculomotor-rx" joint="eye-rx" class="oculomotor"></general>
@@ -912,15 +912,15 @@
     <muscle name="BICshort" force="316.8" tendon="BICshort_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="BRA" force="1177.37" tendon="BRA_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="BRD" force="276" tendon="BRD_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <!--muscle name="ECRL" tendon="ECRL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    <muscle name="ECRL" tendon="ECRL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="ECRB" tendon="ECRB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="ECU" tendon="ECU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="FCR" tendon="FCR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="FCU" tendon="FCU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="PL" tendon="PL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle!-->
+    <muscle name="PL" tendon="PL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="PT" force="557.2" tendon="PT_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="PQ" force="284.7" tendon="PQ_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <!--muscle name="FDSL" tendon="FDSL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    <muscle name="FDSL" tendon="FDSL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="FDSR" tendon="FDSR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="FDSM" tendon="FDSM_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="FDSI" tendon="FDSI_tendon" class="muscle" ctrllimited="true" ctrlrange="       0        1"></muscle>
@@ -937,7 +937,7 @@
     <muscle name="EPL" tendon="EPL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="EPB" tendon="EPB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
     <muscle name="FPL" tendon="FPL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="APL" tendon="APL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle!-->
+    <muscle name="APL" tendon="APL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
   </actuator>
   <equality>
     <joint name="sternoclavicular_r2_con" joint1="sternoclavicular_r2" joint2="shoulder_elv" active="true" polycoef="1.11022e-16 -0.242001        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>

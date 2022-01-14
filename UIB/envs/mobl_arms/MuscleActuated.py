@@ -169,6 +169,10 @@ class MuscleActuated(gym.Env):
 
     return state
 
+  def get_joint_values(self):
+    #return {"qpos": self.sim.data.qpos.copy(), "qvel": self.sim.data.qvel.copy(), "qacc": self.sim.data.qacc.copy()}
+    return {self.sim.model.joint_id2name(i): (self.sim.data.qpos[i], self.sim.data.qvel[i], self.sim.data.qacc[i]) for i in range(self.sim.model.njnt)}
+
   def get_observation(self):
     # Ignore eye qpos and qvel for now
     jnt_range = self.sim.model.jnt_range[self.independent_joints]

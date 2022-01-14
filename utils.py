@@ -1,10 +1,17 @@
 #import xmltodict
+import os.path
+
 import xmltodict_keeporder as xmltodict  #fork that keeps order of child elements (required for parsing MJCF files)
 import numpy as np
 from scipy.optimize import minimize
 from scipy.spatial.transform import Rotation
 import sys
-import opensim as osim  #required to compute fpmax
+import opensim as osim  #required to compute fpmax, and to run OpenSim forward simulations
+from gym import spaces  #required to run OpenSim forward simulations
+import yaml  #for pretty print
+import pandas as pd
+from opensim_static_optimization import static_optimization
+
 
 class opensim_file(object):
   """
@@ -19,6 +26,7 @@ class opensim_file(object):
     self.osim_version = self.opensim_xml["OpenSimDocument"]["@Version"]
     for setname in ["ForceSet", "BodySet", "ConstraintSet", "MarkerSet", "ContactGeometrySet"]:
       setattr(self, setname, self.opensim_xml["OpenSimDocument"]["Model"][setname])
+    self.BodySet["objects"]["Body"].append(self.opensim_xml["OpenSimDocument"]["Model"]["Ground"])
 
   def __getattr__(self, name):
     for typeset in ["ForceSet", "BodySet", "ConstraintSet", "MarkerSet", "ContactGeometrySet"]:
@@ -146,6 +154,8 @@ def adjust_mujoco_model_pt1(mujoco_xml, osim_file):
   for object_type in wrap_object_types:
     for key, osim_wrap_object in getattr(osim_file, object_type).items():
       key = key.split("/")[0]
+      if key.lower() == "ground":
+          key = "thorax"
       current_body = get_mujoco_body(mujoco_xml, key)
       if type(osim_wrap_object) == list:
         for wrap_object in osim_wrap_object:
@@ -189,6 +199,17 @@ def adjust_mujoco_model_pt1(mujoco_xml, osim_file):
         osim_wrap_path_range = osim_wrap_path['range'] if 'range' in osim_wrap_path else "-1 -1"
         if all(strinterval_to_nparray(osim_wrap_path_range) == np.array([-1, -1])):
           append_OpenSim_wrap_path_to_MuJoCo_model(mujoco_xml, tendon_name, osim_wrap_path)
+
+  # Create default classes for each OpenSim wrapping object type:
+  wrap_object_rgba = "0.8 0.5 0.4 1"  #"0.5 0 0.5 0"
+  default_body = mujoco_xml['mujoco']['default']
+  if 'default' not in default_body:
+      default_body['default'] = []
+  elif type(default_body['default']) == dict:
+      default_body['default'] = [default_body['default']]
+  for object_type in wrap_object_types:
+      default_body['default'].append({'@class': object_type,
+                                  'geom': {'@rgba': wrap_object_rgba}})
 
 
 def adjust_mujoco_model_pt2(env, osim_file, scale_ratio=None):
@@ -313,7 +334,9 @@ def get_mujoco_geom(mujoco_xml, geomname):
     for current_body_geom in current_body_geoms:
         if current_body_geom['@name'] == geomname:
             return current_body_geom
+
     raise AssertionError(f"Geom {geomname} was not found!")
+    #print(f"Geom {geomname} was not found!")  # None is returned
 
 
 def find_body_of_site(mujoco_xml, sitename):
@@ -369,6 +392,7 @@ def append_OpenSim_wrap_object_to_MuJoCo_body(current_body, wrap_object, object_
     if object_type == "WrapCylinder":
         current_body['geom'].append({'@name': wrap_object['@name'],
                                      '@type': 'cylinder',
+                                     '@class': 'WrapCylinder',
                                      '@size': f"{wrap_object['radius']} {0.5 * float(wrap_object['length'])}",
                                      # MuJoCo attribute: half-height; OpenSim attribute: height/length (but might be unused by MuJoCo, since tendon geometries must be spheres or INFINITE cylinders)
                                      '@euler': wrap_object['xyz_body_rotation'],
@@ -388,6 +412,7 @@ def append_OpenSim_wrap_object_to_MuJoCo_body(current_body, wrap_object, object_
     elif object_type == "WrapSphere":
         current_body['geom'].append({'@name': wrap_object['@name'],
                                      '@type': 'sphere',
+                                     '@class': 'WrapSphere',
                                      '@size': wrap_object['radius'],
                                      '@euler': wrap_object['xyz_body_rotation'],
                                      '@pos': wrap_object['translation']})
@@ -436,6 +461,7 @@ def append_OpenSim_wrap_object_to_MuJoCo_body(current_body, wrap_object, object_
             assert 'z' not in quadrant, f"ERROR: Side site of {wrap_object['@name']} cannot be placed along z-axis of (infinite) cylinder!"
             current_body['geom'].append({'@name': wrap_object['@name'],
                                          '@type': 'cylinder',
+                                         '@class': 'WrapEllipsoid',
                                          '@size': f"{cylinder_radius} {0.5 * float(ellipsoid_radii[2])}",
                                          # MuJoCo attribute: half-height; OpenSim attribute: height/length (but might be unused by MuJoCo, since tendon geometries must be spheres or INFINITE cylinders)
                                          '@euler': xyz_body_rotation,
@@ -460,6 +486,7 @@ def append_OpenSim_wrap_object_to_MuJoCo_body(current_body, wrap_object, object_
                 sphere_radius = np.mean(strinterval_to_nparray(wrap_object['dimensions']))  # use mean radius
             current_body['geom'].append({'@name': wrap_object['@name'],
                                          '@type': 'sphere',
+                                         '@class': 'WrapEllipsoid',
                                          '@size': sphere_radius,
                                          '@euler': wrap_object['xyz_body_rotation'],
                                          '@pos': wrap_object['translation']})
@@ -479,6 +506,7 @@ def append_OpenSim_wrap_object_to_MuJoCo_body(current_body, wrap_object, object_
     elif object_type == "WrapTorus":
         current_body['geom'].append({'@name': wrap_object['@name'],
                                      '@type': 'sphere',
+                                     '@class': 'WrapTorus',
                                      '@size': wrap_object['inner_radius'],
                                      # ignores outer_radius of torus geometry, which in theory might act as an obstacle for (other) tendon paths
                                      '@euler': wrap_object['xyz_body_rotation'],
@@ -840,3 +868,435 @@ def array_to_strinterval(array):
   """
 
   return ' '.join(['%8g' % num for num in array])
+
+
+class OsimModelEnv(object):
+    """
+    Source: https://github.com/stanfordnmbl/osim-rl (slightly adapted)
+
+    OpenSim interface
+    The amin purpose of this class is to provide wrap all
+    the necessery elements of OpenSim in one place
+    The actual RL environment then only needs to:
+    - open a model
+    - actuate
+    - integrate
+    - read the high level description of the state
+    The objective, stop condition, and other gym-related
+    methods are enclosed in the OsimEnv class
+    """
+
+    # Initialize simulation
+    model = None
+    state = None
+    state0 = None
+    joints = []
+    bodies = []
+    brain = None
+    verbose = False
+    istep = 0
+
+    state_desc_istep = None
+    prev_state_desc = None
+    state_desc = None
+    integrator_accuracy = None
+
+    joint_values_istep = None
+    prev_joint_values = None
+    joint_values = None
+
+    maxforces = []
+    curforces = []
+
+    def __init__(self, model_path, visualize=False, integrator_accuracy=5e-5, stepsize=0.01):
+        self.integrator_accuracy = integrator_accuracy
+        self.stepsize = stepsize
+        self.model = osim.Model(model_path)
+        self.model_state = self.model.initSystem()
+        self.brain = osim.PrescribedController()
+
+        # Enable the visualizer
+        self.model.setUseVisualizer(visualize)
+
+        self.muscleSet = self.model.getMuscles()
+        self.forceSet = self.model.getForceSet()
+        self.bodySet = self.model.getBodySet()
+        self.jointSet = self.model.getJointSet()
+        self.markerSet = self.model.getMarkerSet()
+        self.contactGeometrySet = self.model.getContactGeometrySet()
+
+        if self.verbose:
+            self.list_elements()
+
+        # Add actuators as constant functions. Then, during simulations
+        # we will change levels of constants.
+        # One actuartor per each muscle
+        for j in range(self.muscleSet.getSize()):
+            func = osim.Constant(1.0)
+            self.brain.addActuator(self.muscleSet.get(j))
+            self.brain.prescribeControlForActuator(j, func)
+
+            self.maxforces.append(self.muscleSet.get(j).getMaxIsometricForce())
+            self.curforces.append(1.0)
+
+        self.noutput = self.muscleSet.getSize()
+
+        self.model.addController(self.brain)
+        self.model_state = self.model.initSystem()
+
+        self.timestep_limit = np.inf
+
+        self.action_space = spaces.Box(np.array([0.0] * self.get_action_space_size()), np.array([1.0] * self.get_action_space_size()))
+
+
+    def list_elements(self):
+        print("JOINTS")
+        for i in range(self.jointSet.getSize()):
+            print(i, self.jointSet.get(i).getName())
+        print("\nBODIES")
+        for i in range(self.bodySet.getSize()):
+            print(i, self.bodySet.get(i).getName())
+        print("\nMUSCLES")
+        for i in range(self.muscleSet.getSize()):
+            print(i, self.muscleSet.get(i).getName())
+        print("\nFORCES")
+        for i in range(self.forceSet.getSize()):
+            print(i, self.forceSet.get(i).getName())
+        print("\nMARKERS")
+        for i in range(self.markerSet.getSize()):
+            print(i, self.markerSet.get(i).getName())
+
+    def actuate(self, action):
+        if np.any(np.isnan(action)):
+            raise ValueError("NaN passed in the activation vector. Values in [0,1] interval are required.")
+
+        action = np.clip(np.array(action), 0.0, 1.0)
+        self.last_action = action
+
+        brain = osim.PrescribedController.safeDownCast(self.model.getControllerSet().get(0))
+        functionSet = brain.get_ControlFunctions()
+
+        for j in range(functionSet.getSize()):
+            func = osim.Constant.safeDownCast(functionSet.get(j))
+            func.setValue(float(action[j]))
+
+    """
+    Directly modifies activations in the current state.
+    """
+
+    def set_activations(self, activations):
+        if np.any(np.isnan(activations)):
+            raise ValueError("NaN passed in the activation vector. Values in [0,1] interval are required.")
+        for j in range(self.muscleSet.getSize()):
+            self.muscleSet.get(j).setActivation(self.state, activations[j])
+        self.reset_manager()
+
+    """
+    Get activations in the given state.
+    """
+
+    def get_activations(self):
+        return [self.muscleSet.get(j).getActivation(self.state) for j in range(self.muscleSet.getSize())]
+
+    def compute_state_desc(self):
+        self.model.realizeAcceleration(self.state)
+
+        res = {}
+
+        ## Joints
+        res["joint_pos"] = {}
+        res["joint_vel"] = {}
+        res["joint_acc"] = {}
+        for i in range(self.jointSet.getSize()):
+            joint = self.jointSet.get(i)
+            name = joint.getName()
+            res["joint_pos"][name] = [joint.get_coordinates(i).getValue(self.state) for i in
+                                      range(joint.numCoordinates())]
+            res["joint_vel"][name] = [joint.get_coordinates(i).getSpeedValue(self.state) for i in
+                                      range(joint.numCoordinates())]
+            res["joint_acc"][name] = [joint.get_coordinates(i).getAccelerationValue(self.state) for i in
+                                      range(joint.numCoordinates())]
+
+        ## Bodies
+        res["body_pos"] = {}
+        res["body_vel"] = {}
+        res["body_acc"] = {}
+        res["body_pos_rot"] = {}
+        res["body_vel_rot"] = {}
+        res["body_acc_rot"] = {}
+        for i in range(self.bodySet.getSize()):
+            body = self.bodySet.get(i)
+            name = body.getName()
+            res["body_pos"][name] = [body.getTransformInGround(self.state).p()[i] for i in range(3)]
+            res["body_vel"][name] = [body.getVelocityInGround(self.state).get(1).get(i) for i in range(3)]
+            res["body_acc"][name] = [body.getAccelerationInGround(self.state).get(1).get(i) for i in range(3)]
+
+            res["body_pos_rot"][name] = [
+                body.getTransformInGround(self.state).R().convertRotationToBodyFixedXYZ().get(i) for i in range(3)]
+            res["body_vel_rot"][name] = [body.getVelocityInGround(self.state).get(0).get(i) for i in range(3)]
+            res["body_acc_rot"][name] = [body.getAccelerationInGround(self.state).get(0).get(i) for i in range(3)]
+
+        ## Forces
+        res["forces"] = {}
+        for i in range(self.forceSet.getSize()):
+            force = self.forceSet.get(i)
+            name = force.getName()
+            values = force.getRecordValues(self.state)
+            res["forces"][name] = [values.get(i) for i in range(values.size())]
+
+        ## Muscles
+        res["muscles"] = {}
+        for i in range(self.muscleSet.getSize()):
+            muscle = self.muscleSet.get(i)
+            name = muscle.getName()
+            res["muscles"][name] = {}
+            res["muscles"][name]["activation"] = muscle.getActivation(self.state)
+            res["muscles"][name]["fiber_length"] = muscle.getFiberLength(self.state)
+            res["muscles"][name]["fiber_velocity"] = muscle.getFiberVelocity(self.state)
+            res["muscles"][name]["fiber_force"] = muscle.getFiberForce(self.state)
+            # We can get more properties from here http://myosin.sourceforge.net/2125/classOpenSim_1_1Muscle.html
+
+        ## Markers
+        res["markers"] = {}
+        for i in range(self.markerSet.getSize()):
+            marker = self.markerSet.get(i)
+            name = marker.getName()
+            res["markers"][name] = {}
+            res["markers"][name]["pos"] = [marker.getLocationInGround(self.state)[i] for i in range(3)]
+            res["markers"][name]["vel"] = [marker.getVelocityInGround(self.state)[i] for i in range(3)]
+            res["markers"][name]["acc"] = [marker.getAccelerationInGround(self.state)[i] for i in range(3)]
+
+        ## Other
+        res["misc"] = {}
+        res["misc"]["mass_center_pos"] = [self.model.calcMassCenterPosition(self.state)[i] for i in range(3)]
+        res["misc"]["mass_center_vel"] = [self.model.calcMassCenterVelocity(self.state)[i] for i in range(3)]
+        res["misc"]["mass_center_acc"] = [self.model.calcMassCenterAcceleration(self.state)[i] for i in range(3)]
+
+        return res
+
+    def get_state_desc(self):
+        if self.state_desc_istep != self.istep:
+            self.prev_state_desc = self.state_desc
+            self.state_desc = self.compute_state_desc()
+            self.state_desc_istep = self.istep
+        return self.state_desc
+
+    def compute_joint_values(self):
+        res_osim = {}
+        for i in range(self.jointSet.getSize()):
+            joint = self.jointSet.get(i)
+            name = joint.getName()
+            for j in range(joint.numCoordinates()):
+                coordinate = joint.get_coordinates(j)
+                coordinate_name = coordinate.getSpeedName().split("/")[0]
+                res_osim[coordinate_name] = (coordinate.getValue(self.state), coordinate.getSpeedValue(self.state), coordinate.getAccelerationValue(self.state))
+        return res_osim
+
+    def get_joint_values(self):
+        if self.joint_values_istep != self.istep:
+            self.prev_joint_values = self.joint_values
+            self.joint_values = self.compute_joint_values()
+            self.joint_values_isteps = self.istep
+        return self.joint_values
+
+    def set_strength(self, strength):
+        self.curforces = strength
+        for i in range(len(self.curforces)):
+            self.muscleSet.get(i).setMaxIsometricForce(self.curforces[i] * self.maxforces[i])
+
+    def get_body(self, name):
+        return self.bodySet.get(name)
+
+    def get_joint(self, name):
+        return self.jointSet.get(name)
+
+    def get_muscle(self, name):
+        return self.muscleSet.get(name)
+
+    def get_marker(self, name):
+        return self.markerSet.get(name)
+
+    def get_contact_geometry(self, name):
+        return self.contactGeometrySet.get(name)
+
+    def get_force(self, name):
+        return self.forceSet.get(name)
+
+    def get_action_space_size(self):
+        return self.noutput
+
+    def set_integrator_accuracy(self, integrator_accuracy):
+        self.integrator_accuracy = integrator_accuracy
+
+    def reset_manager(self):
+        self.manager = osim.Manager(self.model)
+        self.manager.setIntegratorAccuracy(self.integrator_accuracy)
+        self.manager.initialize(self.state)
+
+    def _reset(self):  #'reset' from osim-rl OsimModel class
+        self.state = self.model.initializeState()
+        self.model.equilibrateMuscles(self.state)
+        self.state.setTime(0)
+        self.istep = 0
+
+        self.reset_manager()
+
+    def reset(self, project=True, obs_as_dict=True):  #from osim-rl OsimEnv class
+        self._reset()
+
+        if not project:
+            return self.get_state_desc()
+        if obs_as_dict:
+            return self.get_state_desc()  #self.get_observation_dict()
+        return self.get_state_desc()  #self.get_observation()
+
+    def step(self, action, project=True, obs_as_dict=True):
+        self.prev_state_desc = self.get_state_desc()
+        self.actuate(action)
+        self.integrate()
+
+        if project:
+            if obs_as_dict:
+                obs = self.get_state_desc()  #self.get_observation_dict()
+            else:
+                obs = self.get_state_desc()  #self.get_observation()
+        else:
+            obs = self.get_state_desc()  #self.get_state_desc()
+
+        return [obs, self.get_reward(), self.is_done() or (self.istep >= self.timestep_limit), {}]
+
+    def get_state(self):
+        return osim.State(self.state)
+
+    def set_state(self, state):
+        self.state = state
+        self.istep = int(self.state.getTime() / self.stepsize)  # TODO: remove istep altogether
+        self.reset_manager()
+
+    def integrate(self):
+        # Define the new endtime of the simulation
+        self.istep = self.istep + 1
+
+        # Integrate till the new endtime
+        self.state = self.manager.integrate(self.stepsize * self.istep)
+
+    def is_done(self):
+        #raise NotImplementedError
+        return False
+
+    def get_reward(self):
+        #raise NotImplementedError
+        return 0
+
+
+def check_model_state_equality(mujoco_env, osim_env):
+    """
+    Checks whether MuJoCo and OpenSim model are in same state.
+    :param mujoco_env: Gym environment of MuJoCo model
+    :param osim_env: (customized) OsimModelEnv class of OpenSim model
+    :return: True, if the position, speed, and acceleration values of all common joints match, else False
+    """
+    res_mujoco = mujoco_env.get_joint_values()
+    res_osim = osim_env.get_joint_values()
+
+    mujoco_only_joints = {i for i in res_mujoco.keys() if i not in res_osim.keys()}
+    osim_only_joints = {i for i in res_osim.keys() if i not in res_mujoco.keys()}
+    print(f"WARNING: Joints only available in MuJoCo model: {mujoco_only_joints}")
+    print(f"WARNING: Joints only available in OpenSim model: {osim_only_joints}")
+
+    res_mujoco_common = {k: v for k, v in res_mujoco.items() if k not in mujoco_only_joints}
+    res_osim_common = {k: v for k, v in res_osim.items() if k not in osim_only_joints}
+
+    # input(yaml.dump(res_osim, default_flow_style=False))
+
+    return res_mujoco_common == res_osim_common
+
+
+def compare_MuJoCo_OpenSim_models(env, osim_filepath):
+    """
+    Analyzes whether MuJoCo and OpenSim are aligned, such that the same controls/activations result in the same trajectories.
+    :param env: Gym environment of MuJoCo model
+    :param osim_filepath: OpenSim model filepath
+    :return:
+    """
+
+    osim_env = OsimModelEnv(osim_filepath, stepsize=0.002)
+
+    # Verify that both models have same number of (muscle) actuators
+    mujoco_actuator_indexlist = [i for i in range(env.sim.model.nu) if env.sim.model.actuator_trntype[i] == 3]
+    assert len(mujoco_actuator_indexlist) == osim_env.get_action_space_size()
+
+    mujoco_observation = env.reset()
+    osim_observation = osim_env.reset()
+
+    #assert env.sim.model.nq == osim_env.model.getNumCoordinates()
+
+    # Set initial OpenSim state
+    init_osim_state = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo.mot'), skiprows=10,
+                delimiter="\t", index_col="time", nrows=1).iloc[0].to_dict()
+    coordinate_joint_dict = {joint.get_coordinates(j).getSpeedName().split("/")[0]: joint.getName() for i in range(osim_env.jointSet.getSize()) if (joint := osim_env.jointSet.get(i)) is not None for j in range(joint.numCoordinates())}
+    for coordinate_name, coordinate_value in init_osim_state.items():
+        if coordinate_name in coordinate_joint_dict:
+            # input((osim_env.jointSet.getStateVariableValue(osim_env.state, "/jointset/sternoclavicular/sternoclavicular_r2/value")))
+            osim_env.jointSet.setStateVariableValue(osim_env.state, f"/jointset/{coordinate_joint_dict[coordinate_name]}/{coordinate_name}/value", coordinate_value)
+            osim_env.jointSet.setStateVariableValue(osim_env.state, f"/jointset/{coordinate_joint_dict[coordinate_name]}/{coordinate_name}/speed", 0)
+            # input(osim_env.get_joint_values())
+        else:
+            print(f"Cannot set initial value for coordinate {coordinate_name}, as it is not found in used OpenSim model.")
+
+    # Set MuJoCo joint values to OpenSim joint values
+    ## Compute MuJoCo/OpenSim joint values
+    res_mujoco = env.get_joint_values()
+    res_osim = osim_env.get_joint_values()
+    for joint_name, value in res_mujoco.items():
+        if joint_name in res_osim.keys():
+            env.sim.data.qpos[env.sim.model.joint_name2id(joint_name)] = res_osim[joint_name][0]
+            env.sim.data.qvel[env.sim.model.joint_name2id(joint_name)] = res_osim[joint_name][1]
+            env.sim.data.qacc[env.sim.model.joint_name2id(joint_name)] = res_osim[joint_name][2]  #setting acceleration should not have any effect in MuJoCo
+        else:
+            print(f"WARNING: Cannot set values of MuJoCo joint '{joint_name}', as it does not exist in used OpenSim model!")
+    res_mujoco = env.get_joint_values()
+
+    assert check_model_state_equality(env, osim_env), "ERROR: MuJoCo and OpenSim are not in the same initial state!"
+
+    ##########################################################
+    ################### DETERMINE CONTROLS ###################
+    ##########################################################
+    # VARIANT 1: Use controls computed by StaticOptimization
+    # static_optimization(ik_filename=os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo.mot'),
+    #                     results_dirname=os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/'),
+    #                     weight_activations=False)
+    ctrl_samples = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo_StaticOptimization_activation.sto'), skiprows=8, delimiter="\t", index_col="time")
+    n_steps = ctrl_samples.shape[0]
+    ## Exclude introduced reserve actuators from evaluation
+    ctrl_samples = ctrl_samples.loc[:, [('reserve' not in column) & (column not in ['FX', 'FY', 'FZ', 'MX', 'MY', 'MZ']) for column in ctrl_samples.columns]]
+    ctrl_samples = ctrl_samples.to_numpy()
+
+    # VARIANT 2: Use random controls
+    #n_steps = 3
+    #ctrl_samples = [osim_env.action_space.sample() for _ in range(n_steps)]
+    ##########################################################
+
+    # Run OpenSim Forward Simulation
+    observations_osim = [osim_env.get_joint_values()]
+    for i in range(n_steps):
+        assert i == osim_env.istep
+        print('OpenSim Forward Simulation - Step #{}/{} ({}s) [{:.2f}%]'.format(i, n_steps, osim_env.state.getTime(), float(i * 100 / n_steps) if n_steps != 0 else 100))
+        observation, reward, done, info = osim_env.step(ctrl_samples[i])
+        #input((observation, reward, done, info))
+        #print(f"STEP: {osim_env.istep}, TIME: {osim_env.state.getTime()}")
+        observations_osim.append(osim_env.get_joint_values())
+        input(observations_osim[-1])
+
+    # Run MuJoCo Forward Simulation
+    observations_mujoco = [env.get_joint_values()]
+    for i in range(n_steps):
+        print('MuJoCo Forward Simulation - Step #{}/{} [{:.2f}%]'.format(i, n_steps, float(i * 100 / n_steps) if n_steps != 0 else 100))
+        env.sim.data.ctrl[:] = np.zeros(env.sim.model.nu)
+        env.sim.data.ctrl[mujoco_actuator_indexlist] = ctrl_samples[i]
+        # mujoco_py.cymj._mj_fwdActuation(eval_env.sim.model, eval_env.sim.data)
+        # mujoco_py.cymj._mj_fwdAcceleration(eval_env.sim.model, eval_env.sim.data)
+        env.sim.step()
+        observations_mujoco.append(env.get_joint_values())
+
+    input(([i["elv_angle"][0] for i in observations_mujoco], [i["elv_angle"][0] for i in observations_osim]))
