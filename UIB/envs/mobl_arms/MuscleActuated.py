@@ -111,6 +111,7 @@ class MuscleActuated(gym.Env):
     self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action, 0, 1)
 
     finished = False
+    info["termination"] = False
     try:
       self.sim.step()
     except mujoco_py.builder.MujocoException:
@@ -132,11 +133,13 @@ class MuscleActuated(gym.Env):
       self.steps_since_last_hit = 0
       velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
       reward = 10 #+ velocity_factor*10
+      info["target_hit"] = True
 
     else:
 
       # Estimate reward
       reward = np.exp(-dist*10)
+      info["target_hit"] = False
 
       self.steps_since_last_hit += 1
       if self.steps_since_last_hit >= self.max_steps_without_hit:
@@ -228,7 +231,9 @@ class MuscleActuated(gym.Env):
              "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip),
              "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip),
              "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip),
-             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip)}
+             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip),
+             "target_position": self.target_origin+self.target_position,
+             "target_radius": self.target_radius}
     return state
 
   def render(self, mode='human', width=1280, height=800, camera_id=None, camera_name=None):

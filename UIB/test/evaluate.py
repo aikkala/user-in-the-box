@@ -33,7 +33,7 @@ if __name__=="__main__":
   # TODO input parameter parsing using argparse
 
   # Move into an input parameter?
-  render = True
+  render = False
 
   # Get env name and checkpoint dir
   env_name = sys.argv[1]
@@ -47,7 +47,7 @@ if __name__=="__main__":
     model_file = files[-1]
 
   # Define number of episodes -- could be input param
-  num_episodes = 10
+  num_episodes = 1000
 
   # Load previous policy
   print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}')
@@ -71,7 +71,7 @@ if __name__=="__main__":
     obs = env.reset()
     done = False
     reward = 0
-    logger.log(episode_idx, env.get_state())
+    logger.log(episode_idx, {**env.get_state(), "termination": False, "target_hit": False})
 
     if render:
       imgs.append(grab_pip_image(env))
@@ -85,7 +85,7 @@ if __name__=="__main__":
       # Take a step
       obs, r, done, info = env.step(action)
       reward += r
-      logger.log(episode_idx, env.get_state())
+      logger.log(episode_idx, {**env.get_state(), **info})
 
       if render:
         # Visualise muscle activation
