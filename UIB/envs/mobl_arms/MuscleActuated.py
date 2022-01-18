@@ -22,7 +22,10 @@ class MuscleActuated(gym.Env):
     xml_file = "models/mobl_arms_muscles.xml"
 
     # Set action sampling frequency
-    self.action_sample_freq = 10
+    if "action_sample_freq" in kwargs:
+      self.action_sample_freq = kwargs["action_sample_freq"]
+    else:
+      self.action_sample_freq = 10
     self.timestep = 0.002
     self.frame_skip = int(1/(self.timestep*self.action_sample_freq))
 
@@ -32,7 +35,7 @@ class MuscleActuated(gym.Env):
 
     # Max episode length
     self.steps = 0
-    self.max_episode_length = self.action_sample_freq*60
+    self.max_episode_length = self.action_sample_freq*10
 
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])
@@ -163,9 +166,9 @@ class MuscleActuated(gym.Env):
     qacc = self.sim.data.qacc[self.independent_joints].copy()
 
     act = (self.sim.data.act.copy() - 0.5)*2
-    finger_position = self.sim.data.get_geom_xpos(self.fingertip) - self.target_origin
+    finger_position = self.sim.data.get_geom_xpos(self.fingertip).copy() - self.target_origin.copy()
 
-    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position,
+    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position.copy(),
                            np.array([self.target_radius]), act])
 
   def spawn_target(self):
@@ -224,15 +227,15 @@ class MuscleActuated(gym.Env):
 
   def get_state(self):
     state = {"step": self.steps, "timestep": self.sim.data.time,
-             "qpos": self.sim.data.qpos[self.independent_joints],
-             "qvel": self.sim.data.qvel[self.independent_joints],
-             "qacc": self.sim.data.qacc[self.independent_joints],
-             "act": self.sim.data.act,
-             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip),
-             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip),
-             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip),
-             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip),
-             "target_position": self.target_origin+self.target_position,
+             "qpos": self.sim.data.qpos[self.independent_joints].copy(),
+             "qvel": self.sim.data.qvel[self.independent_joints].copy(),
+             "qacc": self.sim.data.qacc[self.independent_joints].copy(),
+             "act": self.sim.data.act.copy(),
+             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip).copy(),
+             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip).copy(),
+             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip).copy(),
+             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip).copy(),
+             "target_position": self.target_origin.copy()+self.target_position.copy(),
              "target_radius": self.target_radius}
     return state
 

@@ -64,7 +64,7 @@ if __name__=="__main__":
   model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
   # Initialise environment
-  env_kwargs = {"target_radius_limit": np.array([0.02, 0.1])}
+  env_kwargs = {"target_radius_limit": np.array([0.01, 0.05]), "action_sample_freq": 100}
   #env_kwargs = {}
   env = gym.make(env_name, **env_kwargs)
 
@@ -107,20 +107,20 @@ if __name__=="__main__":
         env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl[2:] * 0.7
         imgs.append(grab_pip_image(env))
 
-    print(f"Episode {episode_idx}: length {env.steps}, reward {reward}. ")
+    print(f"Episode {episode_idx}: length {env.steps*env.dt} seconds ({env.steps} steps), reward {reward}. ")
     episode_lengths.append(env.steps)
     rewards.append(reward)
 
   print(f'Average episode length and reward over {args.num_episodes} episodes: '
-        f'length {np.mean(episode_lengths)}, reward {np.mean(rewards)}')
+        f'length {np.mean(episode_lengths)*env.dt} seconds ({np.mean(episode_lengths)} steps), reward {np.mean(rewards)}')
 
 
   if args.logging:
     # Output log
-    print(f'A log has been saved to file {args.log_file}.pickle')
     logger.save(args.log_file)
+    print(f'A log has been saved to file {args.log_file}.pickle')
 
   if args.record:
     # Write the video
-    print(f'A recording has been saved to file {args.out_file}')
     env.write_video(imgs, args.out_file)
+    print(f'A recording has been saved to file {args.out_file}')
