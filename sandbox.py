@@ -19,7 +19,7 @@ if __name__=="__main__":
 
   env_name = 'UIB:mobl-arms-muscles-v1'
   start_method = 'spawn' if 'Microsoft' in uname().release else 'forkserver'
-  num_cpu = 6
+  num_cpu = 10
 
   # Get project path
   project_path = pathlib.Path(__file__).parent.absolute()
@@ -30,7 +30,7 @@ if __name__=="__main__":
   log_dir = os.path.join(output_dir, 'log')
 
   # Leave for future kwargs
-  env_kwargs = {"target_radius_limit": np.array([0.05, 0.15])}
+  env_kwargs = {"target_radius_limit": np.array([0.05, 0.15]), "action_sample_freq": 20}
 
   # Initialise parallel envs
   parallel_envs = make_vec_env(env_name, n_envs=num_cpu, seed=0, vec_env_cls=SubprocVecEnv, env_kwargs=env_kwargs,
@@ -45,11 +45,11 @@ if __name__=="__main__":
 
   # Initialise policy
   model = PPO(MultiInputActorCriticPolicyTanhActions, parallel_envs, verbose=1, policy_kwargs=policy_kwargs, tensorboard_log=log_dir,
-              n_steps=4000, batch_size=400, target_kl=5.0, #learning_rate=lr,
+              n_steps=4000, batch_size=500, target_kl=5.0, #learning_rate=lr,
               learning_rate=linear_schedule(initial_value=lr, min_value=1e-7, threshold=0.8))
 
   # Initialise a callback for checkpoints
-  save_freq = 1000000 // num_cpu
+  save_freq = 5000000 // num_cpu
   checkpoint_callback = CheckpointCallback(save_freq=save_freq, save_path=checkpoint_dir, name_prefix='model')
 
   # Initialise a callback for linearly decaying standard deviation
@@ -58,4 +58,4 @@ if __name__=="__main__":
   #                                      min_value=policy_kwargs['std_decay_min'])
 
   # Do the learning first with constant learning rate
-  model.learn(total_timesteps=50_000_000, callback=[checkpoint_callback])
+  model.learn(total_timesteps=100_000_000, callback=[checkpoint_callback])
