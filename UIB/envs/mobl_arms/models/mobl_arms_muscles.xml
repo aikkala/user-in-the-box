@@ -33,6 +33,9 @@
     <body name="target" pos="0.5 0.0 0.8">
       <geom name="target-sphere" type="sphere" size="0.05" rgba="0.1 0.8 0.1 1.0"/>
     </body>
+    <body name="target-estimate" pos="0.0 0.0 0.0">
+      <geom name="target-sphere-estimate" type="sphere" size="0.001" rgba="1.0 0.6 0.0 1.0"/>
+    </body>
     <geom name="floor" pos="0 0 0" size="10 10 0.125" type="plane" material="MatPlane" condim="3"></geom>
     <body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0">
       <light mode="trackcom" directional="false" pos="0 0 4.0" dir="0 0 -1"></light>
