@@ -98,6 +98,7 @@ class MuscleActuated(gym.Env):
 
     # Set motor and muscle control
     # Don't do anything with eyes for now
+    #self.sim.data.ctrl[:] = np.clip(action, 0, 1)
     #self.sim.data.ctrl[:] = sigmoid(action)
     self.sim.data.ctrl[2:] = np.clip(self.sim.data.act[:] + action*0.2, 0, 1)
     #self.sim.data.ctrl[:2] = 0
@@ -169,9 +170,15 @@ class MuscleActuated(gym.Env):
 
     return state
 
+  def get_muscle_values(self):
+    #return {"act": self.sim.data.act.copy(), "act_dot": self.sim.data.act_dot.copy()}
+    mujoco_actuator_indexlist = [i for i in range(self.sim.model.nu) if self.sim.model.actuator_trntype[i] == 3]
+    return {self.sim.model.actuator_id2name(i): (self.sim.data.act[mujoco_actuator_indexlist.index(i)], self.sim.data.act_dot[mujoco_actuator_indexlist.index(i)]) for i in range(self.sim.model.nu) if self.sim.model.actuator_trntype[i] == 3}
+
   def get_joint_values(self):
     #return {"qpos": self.sim.data.qpos.copy(), "qvel": self.sim.data.qvel.copy(), "qacc": self.sim.data.qacc.copy()}
-    return {self.sim.model.joint_id2name(i): (self.sim.data.qpos[i], self.sim.data.qvel[i], self.sim.data.qacc[i]) for i in range(self.sim.model.njnt)}
+    #return {self.sim.model.joint_id2name(i): (self.sim.data.qpos[i], self.sim.data.qvel[i], self.sim.data.qacc[i]) for i in range(self.sim.model.njnt)}
+    return {self.sim.model.joint_id2name(i): (self.sim.data.qpos[i], self.sim.data.qvel[i]) for i in range(self.sim.model.njnt)}
 
   def get_observation(self):
     # Ignore eye qpos and qvel for now

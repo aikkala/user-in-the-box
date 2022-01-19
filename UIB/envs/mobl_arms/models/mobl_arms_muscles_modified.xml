@@ -20,16 +20,16 @@
             <general gainprm="1.01 0 0 0 0 0 0 0 0 0" />
         </default>
         <default class="WrapCylinder">
-            <geom rgba="0.8 0.5 0.4 1" />
+            <geom rgba="0.8 0.5 0.4 0" />
         </default>
         <default class="WrapSphere">
-            <geom rgba="0.8 0.5 0.4 1" />
+            <geom rgba="0.8 0.5 0.4 0" />
         </default>
         <default class="WrapEllipsoid">
-            <geom rgba="0.8 0.5 0.4 1" />
+            <geom rgba="0.8 0.5 0.4 0" />
         </default>
         <default class="WrapTorus">
-            <geom rgba="0.8 0.5 0.4 1" />
+            <geom rgba="0.8 0.5 0.4 0" />
         </default>
     </default>
     <asset>
@@ -71,6 +71,9 @@
     </asset>
     <worldbody>
         <geom name="floor" size="10 10 0.125" type="plane" material="MatPlane" />
+        <geom name="Xdir" size="0.2 0.01 0.01" type="box" contype="0" conaffinity="0" rgba="1 0 0 1" />
+        <geom name="Ydir" size="0.01 0.2 0.01" type="box" contype="0" conaffinity="0" rgba="0 1 0 1" />
+        <geom name="Zdir" size="0.01 0.01 0.2" type="box" contype="0" conaffinity="0" rgba="0 0 1 1" />
         <camera name="for_testing" pos="0 0 0" />
         <body name="eye" pos="0 0 1.2" quat="0.652917 0.271992 -0.272209 -0.652397">
             <inertial pos="0 0 0" mass="0.0654498" diaginertia="0.001 0.001 0.001" />
@@ -83,7 +86,7 @@
             <inertial pos="0 0 0" mass="0.523599" diaginertia="0.001 0.001 0.001" />
             <geom name="target-sphere" size="0.05" rgba="0.1 0.8 0.1 1" />
         </body>
-        <body name="thorax" pos="0 0 1" quat="0.707107 0.707107 0 0">
+        <body name="thorax" pos="0 0 0">
             <inertial pos="-0.026681 -0.125639 0.0267491" quat="0.980769 -0.00955952 -0.0466248 0.189278" mass="12.8632" diaginertia="0.113786 0.095141 0.0679957" />
             <joint name="r_z" pos="0 0 0" axis="0 0 1" stiffness="0" range="-6.28319 6.28319" armature="0" damping="0" />
             <geom name="thorax" type="mesh" mesh="thorax" />
@@ -660,7 +663,7 @@
         <joint name="unrothum_r3_con" joint1="unrothum_r3" joint2="shoulder_elv" polycoef="0 -0.396002 0 0 0" solimp="0.9999 0.9999 0.001 0.5 2" />
         <joint name="shoulder1_r2_con" joint1="shoulder1_r2" joint2="elv_angle" polycoef="0 -1 0 0 0" solimp="0.9999 0.9999 0.001 0.5 2" />
         <joint name="r_z_constraint" joint1="r_z" polycoef="0 0 0 0 0" />
-        <weld name="origin_to_worldbody" body1="thorax" relpose="0 -1 0 0.707107 -0.707107 0 0" active="false" />
+        <weld name="origin_to_worldbody" body1="thorax" relpose="0 0 0 1 0 0 0" active="false" />
     </equality>
     <tendon>
         <spatial name="DELT1_tendon">

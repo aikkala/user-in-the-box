@@ -11,7 +11,7 @@ from gym import spaces  #required to run OpenSim forward simulations
 import yaml  #for pretty print
 import pandas as pd
 from opensim_static_optimization import static_optimization
-
+import mujoco_py
 
 class opensim_file(object):
   """
@@ -103,6 +103,14 @@ def adjust_mujoco_model_pt0(mujoco_xml, osim_file):
 
   if type(osim_file) == str:
     osim_file = opensim_file(osim_file)
+
+  # MUJOCO MODEL ADJUSTMENT: Align thorax center with origin of global system:
+  try:
+    get_mujoco_body(mujoco_xml, "thorax")["@pos"] = array_to_strinterval(np.zeros((3,)))
+    get_mujoco_body(mujoco_xml, "thorax")["@quat"] = array_to_strinterval([1, 0, 0, 0])
+  except AssertionError:
+    get_mujoco_body(mujoco_xml, "ground")["@pos"] = array_to_strinterval(np.zeros((3,)))
+    get_mujoco_body(mujoco_xml, "ground")["@quat"] = array_to_strinterval([1, 0, 0, 0])
 
   # MUJOCO MODEL ADJUSTMENT: Clear tendon spring-damper properties:
   spatial_tendons = mujoco_xml['mujoco']['tendon']['spatial']
@@ -201,7 +209,7 @@ def adjust_mujoco_model_pt1(mujoco_xml, osim_file):
           append_OpenSim_wrap_path_to_MuJoCo_model(mujoco_xml, tendon_name, osim_wrap_path)
 
   # Create default classes for each OpenSim wrapping object type:
-  wrap_object_rgba = "0.8 0.5 0.4 1"  #"0.5 0 0.5 0"
+  wrap_object_rgba = "0.8 0.5 0.4 0"  #"0.5 0 0.5 0"
   default_body = mujoco_xml['mujoco']['default']
   if 'default' not in default_body:
       default_body['default'] = []
@@ -905,6 +913,10 @@ class OsimModelEnv(object):
     prev_joint_values = None
     joint_values = None
 
+    muscle_values_istep = None
+    prev_muscle_values = None
+    muscle_values = None
+
     maxforces = []
     curforces = []
 
@@ -1081,6 +1093,21 @@ class OsimModelEnv(object):
             self.state_desc_istep = self.istep
         return self.state_desc
 
+    def compute_muscle_values(self):
+        res_osim = {}
+        for i in range(self.muscleSet.getSize()):
+            muscle = osim.Millard2012EquilibriumMuscle.safeDownCast(self.muscleSet.get(i))
+            name = muscle.getName()
+            res_osim[name] = (muscle.getActivation(self.state), muscle.getActivationDerivative(self.state)) #, muscle.getFiberLength(self.state))
+        return res_osim
+
+    def get_muscle_values(self):
+        if self.muscle_values_istep != self.istep:
+            self.prev_muscle_values = self.muscle_values
+            self.muscle_values = self.compute_muscle_values()
+            self.muscle_values_istep = self.istep
+        return self.muscle_values
+
     def compute_joint_values(self):
         res_osim = {}
         for i in range(self.jointSet.getSize()):
@@ -1089,7 +1116,7 @@ class OsimModelEnv(object):
             for j in range(joint.numCoordinates()):
                 coordinate = joint.get_coordinates(j)
                 coordinate_name = coordinate.getSpeedName().split("/")[0]
-                res_osim[coordinate_name] = (coordinate.getValue(self.state), coordinate.getSpeedValue(self.state), coordinate.getAccelerationValue(self.state))
+                res_osim[coordinate_name] = (coordinate.getValue(self.state), coordinate.getSpeedValue(self.state)) #, coordinate.getAccelerationValue(self.state))
         return res_osim
 
     def get_joint_values(self):
@@ -1194,8 +1221,10 @@ def check_model_state_equality(mujoco_env, osim_env):
     Checks whether MuJoCo and OpenSim model are in same state.
     :param mujoco_env: Gym environment of MuJoCo model
     :param osim_env: (customized) OsimModelEnv class of OpenSim model
-    :return: True, if the position, speed, and acceleration values of all common joints match, else False
+    :return: True, if the position, speed, and acceleration values of all common joints match,
+    as well as muscle and body states, else False
     """
+    ## Joint state
     res_mujoco = mujoco_env.get_joint_values()
     res_osim = osim_env.get_joint_values()
 
@@ -1206,10 +1235,50 @@ def check_model_state_equality(mujoco_env, osim_env):
 
     res_mujoco_common = {k: v for k, v in res_mujoco.items() if k not in mujoco_only_joints}
     res_osim_common = {k: v for k, v in res_osim.items() if k not in osim_only_joints}
-
     # input(yaml.dump(res_osim, default_flow_style=False))
+    if res_mujoco_common != res_osim_common:
+        print("WARNING: Joint states do not match between MuJoCo and OpenSim!")
 
-    return res_mujoco_common == res_osim_common
+    ## Muscle state
+    res_mujoco_muscles = mujoco_env.get_muscle_values()
+    res_osim_muscles = osim_env.get_muscle_values()
+
+    mujoco_only_muscles = {i for i in res_mujoco_muscles.keys() if i not in res_osim_muscles.keys()}
+    osim_only_muscles = {i for i in res_osim_muscles.keys() if i not in res_mujoco_muscles.keys()}
+    if mujoco_only_muscles:
+        print(f"WARNING: Muscles only available in MuJoCo model: {mujoco_only_muscles}")
+    if osim_only_muscles:
+        print(f"WARNING: Muscles only available in OpenSim model: {osim_only_muscles}")
+
+    res_mujoco_common_muscles = {k: v for k, v in res_mujoco_muscles.items() if k not in mujoco_only_muscles}
+    res_osim_common_muscles = {k: v for k, v in res_osim_muscles.items() if k not in osim_only_muscles}
+    if res_mujoco_common_muscles != res_osim_common_muscles:
+        print("WARNING: Muscle states do not match between MuJoCo and OpenSim!")
+
+    ## Body state
+    ### Run forward kinematics to compute (global) body position of current qpos:
+    mujoco_py.cymj._mj_kinematics(mujoco_env.sim.model, mujoco_env.sim.data)
+    res_mujoco_bodies = {mujoco_env.sim.model.body_id2name(i): mujoco_env.sim.data.body_xpos[i] for i in range(mujoco_env.sim.model.nbody)}
+    #res_osim_bodies = osim_env.get_state_desc()["body_pos"]  #relative to ground frame
+    res_osim_bodies = {body.getName(): [body.getTransformInGround(osim_env.state).p()[i] for i in range(3)] for i in range(osim_env.bodySet.getSize()) if (body := osim.Frame.safeDownCast(osim_env.bodySet.get(i))) is not None}  #relative to parent frame
+    #input((res_mujoco_bodies, res_osim_bodies))
+
+    mujoco_only_bodies = {i for i in res_mujoco_bodies.keys() if i not in res_osim_bodies.keys()}
+    osim_only_bodies = {i for i in res_osim_bodies.keys() if i not in res_mujoco_bodies.keys()}
+    if mujoco_only_muscles:
+        print(f"WARNING: Bodies only available in MuJoCo model: {mujoco_only_bodies}")
+    if osim_only_bodies:
+        print(f"WARNING: Bodies only available in OpenSim model: {osim_only_bodies}")
+
+    res_mujoco_common_bodies = {k: v for k, v in res_mujoco_bodies.items() if k not in mujoco_only_bodies}
+    res_osim_common_bodies = {k: v for k, v in res_osim_bodies.items() if k not in osim_only_bodies}
+
+    body_pos_diffs = [np.linalg.norm(v_m - v_o) for (_, v_m), (_, v_o) in zip(res_mujoco_common_bodies.items(), res_osim_common_bodies.items())]
+    if not all([i < 1e-6 for i in body_pos_diffs]):
+        input(body_pos_diffs)
+        print("WARNING: Body states do not match between MuJoCo and OpenSim!")
+
+    return (res_mujoco_common == res_osim_common) and (res_mujoco_common_muscles == res_osim_common_muscles) and all([i < 1e-6 for i in body_pos_diffs])
 
 
 def compare_MuJoCo_OpenSim_models(env, osim_filepath):
@@ -1224,7 +1293,8 @@ def compare_MuJoCo_OpenSim_models(env, osim_filepath):
 
     # Verify that both models have same number of (muscle) actuators
     mujoco_actuator_indexlist = [i for i in range(env.sim.model.nu) if env.sim.model.actuator_trntype[i] == 3]
-    assert len(mujoco_actuator_indexlist) == osim_env.get_action_space_size()
+    if len(mujoco_actuator_indexlist) != osim_env.get_action_space_size():
+        print(f"WARNING: Different number of muscle actuators observed (MuJoCo: {len(mujoco_actuator_indexlist)}, OpenSim: {osim_env.get_action_space_size()}!")
 
     mujoco_observation = env.reset()
     osim_observation = osim_env.reset()
@@ -1232,30 +1302,60 @@ def compare_MuJoCo_OpenSim_models(env, osim_filepath):
     #assert env.sim.model.nq == osim_env.model.getNumCoordinates()
 
     # Set initial OpenSim state
-    init_osim_state = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo.mot'), skiprows=10,
-                delimiter="\t", index_col="time", nrows=1).iloc[0].to_dict()
+    #init_osim_state = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo.mot'), skiprows=10, delimiter="\t", index_col="time", nrows=1).iloc[0].to_dict()
+    init_osim_state = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/CMC_Reach8_states_abbrev.sto'), skiprows=6, delimiter="\t", index_col="time", nrows=1).iloc[0].to_dict()
+    #system_state = osim_env.get_state()
+    #input(system_state.getY())
+    #osim_env.set_state(system_state)
     coordinate_joint_dict = {joint.get_coordinates(j).getSpeedName().split("/")[0]: joint.getName() for i in range(osim_env.jointSet.getSize()) if (joint := osim_env.jointSet.get(i)) is not None for j in range(joint.numCoordinates())}
+    coordinate_value_names_list = ["/" + "/".join(("jointset", joint.getName(), joint.get_coordinates(j).getSpeedName().split("/")[0], value_name)) for i in range(osim_env.jointSet.getSize()) if (joint := osim_env.jointSet.get(i)) is not None for j in range(joint.numCoordinates()) for value_name in ("value", "speed")]
     for coordinate_name, coordinate_value in init_osim_state.items():
-        if coordinate_name in coordinate_joint_dict:
+        if coordinate_name in coordinate_joint_dict:  #e.g., coordinate_name == "sternoclavicular_r2"
             # input((osim_env.jointSet.getStateVariableValue(osim_env.state, "/jointset/sternoclavicular/sternoclavicular_r2/value")))
             osim_env.jointSet.setStateVariableValue(osim_env.state, f"/jointset/{coordinate_joint_dict[coordinate_name]}/{coordinate_name}/value", coordinate_value)
             osim_env.jointSet.setStateVariableValue(osim_env.state, f"/jointset/{coordinate_joint_dict[coordinate_name]}/{coordinate_name}/speed", 0)
             # input(osim_env.get_joint_values())
+        elif coordinate_name in coordinate_value_names_list:  #e.g., coordinate_name == "/jointset/sternoclavicular/sternoclavicular_r2/speed"
+           osim_env.jointSet.setStateVariableValue(osim_env.state, coordinate_name, coordinate_value)
         else:
-            print(f"Cannot set initial value for coordinate {coordinate_name}, as it is not found in used OpenSim model.")
+            try:  #e.g., coordinate_name == "/forceset/DELT1/activation"
+                osim_env.jointSet.setStateVariableValue(osim_env.state, coordinate_name, coordinate_value)
+            except RuntimeError:
+               print(f"Cannot set initial value for coordinate {coordinate_name}, as it is not found in used OpenSim model.")
+    #input(osim_env.jointSet.getStateVariableValue(osim_env.state, "/forceset/DELT1/activation"))
+    #osim_env.jointSet.setStateVariableValue(osim_env.state, f"/jointset/sternoclavicular/sternoclavicular_r2/value", 0.5)
+
+    osim_env.set_state(osim_env.state)  #IMPORTANT INFO: this is required to send current state stored in osim_env.state to OpenSim Manager! (actually, "manager.initialize(self.state)" would suffice...)
+    osim_env.model.realizeReport(osim_env.state)  #IMPORTANT INFO: this is required to make (initial) muscle properties accesible
 
     # Set MuJoCo joint values to OpenSim joint values
     ## Compute MuJoCo/OpenSim joint values
     res_mujoco = env.get_joint_values()
     res_osim = osim_env.get_joint_values()
+    env.sim.data.qacc[:] = np.zeros(env.sim.model.nv)
+    env.sim.data.qacc_warmstart[:] = np.zeros(env.sim.model.nv)
     for joint_name, value in res_mujoco.items():
         if joint_name in res_osim.keys():
             env.sim.data.qpos[env.sim.model.joint_name2id(joint_name)] = res_osim[joint_name][0]
             env.sim.data.qvel[env.sim.model.joint_name2id(joint_name)] = res_osim[joint_name][1]
-            env.sim.data.qacc[env.sim.model.joint_name2id(joint_name)] = res_osim[joint_name][2]  #setting acceleration should not have any effect in MuJoCo
+            #env.sim.data.qacc[env.sim.model.joint_name2id(joint_name)] = res_osim[joint_name][2]  #setting acceleration should not have any effect in MuJoCo
         else:
             print(f"WARNING: Cannot set values of MuJoCo joint '{joint_name}', as it does not exist in used OpenSim model!")
     res_mujoco = env.get_joint_values()
+
+    # Set MuJoCo muscle values to OpenSim muscle values
+    ## Compute MuJoCo/OpenSim muscle values
+    res_mujoco = env.get_muscle_values()
+    res_osim = osim_env.get_muscle_values()
+    env.sim.data.act[:] = np.zeros(env.sim.model.na)
+    env.sim.data.act_dot[:] = np.zeros(env.sim.model.na)
+    for muscle_name, value in res_mujoco.items():
+        if muscle_name in res_osim.keys():
+            env.sim.data.act[mujoco_actuator_indexlist.index(env.sim.model.actuator_name2id(muscle_name))] = res_osim[muscle_name][0]
+            env.sim.data.act_dot[mujoco_actuator_indexlist.index(env.sim.model.actuator_name2id(muscle_name))] = res_osim[muscle_name][1]
+        else:
+            print(f"WARNING: Cannot set values of MuJoCo muscle '{muscle_name}', as it does not exist in used OpenSim model!")
+    res_mujoco = env.get_muscle_values()
 
     assert check_model_state_equality(env, osim_env), "ERROR: MuJoCo and OpenSim are not in the same initial state!"
 
@@ -1266,10 +1366,20 @@ def compare_MuJoCo_OpenSim_models(env, osim_filepath):
     # static_optimization(ik_filename=os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo.mot'),
     #                     results_dirname=os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/'),
     #                     weight_activations=False)
-    ctrl_samples = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo_StaticOptimization_activation.sto'), skiprows=8, delimiter="\t", index_col="time")
+    #ctrl_samples = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/joint_angles_flo_StaticOptimization_activation.sto'), skiprows=8, delimiter="\t", index_col="time")
+    ctrl_samples = pd.read_csv(os.path.expanduser('~/user-in-the-box/UIB/envs/mobl_arms/models/CMC_Reach8_controls.sto'), skiprows=6, delimiter="\t", index_col="time")
+
     n_steps = ctrl_samples.shape[0]
     ## Exclude introduced reserve actuators from evaluation
     ctrl_samples = ctrl_samples.loc[:, [('reserve' not in column) & (column not in ['FX', 'FY', 'FZ', 'MX', 'MY', 'MZ']) for column in ctrl_samples.columns]]
+    ### Exclude actuators that are not available in MuJoCo
+    mujoco_actuator_names = [env.sim.model.actuator_id2name(id) for id in range(env.sim.model.nu)]
+    for actuator_name in ctrl_samples.columns:
+        if actuator_name not in mujoco_actuator_names:
+            print(f"Cannot set values for actuator {actuator_name}, as it is not found in used MuJoCo model.")
+            ctrl_samples = ctrl_samples.drop(actuator_name, axis=1)
+    ### Compute actuator indices that match order of OpenSim Data
+    mujoco_actuator_indexlist_fromfile = [env.sim.model.actuator_name2id(actuator_name) for actuator_name in ctrl_samples.columns]
     ctrl_samples = ctrl_samples.to_numpy()
 
     # VARIANT 2: Use random controls
@@ -1279,24 +1389,33 @@ def compare_MuJoCo_OpenSim_models(env, osim_filepath):
 
     # Run OpenSim Forward Simulation
     observations_osim = [osim_env.get_joint_values()]
+    n_steps = 5
     for i in range(n_steps):
-        assert i == osim_env.istep
+        #assert i == osim_env.istep
         print('OpenSim Forward Simulation - Step #{}/{} ({}s) [{:.2f}%]'.format(i, n_steps, osim_env.state.getTime(), float(i * 100 / n_steps) if n_steps != 0 else 100))
         observation, reward, done, info = osim_env.step(ctrl_samples[i])
         #input((observation, reward, done, info))
         #print(f"STEP: {osim_env.istep}, TIME: {osim_env.state.getTime()}")
         observations_osim.append(osim_env.get_joint_values())
-        input(observations_osim[-1])
+        #input((observations_osim[-1]))
 
     # Run MuJoCo Forward Simulation
     observations_mujoco = [env.get_joint_values()]
+    #input(env.sim.data.act[:])
+    input(env.sim.data.qacc[:])
+    #input(env.sim.data.qvel[:])
     for i in range(n_steps):
         print('MuJoCo Forward Simulation - Step #{}/{} [{:.2f}%]'.format(i, n_steps, float(i * 100 / n_steps) if n_steps != 0 else 100))
         env.sim.data.ctrl[:] = np.zeros(env.sim.model.nu)
-        env.sim.data.ctrl[mujoco_actuator_indexlist] = ctrl_samples[i]
-        # mujoco_py.cymj._mj_fwdActuation(eval_env.sim.model, eval_env.sim.data)
-        # mujoco_py.cymj._mj_fwdAcceleration(eval_env.sim.model, eval_env.sim.data)
+        env.sim.data.ctrl[mujoco_actuator_indexlist_fromfile] = ctrl_samples[i]
+        #mujoco_py.cymj._mj_fwdActuation(env.sim.model, env.sim.data)
+        #mujoco_py.cymj._mj_fwdVelocity(env.sim.model, env.sim.data)
         env.sim.step()
+        env.render()
+        #input(env.sim.data.act[:])
+        input(env.sim.data.qacc[:])
+        #input(env.sim.data.qvel[:])
+        #input((env.sim.data.qpos, env.sim.data.qvel, env.sim.data.act, env.sim.data.ctrl))
         observations_mujoco.append(env.get_joint_values())
 
     input(([i["elv_angle"][0] for i in observations_mujoco], [i["elv_angle"][0] for i in observations_osim]))

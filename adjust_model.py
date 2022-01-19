@@ -12,11 +12,14 @@ if __name__=="__main__":
     env_name = 'UIB:mobl-arms-muscles-v0'
 
     opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41.osim"
-    # opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_module2_4_allmuscles.osim"
+    #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_module6_7_CMC.osim"
     mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles.xml"
     mujoco_intermediate = "UIB/envs/mobl_arms/models/mobl_arms_muscles_tendonwrapping.xml"
     mujoco_output = "UIB/envs/mobl_arms/models/mobl_arms_muscles_modified.xml"
     model_properties_output = "UIB/envs/mobl_arms/models/MoBL_ARMS_analysis.xml"
+
+    #mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_original.xml"
+    #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
 
     # Read and parse OpenSim model
     osim_file = opensim_file(opensim_input)
@@ -58,4 +61,6 @@ if __name__=="__main__":
     # Store musculotendon properties of both adjusted MuJoCo model and reference OpenSim model in text file
     print_musculotendon_properties(env, osim_file, stdout_file=model_properties_output)
 
+    env = gym.make(env_name, xml_file="models/mobl_arms_muscles_original.xml", sample_target=False)
+    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
     compare_MuJoCo_OpenSim_models(env, opensim_input)
