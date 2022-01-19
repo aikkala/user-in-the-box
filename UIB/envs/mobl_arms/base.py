@@ -4,14 +4,10 @@ import mujoco_py
 import numpy as np
 import os
 import pathlib
+from abc import ABC, abstractmethod
 
 
-def sigmoid(x):
-  return 1 / (1 + np.exp(-x))
-
-
-class MuscleActuated(gym.Env):
-  metadata = {'render.modes': ['human']}
+class BaseModel(ABC):
 
   def __init__(self, **kwargs):
 
@@ -21,7 +17,7 @@ class MuscleActuated(gym.Env):
     # Model file
     xml_file = "models/mobl_arms_muscles.xml"
 
-    # Set action sampling frequency
+    # Set action sampling
     if "action_sample_freq" in kwargs:
       self.action_sample_freq = kwargs["action_sample_freq"]
     else:
@@ -35,7 +31,7 @@ class MuscleActuated(gym.Env):
 
     # Max episode length
     self.steps = 0
-    self.max_episode_length = self.action_sample_freq*10
+    self.max_episode_length = self.action_sample_freq*60
 
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])
@@ -98,13 +94,6 @@ class MuscleActuated(gym.Env):
     self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([1.5, -1.5, 0.9])
     self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([0.6582, 0.6577, 0.2590, 0.2588])
 
-
-  def is_contact(self, idx1, idx2):
-    for contact in self.sim.data.contact:
-      if (contact.geom1 == idx1 and contact.geom2 == idx2) or (contact.geom1 == idx2 and contact.geom2 == idx1):
-        return True
-    return False
-
   def step(self, action):
 
     info = {}
@@ -135,13 +124,13 @@ class MuscleActuated(gym.Env):
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
       velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
-      reward = 10 #+ velocity_factor*10
+      reward = 2 #+ velocity_factor*2
       info["target_hit"] = True
 
     else:
 
       # Estimate reward
-      reward = np.exp(-dist*10)
+      reward = np.exp(-dist*10)/10
       info["target_hit"] = False
 
       self.steps_since_last_hit += 1
@@ -155,21 +144,9 @@ class MuscleActuated(gym.Env):
 
     return self.get_observation(), reward, finished, info
 
+  @abstractmethod
   def get_observation(self):
-    # Ignore eye qpos and qvel for now
-    jnt_range = self.sim.model.jnt_range[self.independent_joints]
-
-    qpos = self.sim.data.qpos[self.independent_joints].copy()
-    qpos = qpos - jnt_range[:, 0] / (jnt_range[:, 1] - jnt_range[:, 0])
-    qpos = (qpos - 0.5)*2
-    qvel = self.sim.data.qvel[self.independent_joints].copy()
-    qacc = self.sim.data.qacc[self.independent_joints].copy()
-
-    act = (self.sim.data.act.copy() - 0.5)*2
-    finger_position = self.sim.data.get_geom_xpos(self.fingertip).copy() - self.target_origin.copy()
-
-    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position.copy(),
-                           np.array([self.target_radius]), act])
+    pass
 
   def spawn_target(self):
 
@@ -225,17 +202,47 @@ class MuscleActuated(gym.Env):
 
     return self.get_observation()
 
+  def grab_image(self, height, width):
+
+    # Move estimate out of the way
+    self.model.body_pos[self.model._body_name2id["target-estimate"]] = np.array([0, 0, 0])
+    self.model.geom_size[self.model._geom_name2id["target-sphere-estimate"]][0] = 0.001
+
+    rendered = self.sim.render(height=height, width=width, camera_name='oculomotor', depth=True)
+    rgb = ((np.flipud(rendered[0]) / 255.0) - 0.5) * 2
+    depth = (np.flipud(rendered[1]) - 0.5) * 2
+    return np.expand_dims(np.flipud(depth), 0)
+    #return np.concatenate([rgb.transpose([2, 0, 1]), np.expand_dims(depth, 0)])
+
+  def grab_proprioception(self):
+
+    # Ignore eye qpos and qvel for now
+    jnt_range = self.sim.model.jnt_range[self.independent_joints]
+
+    qpos = self.sim.data.qpos[self.independent_joints].copy()
+    qpos = qpos - jnt_range[:, 0] / (jnt_range[:, 1] - jnt_range[:, 0])
+    qpos = (qpos - 0.5) * 2
+    qvel = self.sim.data.qvel[self.independent_joints].copy()
+    qacc = self.sim.data.qacc[self.independent_joints].copy()
+
+    finger_position = self.sim.data.get_geom_xpos(self.fingertip).copy()
+    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position])
+    #return np.concatenate([qpos[2:], qvel[2:], qacc[2:]])
+
+  def grab_target(self):
+    return np.concatenate([self.target_position + self.target_origin, np.array([self.target_radius])])
+
   def get_state(self):
     state = {"step": self.steps, "timestep": self.sim.data.time,
-             "qpos": self.sim.data.qpos[self.independent_joints].copy(),
-             "qvel": self.sim.data.qvel[self.independent_joints].copy(),
-             "qacc": self.sim.data.qacc[self.independent_joints].copy(),
-             "act": self.sim.data.act.copy(),
-             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip).copy(),
-             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip).copy(),
-             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip).copy(),
-             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip).copy(),
-             "target_position": self.target_origin.copy()+self.target_position.copy(),
+             "qpos": self.sim.data.qpos[self.independent_joints],
+             "qvel": self.sim.data.qvel[self.independent_joints],
+             "qacc": self.sim.data.qacc[self.independent_joints],
+             "act": self.sim.data.act,
+             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip),
+             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip),
+             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip),
+             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip),
+             "target_position": self.target_origin+self.target_position,
              "target_radius": self.target_radius}
     return state
 

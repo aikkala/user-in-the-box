@@ -3,36 +3,19 @@ from stable_baselines3 import PPO
 import os
 import numpy as np
 import torch
+import pathlib
+import matplotlib.pyplot as pp
 
 from UIB.archs.regressor import *
 
 
-def grab_image(env):
-  rendered = env.sim.render(height=height, width=width, camera_name='oculomotor', depth=True)
-#  rgb = ((rendered[0] / 255.0) - 0.5) * 2
-  depth = (rendered[1] - 0.5) * 2
-  return np.expand_dims(np.flipud(depth), 0)
-
-def grab_proprioception(env):
-  # Ignore eye qpos and qvel for now
-  jnt_range = env.sim.model.jnt_range[env.independent_joints]
-
-  qpos = env.sim.data.qpos[env.independent_joints].copy()
-  qpos = qpos - jnt_range[:, 0] / (jnt_range[:, 1] - jnt_range[:, 0])
-  qpos = (qpos - 0.5) * 2
-  qvel = env.sim.data.qvel[env.independent_joints].copy()
-  qacc = env.sim.data.qacc[env.independent_joints].copy()
-
-  finger_position = env.sim.data.get_geom_xpos(env.fingertip)
-  return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position])
-
-def grab_target(env):
-  return np.concatenate([env.target_position + env.target_origin, np.array([env.target_radius])])
-
 if __name__ == "__main__":
 
+  # Get path of this file
+  project_path = pathlib.Path(__file__).parent.absolute()
+
   # Load policy
-  model_file = "/home/aleksi/Workspace/user-in-the-box/output/current-best-v0/checkpoint/model_100000000_steps.zip"
+  model_file = "../../output/current-best-v0/checkpoint/model_100000000_steps.zip"
   print(f'Loading model: {model_file}')
   model = PPO.load(model_file)
 
@@ -41,25 +24,27 @@ if __name__ == "__main__":
 
   # One epoch is a data collection phase + training phase
   num_epochs = 10000
-  num_episodes = 50
+  num_episodes = 20
 
   # Initialise gym
-  env = gym.make("UIB:mobl-arms-muscles-v0")
+  env_kwargs = {"target_radius_limit": np.array([0.05, 0.15])}
+  env = gym.make("UIB:mobl-arms-muscles-v0", **env_kwargs)
 
   # Initialise a regressor network
-  net = SimpleSequentialCNN(height=height, width=width, proprioception_size=grab_proprioception(env).size,
-                            seq_max_len=env.max_steps_without_hit+1)
+#  net = SimpleSequentialCNN(height=height, width=width, env=env,
+#                            seq_max_len=env.max_steps_without_hit+1)
+  net = SimpleCNN(height=height, width=width, proprioception_size=env.grab_proprioception().size)
 
   # Initialise an optimizer
-  optimizer = torch.optim.Adam(net.parameters(), lr=3e-4)
+  optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
 
   # Start the training procedure
   train_error = []
   for epoch in range(num_epochs):
 
-    images = []
-    proprioception = []
-    targets = []
+    images_tmp = []
+    proprioception_tmp = []
+    targets_tmp = []
 
     # First collect data
     for episode in range(num_episodes):
@@ -68,35 +53,44 @@ if __name__ == "__main__":
       obs = env.reset()
       done = False
 
-      episode_images = [grab_image(env)]
-      episode_proprioception = [grab_proprioception(env)]
-      episode_targets = [grab_target(env)]
+      episode_images = [env.grab_image(height=height, width=width)]
+      episode_proprioception = [env.grab_proprioception()]
+      episode_targets = [env.grab_target()]
 
       # Loop until episode ends
       while not done:
 
         # Get actions from policy; could use random actions here as well?
-        action, _states = model.predict(obs, deterministic=False)
+        if np.random.rand() < 0.2:
+          action, _states = model.predict(obs, deterministic=False)
+        else:
+          action = env.action_space.sample()
 
         # Grab image and target before stepping
-        episode_images.append(grab_image(env))
-        episode_proprioception.append(grab_proprioception(env))
-        episode_targets.append(grab_target(env))
+        episode_images.append(env.grab_image(height=height, width=width))
+        episode_proprioception.append(env.grab_proprioception())
+        episode_targets.append(env.grab_target())
 
         # Take a step
         obs, r, done, info = env.step(action)
 
         if info["target_hit"] or done:
-          images.append(np.array(episode_images, dtype=np.float32))
-          proprioception.append(np.array(episode_proprioception, dtype=np.float32))
-          targets.append(np.array(episode_targets, dtype=np.float32))
+          # Save current sequence
+          images_tmp.append(np.array(episode_images, dtype=np.float32))
+          proprioception_tmp.append(np.array(episode_proprioception, dtype=np.float32))
+          targets_tmp.append(np.array(episode_targets, dtype=np.float32))
           episode_images = []
           episode_proprioception = []
           episode_targets = []
 
-    images = np.array(images, dtype=object)
-    proprioception = np.array(proprioception, dtype=object)
-    targets = np.array(targets, dtype=object)
+    # Need to initialise empty arrays with dtype=object to force ragged arrays
+    images = np.empty(len(images_tmp), dtype=object)
+    proprioception = np.empty(len(proprioception_tmp), dtype=object)
+    targets = np.empty(len(targets_tmp), dtype=object)
+
+    images[:] = images_tmp
+    proprioception[:] = proprioception_tmp
+    targets[:] = targets_tmp
 
     # Start training
     for iteration in range(1):
@@ -115,29 +109,25 @@ if __name__ == "__main__":
       seqs = [(img[::frame_skip], prop[::frame_skip], tgt[::frame_skip]) for img, prop, tgt in
               zip(train_images, train_proprioception, train_targets)]
 
-      # Do the prediction
-      predicted, targets_filled, mask = net(seqs)
-      print()
-      print(predicted[0, 0])
-      print(targets_filled[0, 0])
-
-      # Estimate loss
-      masked = (predicted - targets_filled) * mask.unsqueeze(2)
-      loss = torch.mean(torch.sum(masked**2, dim=[1,2]) / mask.sum(dim=1))
+      # Calculate loss
+      loss, predicted, targets_reshaped = net.calculate_loss(seqs)
 
       # Calculate grad and backprop
       optimizer.zero_grad()
       loss.backward()
       optimizer.step()
 
-      print('Average MSE over sequence:', loss.item())
-      train_error.append(loss.item())
+      print(f'epoch {epoch}: Average MSE over sequence: {loss.item()}')
+      train_error.append(np.log(loss.item()))
 
     del images, proprioception, targets
 
-  # Save the network
-  torch.save(net.state_dict(), 'regressor')
+    if (epoch % 10) == 0:
+      # Save the network
+      model_file = os.path.join(project_path, '../archs/regressor')
+      torch.save(net.state_dict(), model_file)
 
-  import matplotlib.pyplot as pp
-  pp.plot(train_error)
-  pp.savefig('train_error')
+      train_error_file = os.path.join(project_path, '../archs/train_error')
+      pp.plot(train_error)
+      pp.savefig(train_error_file)
+      pp.close()
