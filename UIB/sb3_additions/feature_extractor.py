@@ -21,11 +21,11 @@ class VisualAndProprioceptionExtractor(BaseFeaturesExtractor):
       if key == "visual":
         # Run through a simple CNN
         cnn = nn.Sequential(
-          nn.Conv2d(in_channels=1, out_channels=16, kernel_size=5, padding=0, stride=2),
+          nn.Conv2d(in_channels=1, out_channels=8, kernel_size=(3,3), padding=(1,1), stride=(2,2)),
           nn.LeakyReLU(),
-          nn.Conv2d(in_channels=16, out_channels=32, kernel_size=5, padding=0, stride=2),
+          nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3,3), padding=(1,1), stride=(2,2)),
           nn.LeakyReLU(),
-          nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, padding=0, stride=1),
+          nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3,3), padding=(1,1), stride=(2,2)),
           nn.LeakyReLU(),
           nn.Flatten())
 
@@ -35,16 +35,16 @@ class VisualAndProprioceptionExtractor(BaseFeaturesExtractor):
 
         extractors[key] = nn.Sequential(
           cnn,
-          nn.Linear(in_features=n_flatten, out_features=128),
+          nn.Linear(in_features=n_flatten, out_features=256),
           nn.LeakyReLU())
         #total_concat_size += subspace.shape[1] * subspace.shape[2] * 1
-        total_concat_size += 128
+        total_concat_size += 256
       elif key == "proprioception":
         # Run through a simple MLP
         extractors[key] = nn.Sequential(
-          nn.Linear(subspace.shape[0], 64),
+          nn.Linear(subspace.shape[0], 128),
           nn.LeakyReLU())
-        total_concat_size += 64
+        total_concat_size += 128
       elif key == "ocular":
         # Do nothing with this for now
         pass

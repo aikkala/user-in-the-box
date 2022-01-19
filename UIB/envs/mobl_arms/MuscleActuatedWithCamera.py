@@ -22,7 +22,10 @@ class MuscleActuatedWithCamera(gym.Env):
     xml_file = "models/mobl_arms_muscles.xml"
 
     # Set action sampling frequency
-    self.action_sample_freq = 10
+    if "action_sample_freq" in kwargs:
+      self.action_sample_freq = kwargs["action_sample_freq"]
+    else:
+      self.action_sample_freq = 10
     self.timestep = 0.002
     self.frame_skip = int(1/(self.timestep*self.action_sample_freq))
 
@@ -70,7 +73,7 @@ class MuscleActuatedWithCamera(gym.Env):
 
     # Set action space -- motor actuators are always first
     motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
-    muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])
+    muscles_limits = np.ones((self.nmuscles,2)) * np.array([-1.0, 1.0])
     self.action_space = spaces.Box(low=np.float32(muscles_limits[:, 0]), high=np.float32(muscles_limits[:, 1]))
 
     # Fingertip is tracked for e.g. reward calculation and logging
@@ -166,10 +169,10 @@ class MuscleActuatedWithCamera(gym.Env):
     act = (self.sim.data.act.copy() - 0.5)*2
 
     # Estimate fingertip position, normalise to target_origin
-    finger_position = self.sim.data.get_geom_xpos(self.fingertip) - self.target_origin
+    finger_position = self.sim.data.get_geom_xpos(self.fingertip).copy() - self.target_origin
 
     # Get depth array and normalise
-    render = self.sim.render(width=80, height=120, camera_name='oculomotor', depth=True)
+    render = self.sim.render(width=120, height=80, camera_name='oculomotor', depth=True)
     depth = render[1]
     depth = np.flipud((depth - 0.5)*2)
     rgb = render[0]
