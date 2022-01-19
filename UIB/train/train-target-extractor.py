@@ -15,7 +15,7 @@ if __name__ == "__main__":
   project_path = pathlib.Path(__file__).parent.absolute()
 
   # Load policy
-  model_file = "../../output/current-best-v0/checkpoint/model_100000000_steps.zip"
+  model_file = os.path.join(project_path, "../../output/current-best-v0/checkpoint/model_100000000_steps.zip")
   print(f'Loading model: {model_file}')
   model = PPO.load(model_file)
 
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
   # One epoch is a data collection phase + training phase
   num_epochs = 10000
-  num_episodes = 20
+  num_episodes = 50
 
   # Initialise gym
   env_kwargs = {"target_radius_limit": np.array([0.05, 0.15])}
