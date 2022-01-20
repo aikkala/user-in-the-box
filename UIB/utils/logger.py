@@ -1,20 +1,11 @@
 import pickle
 
 
-class EvaluationLogger:
+class BaseLogger:
 
-
-  def __init__(self, num_episodes):
+  def __init__(self, num_episodes, keys):
     self.num_episodes = num_episodes
-    self.keys = ["step", "timestep", "qpos", "qvel", "qacc", "act", "fingertip_xpos", "fingertip_xmat",
-                 "fingertip_xvelp", "fingertip_xvelr", "termination", "target_hit", "target_position", "target_radius"]
-
-#    self.data = {self.strify(num):
-#                   {"step": [], "timestep": [], "qpos": [], "qvel": [], "qacc": [], "act": [],
-#                    "fingertip_xpos": [], "fingertip_xmat": [],
-#                    "fingertip_xvelp": [], "fingertip_xvelr": [],
-#                    "termination": [], "target_hit": []} for num in range(num_episodes)}
-
+    self.keys = keys
     self.data = {self.strify(num): {key: [] for key in self.keys} for num in range(num_episodes)}
 
   def strify(self, num):
@@ -32,3 +23,14 @@ class EvaluationLogger:
   def save(self, filename):
     with open(f"{filename}.pickle", 'wb') as handle:
       pickle.dump(self.data, handle)
+
+class StateLogger(BaseLogger):
+  def __init__(self, num_episodes):
+    super().__init__(num_episodes=num_episodes, keys=["step", "timestep", "qpos", "qvel", "qacc", "act",
+                                                      "fingertip_xpos", "fingertip_xmat", "fingertip_xvelp",
+                                                      "fingertip_xvelr", "termination", "target_hit", "target_position",
+                                                      "target_radius"])
+
+class ActionLogger(BaseLogger):
+  def __init__(self, num_episodes):
+    super().__init__(num_episodes=num_episodes, keys=["step", "timestep", "action", "ctrl"])

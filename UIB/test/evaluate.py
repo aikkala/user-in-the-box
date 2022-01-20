@@ -6,7 +6,7 @@ from stable_baselines3 import PPO
 import re
 import argparse
 
-from UIB.utils.logger import EvaluationLogger
+from UIB.utils.logger import StateLogger, ActionLogger
 
 
 def natural_sort(l):
@@ -44,8 +44,10 @@ if __name__=="__main__":
   parser.add_argument('--out_file', type=str, default='evaluate.mp4',
                       help='output file for recording if recording is enabled (default: ./evaluate.mp4)')
   parser.add_argument('--logging', action='store_true', help='enable logging')
-  parser.add_argument('--log_file', default='log',
-                      help='output file for log if logging is enabled (default: ./log)')
+  parser.add_argument('--state_log_file', default='state_log',
+                      help='output file for state log if logging is enabled (default: ./state_log)')
+  parser.add_argument('--action_log_file', default='action_log',
+                      help='output file for action log if logging is enabled (default: ./action_log)')
   args = parser.parse_args()
 
   # Get env name and checkpoint dir
@@ -64,13 +66,17 @@ if __name__=="__main__":
   model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
   # Initialise environment
-  env_kwargs = {"target_radius_limit": np.array([0.01, 0.05]), "action_sample_freq": 100}
+  env_kwargs = {"target_radius_limit": np.array([0.05, 0.15]), "action_sample_freq": 100}
   #env_kwargs = {}
   env = gym.make(env_name, **env_kwargs)
 
   if args.logging:
+
     # Initialise log
-    logger = EvaluationLogger(args.num_episodes)
+    state_logger = StateLogger(args.num_episodes)
+
+    # Actions are logged separately to make things easier
+    action_logger = ActionLogger(args.num_episodes)
 
   # Visualise evaluations
   episode_lengths = []
@@ -84,7 +90,8 @@ if __name__=="__main__":
     reward = 0
 
     if args.logging:
-      logger.log(episode_idx, {**env.get_state(), "termination": False, "target_hit": False})
+      state = env.get_state()
+      state_logger.log(episode_idx, {**state, "termination": False, "target_hit": False})
 
     if args.record:
       imgs.append(grab_pip_image(env))
@@ -93,14 +100,17 @@ if __name__=="__main__":
     while not done:
 
       # Get actions from policy
-      action, _states = model.predict(obs, deterministic=False)
+      action, _states = model.predict(obs, deterministic=True)
 
       # Take a step
       obs, r, done, info = env.step(action)
       reward += r
 
       if args.logging:
-        logger.log(episode_idx, {**env.get_state(), **info})
+        action_logger.log(episode_idx, {"step": state["step"], "timestep": state["timestep"], "action": action.copy(),
+                                        "ctrl": env.sim.data.ctrl.copy()})
+        state = env.get_state()
+        state_logger.log(episode_idx, {**state, **info})
 
       if args.record:
         # Visualise muscle activation
@@ -114,11 +124,11 @@ if __name__=="__main__":
   print(f'Average episode length and reward over {args.num_episodes} episodes: '
         f'length {np.mean(episode_lengths)*env.dt} seconds ({np.mean(episode_lengths)} steps), reward {np.mean(rewards)}')
 
-
   if args.logging:
     # Output log
-    logger.save(args.log_file)
-    print(f'A log has been saved to file {args.log_file}.pickle')
+    state_logger.save(args.state_log_file)
+    action_logger.save(args.action_log_file)
+    print(f'Log files have been saved files {args.state_log_file}.pickle and {args.action_log_file}.pickle')
 
   if args.record:
     # Write the video
