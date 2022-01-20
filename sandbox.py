@@ -47,6 +47,12 @@ def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_
     # Start with zero actions
     actions = np.zeros((env.action_space.shape[0]))
 
+  #   env.sim.data.qpos[:] = np.array([ 0.,        0.,          0.,         -0.06199092,  0.02625643, -0.02625643,
+  # 0.06199092, -0.0125519,   0.10144003,  0.0455966,  -0.0455966,  -0.10144003,
+  # 0.0125519,  -0.40572562,  0.25616023,  0.40572562, -0.11530936,  1.70942086,
+  # 0.37816576])
+  #   input(env.sim.data.qpos)
+
 
     for step_idx in range(trajectory_length):
 
@@ -54,7 +60,15 @@ def generate_random_trajectories(env, num_trajectories=1_000, trajectory_length_
       actions = add_noise(actions, rate, scale)
 
       # Step
+      # actions = np.array([0.,         0.,         0.60831097, 0.51026837, 0.02,       0.19714249,
+      #  0.16943364, 0.06905723, 0.02,       0.04002639, 0.02,       0.02,
+      #  0.02,       0.02,       0.02,       0.02,       0.02,       0.02,
+      #  0.02,       0.02,       0.02,       0.02,       0.06319038, 0.02,
+      #  0.03585573, 0.02504265, 0.10648935, 0.04966655])
+      #np.array([0.,         0.,         0.02,       0.06319038, 0.02,       0.03585573, 0.02504265, 0.10648935, 0.04966655])
+
       env.step(actions)
+      # input(env.sim.data.qpos[:])
       env.render(mode=render_mode)
 
       states[trajectory_idx, step_idx] = env.sim.data.qpos[env.independent_joints].copy()
@@ -75,7 +89,7 @@ if __name__=="__main__":
   log_dir = os.path.join(output_dir, 'log')
 
   # Leave for future kwargs
-  env_kwargs = {"xml_file": "models/mobl_arms_muscles_modified.xml"}
+  env_kwargs = {"xml_file": "models/mobl_arms_muscles_original.xml"}
 
   # Initialise environment
   env = gym.make(env_name, **env_kwargs)

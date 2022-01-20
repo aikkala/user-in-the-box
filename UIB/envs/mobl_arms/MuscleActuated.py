@@ -13,7 +13,7 @@ def sigmoid(x):
 class MuscleActuated(gym.Env):
   metadata = {'render.modes': ['human']}
 
-  def __init__(self, xml_file=None, sample_target=True):
+  def __init__(self, xml_file=None, sample_target=True, action_sample_freq=500):
 
     # Get project path
     self.project_path = pathlib.Path(__file__).parent.absolute()
@@ -23,7 +23,7 @@ class MuscleActuated(gym.Env):
       xml_file = "models/mobl_arms_muscles.xml"
 
     # Set action sampling frequency
-    self.action_sample_freq = 10
+    self.action_sample_freq = action_sample_freq  #10
     self.timestep = 0.002
     self.frame_skip = int(1/(self.timestep*self.action_sample_freq))
 
@@ -173,7 +173,15 @@ class MuscleActuated(gym.Env):
   def get_muscle_values(self):
     #return {"act": self.sim.data.act.copy(), "act_dot": self.sim.data.act_dot.copy()}
     mujoco_actuator_indexlist = [i for i in range(self.sim.model.nu) if self.sim.model.actuator_trntype[i] == 3]
-    return {self.sim.model.actuator_id2name(i): (self.sim.data.act[mujoco_actuator_indexlist.index(i)], self.sim.data.act_dot[mujoco_actuator_indexlist.index(i)]) for i in range(self.sim.model.nu) if self.sim.model.actuator_trntype[i] == 3}
+
+    return {self.sim.model.actuator_id2name(i): (self.sim.data.act[mujoco_actuator_indexlist.index(i)], self.sim.data.act_dot[mujoco_actuator_indexlist.index(i)], self.sim.data.actuator_length[mujoco_actuator_indexlist.index(i)] - LT) for i in range(self.sim.model.nu)
+            if (self.sim.model.actuator_trntype[i] == 3) and (
+                    (LO := (self.sim.model.actuator_lengthrange[mujoco_actuator_indexlist.index(i)][0] -
+                      self.sim.model.actuator_lengthrange[mujoco_actuator_indexlist.index(i)][1]) / (
+                             self.sim.model.actuator_gainprm[mujoco_actuator_indexlist.index(i)][0] -
+                             self.sim.model.actuator_gainprm[mujoco_actuator_indexlist.index(i)][1])) is not None) and (
+                    (LT := self.sim.model.actuator_lengthrange[mujoco_actuator_indexlist.index(i)][0] -
+                    self.sim.model.actuator_gainprm[mujoco_actuator_indexlist.index(i)][0] * LO) is not None)}
 
   def get_joint_values(self):
     #return {"qpos": self.sim.data.qpos.copy(), "qvel": self.sim.data.qvel.copy(), "qacc": self.sim.data.qacc.copy()}
@@ -190,7 +198,7 @@ class MuscleActuated(gym.Env):
     qvel = self.sim.data.qvel[self.independent_joints].copy()
     qacc = self.sim.data.qacc[self.independent_joints].copy()
 
-    act = (self.sim.data.act.copy() - 0.5)*2
+    act = [0] #(self.sim.data.act.copy() - 0.5)*2  #TODO: uncomment this line
     #act = self.sim.data.act.copy()
     fingertip = "hand_2distph"
     finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]]
@@ -245,7 +253,7 @@ class MuscleActuated(gym.Env):
     self.sim.data.qpos[self.independent_joints] = qpos
     self.sim.data.qvel.fill(0)
     self.sim.data.qvel[self.independent_joints] = qvel
-    self.sim.data.act[:] = act
+    #self.sim.data.act[:] = act  #TODO: uncomment this line
 
     # Spawn target
     self.spawn_target(sample_target=sample_target)

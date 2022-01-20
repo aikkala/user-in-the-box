@@ -34,9 +34,9 @@
       <geom name="target-sphere" type="sphere" size="0.05" rgba="0.1 0.8 0.1 1.0"/>
     </body>
     <geom name="floor" pos="0 0 0" size="10 10 0.125" type="plane" material="MatPlane" condim="3"></geom>
-	<geom name="Xdir" type="box" pos="0 0 0" size="0.2 0.01 0.01" rgba="1 0 0 1" contype="0" conaffinity="0"/>
-	<geom name="Ydir" type="box" pos="0 0 0" size="0.01 0.2 0.01" rgba="0 1 0 1" contype="0" conaffinity="0"/>
-	<geom name="Zdir" type="box" pos="0 0 0" size="0.01 0.01 0.2" rgba="0 0 1 1" contype="0" conaffinity="0"/>
+	<!-- <geom name="Xdir" type="box" pos="0 0 0" size="0.2 0.01 0.01" rgba="1 0 0 1" contype="0" conaffinity="0"/> -->
+	<!-- <geom name="Ydir" type="box" pos="0 0 0" size="0.01 0.2 0.01" rgba="0 1 0 1" contype="0" conaffinity="0"/> -->
+	<!-- <geom name="Zdir" type="box" pos="0 0 0" size="0.01 0.01 0.2" rgba="0 0 1 1" contype="0" conaffinity="0"/> -->
     <body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0">
       <light mode="trackcom" directional="false" pos="0 0 4.0" dir="0 0 -1"></light>
       <geom name="thorax" type="mesh" mesh="thorax"></geom>

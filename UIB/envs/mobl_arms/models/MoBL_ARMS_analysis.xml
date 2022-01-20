@@ -1,653 +1,94 @@
 Scale ratios of optimal fiber length: [0.5 1.5]
-DELT1:
-	actuator_length (MuJoCo): 0.20772496951886926
-	actuator length range (MuJoCo): [0.13824642 0.22873967]
-	muscle length LM (MuJoCo): 0.11472518083072339
-
-	constant tendon length LT (MuJoCo): 0.09299978868814587
-	tendon slack length (OpenSim): 0.092999999999999999
-
-	optimal fiber length LO (MuJoCo): 0.09049325517710977
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.09049314403895194
-
-	maximum isometric force FO (MuJoCo): 1218.9
-	maximum isometric force (OpenSim): 1218.9000000000001
-DELT2:
-	actuator_length (MuJoCo): 0.44042362676315894
-	actuator length range (MuJoCo): [0.16156306 0.26569028]
-	muscle length LM (MuJoCo): 0.33092418177449145
-
-	constant tendon length LT (MuJoCo): 0.10949944498866745
-	tendon slack length (OpenSim): 0.1095
-
-	optimal fiber length LO (MuJoCo): 0.10412722014356685
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.1041268040125563
-
-	maximum isometric force FO (MuJoCo): 1103.5
-	maximum isometric force (OpenSim): 1103.5
-DELT3:
-	actuator_length (MuJoCo): 0.16008527828120972
-	actuator length range (MuJoCo): [0.10300469 0.23301403]
-	muscle length LM (MuJoCo): 0.12208525871334308
-
-	constant tendon length LT (MuJoCo): 0.03800001956786664
-	tendon slack length (OpenSim): 0.037999999999999999
-
-	optimal fiber length LO (MuJoCo): 0.1300093393207149
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.13000942558149858
-
-	maximum isometric force FO (MuJoCo): 201.6
-	maximum isometric force (OpenSim): 201.59999999999999
-SUPSP:
-	actuator_length (MuJoCo): 0.11317622090124632
-	actuator length range (MuJoCo): [0.07334552 0.14103754]
-	muscle length LM (MuJoCo): 0.0736767141593494
-
-	constant tendon length LT (MuJoCo): 0.03949950674189693
-	tendon slack length (OpenSim): 0.0395
-
-	optimal fiber length LO (MuJoCo): 0.06769202036789092
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06769164752231974
-
-	maximum isometric force FO (MuJoCo): 499.2
-	maximum isometric force (OpenSim): 499.19999999999999
-INFSP:
-	actuator_length (MuJoCo): 0.10202116786438606
-	actuator length range (MuJoCo): [0.06649312 0.13787997]
-	muscle length LM (MuJoCo): 0.07122147723154454
-
-	constant tendon length LT (MuJoCo): 0.03079969063284152
-	tendon slack length (OpenSim): 0.030800000000000001
-
-	optimal fiber length LO (MuJoCo): 0.07138685136640704
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07138665142239561
-
-	maximum isometric force FO (MuJoCo): 1075.8
-	maximum isometric force (OpenSim): 1075.8
-SUBSC:
-	actuator_length (MuJoCo): 0.10922992397255221
-	actuator length range (MuJoCo): [0.07401719 0.15605286]
-	muscle length LM (MuJoCo): 0.0762305634559455
-
-	constant tendon length LT (MuJoCo): 0.032999360516606714
-	tendon slack length (OpenSim): 0.033000000000000002
-
-	optimal fiber length LO (MuJoCo): 0.08203566704123612
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.08203516580651929
-
-	maximum isometric force FO (MuJoCo): 1306.9
-	maximum isometric force (OpenSim): 1306.9000000000001
-TMIN:
-	actuator_length (MuJoCo): 0.18296406621376288
-	actuator length range (MuJoCo): [0.10514626 0.1728408 ]
-	muscle length LM (MuJoCo): 0.1116650822159741
-
-	constant tendon length LT (MuJoCo): 0.07129898399778878
-	tendon slack length (OpenSim): 0.071300000000000002
-
-	optimal fiber length LO (MuJoCo): 0.06769454596860058
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06769371842574251
-
-	maximum isometric force FO (MuJoCo): 269.5
-	maximum isometric force (OpenSim): 269.5
-TMAJ:
-	actuator_length (MuJoCo): 0.13410316737325972
-	actuator length range (MuJoCo): [0.09805396 0.2541635 ]
-	muscle length LM (MuJoCo): 0.11410397093488761
-
-	constant tendon length LT (MuJoCo): 0.019999196438372113
-	tendon slack length (OpenSim): 0.02
-
-	optimal fiber length LO (MuJoCo): 0.15610953501595848
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.1561088994346667
-
-	maximum isometric force FO (MuJoCo): 144.0
-	maximum isometric force (OpenSim): 144
-PECM1:
-	actuator_length (MuJoCo): 0.12457838719190527
-	actuator length range (MuJoCo): [0.07174931 0.20964874]
-	muscle length LM (MuJoCo): 0.12177878756321019
-
-	constant tendon length LT (MuJoCo): 0.002799599628695082
-	tendon slack length (OpenSim): 0.0028
-
-	optimal fiber length LO (MuJoCo): 0.1378994297969902
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.13789914592956345
-
-	maximum isometric force FO (MuJoCo): 444.3
-	maximum isometric force (OpenSim): 444.30000000000001
-PECM2:
-	actuator_length (MuJoCo): 0.1761830420107625
-	actuator length range (MuJoCo): [0.15124143 0.27572436]
-	muscle length LM (MuJoCo): 0.08718307231588007
-
-	constant tendon length LT (MuJoCo): 0.08899996969488241
-	tendon slack length (OpenSim): 0.088999999999999996
-
-	optimal fiber length LO (MuJoCo): 0.12448292810881173
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.12448297574748864
-
-	maximum isometric force FO (MuJoCo): 658.3
-	maximum isometric force (OpenSim): 658.29999999999995
-PECM3:
-	actuator_length (MuJoCo): 0.17687511575520634
-	actuator length range (MuJoCo): [0.19476184 0.32028528]
-	muscle length LM (MuJoCo): 0.044874989105961216
-
-	constant tendon length LT (MuJoCo): 0.13200012664924513
-	tendon slack length (OpenSim): 0.13200000000000001
-
-	optimal fiber length LO (MuJoCo): 0.12552343285609485
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.12552362868009095
-
-	maximum isometric force FO (MuJoCo): 498.1
-	maximum isometric force (OpenSim): 498.10000000000002
-LAT1:
-	actuator_length (MuJoCo): 0.25456709883427087
-	actuator length range (MuJoCo): [0.23510114 0.46530308]
-	muscle length LM (MuJoCo): 0.13456692268740722
-
-	constant tendon length LT (MuJoCo): 0.12000017614686365
-	tendon slack length (OpenSim): 0.12
-
-	optimal fiber length LO (MuJoCo): 0.23020193641763087
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.23020217822919203
-
-	maximum isometric force FO (MuJoCo): 290.5
-	maximum isometric force (OpenSim): 290.5
-LAT2:
-	actuator_length (MuJoCo): 0.30954453541559057
-	actuator length range (MuJoCo): [0.28636868 0.50610795]
-	muscle length LM (MuJoCo): 0.1330454910453177
-
-	constant tendon length LT (MuJoCo): 0.17649904437027286
-	tendon slack length (OpenSim): 0.17649999999999999
-
-	optimal fiber length LO (MuJoCo): 0.21973927079588274
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.2197385168087962
-
-	maximum isometric force FO (MuJoCo): 317.5
-	maximum isometric force (OpenSim): 317.5
-LAT3:
-	actuator_length (MuJoCo): 0.33857332183118716
-	actuator length range (MuJoCo): [0.27048728 0.53086351]
-	muscle length LM (MuJoCo): 0.19827415132904988
-
-	constant tendon length LT (MuJoCo): 0.14029917050213728
-	tendon slack length (OpenSim): 0.14030000000000001
-
-	optimal fiber length LO (MuJoCo): 0.2603762264245329
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.26037558124180105
-
-	maximum isometric force FO (MuJoCo): 189.0
-	maximum isometric force (OpenSim): 189
-CORB:
-	actuator_length (MuJoCo): 0.14668540424252974
-	actuator length range (MuJoCo): [0.13852062 0.22156275]
-	muscle length LM (MuJoCo): 0.0496858532507443
-
-	constant tendon length LT (MuJoCo): 0.09699955099178544
-	tendon slack length (OpenSim): 0.097000000000000003
-
-	optimal fiber length LO (MuJoCo): 0.08304213102802835
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.08304180797135977
-
-	maximum isometric force FO (MuJoCo): 208.2
-	maximum isometric force (OpenSim): 208.19999999999999
-TRIlong:
-	actuator_length (MuJoCo): 1.4348674845567295
-	actuator length range (MuJoCo): [0.20853581 0.33960758]
-	muscle length LM (MuJoCo): 1.2918675505004134
-
-	constant tendon length LT (MuJoCo): 0.14299993405631625
-	tendon slack length (OpenSim): 0.14299999999999999
-
-	optimal fiber length LO (MuJoCo): 0.13107176075944477
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.13107177850499746
-
-	maximum isometric force FO (MuJoCo): 771.8
-	maximum isometric force (OpenSim): 771.79999999999995
-TRIlat:
-	actuator_length (MuJoCo): 0.16590166946813656
-	actuator length range (MuJoCo): [0.15419947 0.26659827]
-	muscle length LM (MuJoCo): 0.0679016010086624
-
-	constant tendon length LT (MuJoCo): 0.09800006845947416
-	tendon slack length (OpenSim): 0.098000000000000004
-
-	optimal fiber length LO (MuJoCo): 0.1123987988153555
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.1123989332074276
-
-	maximum isometric force FO (MuJoCo): 717.5
-	maximum isometric force (OpenSim): 717.5
-TRImed:
-	actuator_length (MuJoCo): 0.15352947294909602
-	actuator length range (MuJoCo): [0.14699939 0.2593983 ]
-	muscle length LM (MuJoCo): 0.06272953549993221
-
-	constant tendon length LT (MuJoCo): 0.09079993744916381
-	tendon slack length (OpenSim): 0.090800000000000006
-
-	optimal fiber length LO (MuJoCo): 0.11239890997122493
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.1123989332074276
-
-	maximum isometric force FO (MuJoCo): 717.5
-	maximum isometric force (OpenSim): 717.5
-ANC:
-	actuator_length (MuJoCo): 0.021219645382081896
-	actuator length range (MuJoCo): [0.03149981 0.0585    ]
-	muscle length LM (MuJoCo): 0.003219929405756744
-
-	constant tendon length LT (MuJoCo): 0.017999715976325152
-	tendon slack length (OpenSim): 0.017999999999999999
-
-	optimal fiber length LO (MuJoCo): 0.02700019220005638
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.027
-
-	maximum isometric force FO (MuJoCo): 283.2
-	maximum isometric force (OpenSim): 283.19999999999999
 SUP:
-	actuator_length (MuJoCo): 0.04896856813074219
-	actuator length range (MuJoCo): [0.0444997  0.07750007]
-	muscle length LM (MuJoCo): 0.020969053842404137
+	actuator_length (MuJoCo): 0.048873762932380375
+	actuator length range (MuJoCo): [0.04450011 0.07749983]
+	muscle length LM (MuJoCo): 0.0208735176588801
 
-	constant tendon length LT (MuJoCo): 0.027999514288338054
+	constant tendon length LT (MuJoCo): 0.028000245273500275
 	tendon slack length (OpenSim): 0.028000000000000001
 
-	optimal fiber length LO (MuJoCo): 0.03300037196216913
+	optimal fiber length LO (MuJoCo): 0.03299972530320914
 	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.033
 
 	maximum isometric force FO (MuJoCo): 379.6
 	maximum isometric force (OpenSim): 379.60000000000002
 BIClong:
-	actuator_length (MuJoCo): 1.2058004849662638
-	actuator length range (MuJoCo): [0.33014988 0.44584992]
-	muscle length LM (MuJoCo): 0.933500620535962
+	actuator_length (MuJoCo): 0.42904092917054243
+	actuator length range (MuJoCo): [0.33014982 0.44585   ]
+	muscle length LM (MuJoCo): 0.15674119757657662
 
-	constant tendon length LT (MuJoCo): 0.2722998644303019
+	constant tendon length LT (MuJoCo): 0.2722997315939658
 	tendon slack length (OpenSim): 0.27229999999999999
 
-	optimal fiber length LO (MuJoCo): 0.11570003715395039
+	optimal fiber length LO (MuJoCo): 0.1157001819116627
 	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.1157
 
 	maximum isometric force FO (MuJoCo): 525.1
 	maximum isometric force (OpenSim): 525.10000000000002
 BICshort:
-	actuator_length (MuJoCo): 0.3499267433093846
-	actuator length range (MuJoCo): [0.25834979 0.39044998]
-	muscle length LM (MuJoCo): 0.15762705489447204
+	actuator_length (MuJoCo): 0.35184264919805697
+	actuator length range (MuJoCo): [0.25834998 0.39044992]
+	muscle length LM (MuJoCo): 0.15954264150524264
 
-	constant tendon length LT (MuJoCo): 0.19229968841491257
+	constant tendon length LT (MuJoCo): 0.19230000769281433
 	tendon slack length (OpenSim): 0.1923
 
-	optimal fiber length LO (MuJoCo): 0.13210019471616474
+	optimal fiber length LO (MuJoCo): 0.13209993857246555
 	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.1321
 
 	maximum isometric force FO (MuJoCo): 316.8
 	maximum isometric force (OpenSim): 316.80000000000001
 BRA:
-	actuator_length (MuJoCo): 0.14629299340384688
-	actuator length range (MuJoCo): [0.09639972 0.18220004]
-	muscle length LM (MuJoCo): 0.09279343748597904
+	actuator_length (MuJoCo): 0.14631109984202445
+	actuator length range (MuJoCo): [0.09639983 0.1822    ]
+	muscle length LM (MuJoCo): 0.09281135704309265
 
-	constant tendon length LT (MuJoCo): 0.05349955591786785
+	constant tendon length LT (MuJoCo): 0.05349974279893179
 	tendon slack length (OpenSim): 0.053499999999999999
 
-	optimal fiber length LO (MuJoCo): 0.08580031965712755
+	optimal fiber length LO (MuJoCo): 0.08580016891965313
 	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.0858
 
 	maximum isometric force FO (MuJoCo): 1177.37
 	maximum isometric force (OpenSim): 1177.3699999999999
 BRD:
-	actuator_length (MuJoCo): 0.33266997439663365
-	actuator length range (MuJoCo): [0.21929955 0.39190013]
-	muscle length LM (MuJoCo): 0.19967071497153469
+	actuator_length (MuJoCo): 0.3311273880174683
+	actuator length range (MuJoCo): [0.21929997 0.39189992]
+	muscle length LM (MuJoCo): 0.1981273887949923
 
-	constant tendon length LT (MuJoCo): 0.13299925942509896
+	constant tendon length LT (MuJoCo): 0.13299999922247602
 	tendon slack length (OpenSim): 0.13300000000000001
 
-	optimal fiber length LO (MuJoCo): 0.17260057806704893
+	optimal fiber length LO (MuJoCo): 0.17259994544998547
 	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.1726
 
 	maximum isometric force FO (MuJoCo): 276.0
 	maximum isometric force (OpenSim): 276
-ECRL:
-	actuator_length (MuJoCo): 0.3280613107941225
-	actuator length range (MuJoCo): [0.28449967 0.36550004]
-	muscle length LM (MuJoCo): 0.08406182756412076
-
-	constant tendon length LT (MuJoCo): 0.24399948323000173
-	tendon slack length (OpenSim): 0.24399999999999999
-
-	optimal fiber length LO (MuJoCo): 0.08100036886103518
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.081
-
-	maximum isometric force FO (MuJoCo): 337.3
-	maximum isometric force (OpenSim): 337.30000000000001
-ECRB:
-	actuator_length (MuJoCo): 0.5448015822266389
-	actuator length range (MuJoCo): [0.25118961 0.30896968]
-	muscle length LM (MuJoCo): 0.32250200654513306
-
-	constant tendon length LT (MuJoCo): 0.22229957568150582
-	tendon slack length (OpenSim): 0.2223
-
-	optimal fiber length LO (MuJoCo): 0.05778006775394462
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.05777976822387914
-
-	maximum isometric force FO (MuJoCo): 252.5
-	maximum isometric force (OpenSim): 252.5
-ECU:
-	actuator_length (MuJoCo): 1.4338294581740403
-	actuator length range (MuJoCo): [0.25952415 0.32157264]
-	muscle length LM (MuJoCo): 1.2053295570127265
-
-	constant tendon length LT (MuJoCo): 0.2284999011613139
-	tendon slack length (OpenSim): 0.22850000000000001
-
-	optimal fiber length LO (MuJoCo): 0.06204849299378323
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.062048483796341584
-
-	maximum isometric force FO (MuJoCo): 192.9
-	maximum isometric force (OpenSim): 192.90000000000001
-FCR:
-	actuator_length (MuJoCo): 0.7462865810637338
-	actuator length range (MuJoCo): [0.27535702 0.33807073]
-	muscle length LM (MuJoCo): 0.5022864183824048
-
-	constant tendon length LT (MuJoCo): 0.24400016268132893
-	tendon slack length (OpenSim): 0.24399999999999999
-
-	optimal fiber length LO (MuJoCo): 0.06271371029071154
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06271393470883316
-
-	maximum isometric force FO (MuJoCo): 407.9
-	maximum isometric force (OpenSim): 407.89999999999998
-FCU:
-	actuator_length (MuJoCo): 0.6731374708535998
-	actuator length range (MuJoCo): [0.28989369 0.33968153]
-	muscle length LM (MuJoCo): 0.40813770414100287
-
-	constant tendon length LT (MuJoCo): 0.2649997667125969
-	tendon slack length (OpenSim): 0.26500000000000001
-
-	optimal fiber length LO (MuJoCo): 0.04978784049106666
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.04978771298571041
-
-	maximum isometric force FO (MuJoCo): 479.8
-	maximum isometric force (OpenSim): 479.80000000000001
-PL:
-	actuator_length (MuJoCo): 1.3525957617952664
-	actuator length range (MuJoCo): [0.30122217 0.36486681]
-	muscle length LM (MuJoCo): 1.0831959194235279
-
-	constant tendon length LT (MuJoCo): 0.26939984237173853
-	tendon slack length (OpenSim): 0.26939999999999997
-
-	optimal fiber length LO (MuJoCo): 0.06364464636212819
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06364458640693181
-
-	maximum isometric force FO (MuJoCo): 101.0
-	maximum isometric force (OpenSim): 101
 PT:
-	actuator_length (MuJoCo): 0.4904255839978518
-	actuator length range (MuJoCo): [0.12222582 0.17067894]
-	muscle length LM (MuJoCo): 0.39242633086062173
+	actuator_length (MuJoCo): 0.15509501176771834
+	actuator length range (MuJoCo): [0.12222659 0.17067852]
+	muscle length LM (MuJoCo): 0.05709438337019154
 
-	constant tendon length LT (MuJoCo): 0.0979992531372301
+	constant tendon length LT (MuJoCo): 0.0980006283975268
 	tendon slack length (OpenSim): 0.098000000000000004
 
-	optimal fiber length LO (MuJoCo): 0.04845312687603752
+	optimal fiber length LO (MuJoCo): 0.048451930286438086
 	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.048452541407187036
 
 	maximum isometric force FO (MuJoCo): 557.2
 	maximum isometric force (OpenSim): 557.20000000000005
 PQ:
-	actuator_length (MuJoCo): 0.030959008157482957
-	actuator length range (MuJoCo): [0.01888567 0.04665732]
-	muscle length LM (MuJoCo): 0.02595915520654659
+	actuator_length (MuJoCo): 0.031084914159090753
+	actuator length range (MuJoCo): [0.01888585 0.04665723]
+	muscle length LM (MuJoCo): 0.026084761557704977
 
-	constant tendon length LT (MuJoCo): 0.004999852950936365
+	constant tendon length LT (MuJoCo): 0.0050001526013857735
 	tendon slack length (OpenSim): 0.0050000000000000001
 
-	optimal fiber length LO (MuJoCo): 0.02777164246517851
+	optimal fiber length LO (MuJoCo): 0.02777138774054606
 	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.027771578611436473
 
 	maximum isometric force FO (MuJoCo): 284.7
 	maximum isometric force (OpenSim): 284.69999999999999
-FDSL:
-	actuator_length (MuJoCo): 2.712602613847154
-	actuator length range (MuJoCo): [0.36425151 0.41555618]
-	muscle length LM (MuJoCo): 2.3740034444994174
-
-	constant tendon length LT (MuJoCo): 0.3385991693477367
-	tendon slack length (OpenSim): 0.33860000000000001
-
-	optimal fiber length LO (MuJoCo): 0.051304676262958926
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.05130402696339377
-
-	maximum isometric force FO (MuJoCo): 75.3
-	maximum isometric force (OpenSim): 75.299999999999997
-FDSR:
-	actuator_length (MuJoCo): 2.3089918700453347
-	actuator length range (MuJoCo): [0.36471098 0.43813057]
-	muscle length LM (MuJoCo): 1.9809906853474235
-
-	constant tendon length LT (MuJoCo): 0.3280011846979113
-	tendon slack length (OpenSim): 0.32800000000000001
-
-	optimal fiber length LO (MuJoCo): 0.07341958894178707
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07342071409953263
-
-	maximum isometric force FO (MuJoCo): 171.2
-	maximum isometric force (OpenSim): 171.19999999999999
-FDSM:
-	actuator_length (MuJoCo): 0.4291074314315745
-	actuator length range (MuJoCo): [0.33217062 0.40651253]
-	muscle length LM (MuJoCo): 0.13410777052980988
-
-	constant tendon length LT (MuJoCo): 0.2949996609017646
-	tendon slack length (OpenSim): 0.29499999999999998
-
-	optimal fiber length LO (MuJoCo): 0.07434191427772907
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07434170673638928
-
-	maximum isometric force FO (MuJoCo): 258.8
-	maximum isometric force (OpenSim): 258.80000000000001
-FDSI:
-	actuator_length (MuJoCo): 0.5329133469140092
-	actuator length range (MuJoCo): [0.31652055 0.39956414]
-	muscle length LM (MuJoCo): 0.2579145956151562
-
-	constant tendon length LT (MuJoCo): 0.274998751298853
-	tendon slack length (OpenSim): 0.27500000000000002
-
-	optimal fiber length LO (MuJoCo): 0.08304359240667303
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.0830425782206546
-
-	maximum isometric force FO (MuJoCo): 162.5
-	maximum isometric force (OpenSim): 162.5
-FDPL:
-	actuator_length (MuJoCo): 1.4278496292747942
-	actuator length range (MuJoCo): [0.31898509 0.39315673]
-	muscle length LM (MuJoCo): 1.1459503639742743
-
-	constant tendon length LT (MuJoCo): 0.2818992653005199
-	tendon slack length (OpenSim): 0.28189999999999998
-
-	optimal fiber length LO (MuJoCo): 0.07417164246530805
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07417107835040673
-
-	maximum isometric force FO (MuJoCo): 236.8
-	maximum isometric force (OpenSim): 236.80000000000001
-FDPR:
-	actuator_length (MuJoCo): 1.490931023594672
-	actuator length range (MuJoCo): [0.33110284 0.41030748]
-	muscle length LM (MuJoCo): 1.1994305087617165
-
-	constant tendon length LT (MuJoCo): 0.2915005148329555
-	tendon slack length (OpenSim): 0.29149999999999998
-
-	optimal fiber length LO (MuJoCo): 0.0792046445920015
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07920518287802222
-
-	maximum isometric force FO (MuJoCo): 172.9
-	maximum isometric force (OpenSim): 172.90000000000001
-FDPM:
-	actuator_length (MuJoCo): 1.6825481506355433
-	actuator length range (MuJoCo): [0.34452096 0.4275639 ]
-	muscle length LM (MuJoCo): 1.3795486652394535
-
-	constant tendon length LT (MuJoCo): 0.30299948539608973
-	tendon slack length (OpenSim): 0.30299999999999999
-
-	optimal fiber length LO (MuJoCo): 0.08304294316711569
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.0830425782206546
-
-	maximum isometric force FO (MuJoCo): 212.4
-	maximum isometric force (OpenSim): 212.40000000000001
-FDPI:
-	actuator_length (MuJoCo): 1.5581059647405726
-	actuator length range (MuJoCo): [0.3386705  0.41301261]
-	muscle length LM (MuJoCo): 1.2566065114851768
-
-	constant tendon length LT (MuJoCo): 0.3014994532553959
-	tendon slack length (OpenSim): 0.30149999999999999
-
-	optimal fiber length LO (MuJoCo): 0.07434210187418777
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07434170673638928
-
-	maximum isometric force FO (MuJoCo): 197.3
-	maximum isometric force (OpenSim): 197.30000000000001
-EDCL:
-	actuator_length (MuJoCo): 0.4087340098264659
-	actuator length range (MuJoCo): [0.36747956 0.43244082]
-	muscle length LM (MuJoCo): 0.07373508054278188
-
-	constant tendon length LT (MuJoCo): 0.334998929283684
-	tendon slack length (OpenSim): 0.33500000000000002
-
-	optimal fiber length LO (MuJoCo): 0.06496126041643224
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06496040374498936
-
-	maximum isometric force FO (MuJoCo): 39.4
-	maximum isometric force (OpenSim): 39.399999999999999
-EDCR:
-	actuator_length (MuJoCo): 1.6980023931753179
-	actuator length range (MuJoCo): [0.39625767 0.45877083]
-	muscle length LM (MuJoCo): 1.333001304232584
-
-	constant tendon length LT (MuJoCo): 0.36500108894273386
-	tendon slack length (OpenSim): 0.36499999999999999
-
-	optimal fiber length LO (MuJoCo): 0.06251315850265154
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06251420886764177
-
-	maximum isometric force FO (MuJoCo): 109.2
-	maximum isometric force (OpenSim): 109.2
-EDCM:
-	actuator_length (MuJoCo): 0.9033307669987827
-	actuator length range (MuJoCo): [0.40115081 0.47345076]
-	muscle length LM (MuJoCo): 0.5383299289149361
-
-	constant tendon length LT (MuJoCo): 0.36500083808384653
-	tendon slack length (OpenSim): 0.36499999999999999
-
-	optimal fiber length LO (MuJoCo): 0.07229995126296834
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07230077830698504
-
-	maximum isometric force FO (MuJoCo): 94.4
-	maximum isometric force (OpenSim): 94.400000000000006
-EDCI:
-	actuator_length (MuJoCo): 0.43281300455125027
-	actuator length range (MuJoCo): [0.39995256 0.46985563]
-	muscle length LM (MuJoCo): 0.06781197793499871
-
-	constant tendon length LT (MuJoCo): 0.36500102661625156
-	tendon slack length (OpenSim): 0.36499999999999999
-
-	optimal fiber length LO (MuJoCo): 0.06990307074527236
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06990406742388057
-
-	maximum isometric force FO (MuJoCo): 48.8
-	maximum isometric force (OpenSim): 48.799999999999997
-EDM:
-	actuator_length (MuJoCo): 0.4141160942802997
-	actuator length range (MuJoCo): [0.36870336 0.43611131]
-	muscle length LM (MuJoCo): 0.07911671175786034
-
-	constant tendon length LT (MuJoCo): 0.3349993825224394
-	tendon slack length (OpenSim): 0.33500000000000002
-
-	optimal fiber length LO (MuJoCo): 0.0674079493532388
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.0674074935873134
-
-	maximum isometric force FO (MuJoCo): 72.4
-	maximum isometric force (OpenSim): 72.400000000000006
-EIP:
-	actuator_length (MuJoCo): 1.1924943339864364
-	actuator length range (MuJoCo): [0.23928829 0.29786609]
-	muscle length LM (MuJoCo): 0.9824949374853937
-
-	constant tendon length LT (MuJoCo): 0.20999939650104274
-	tendon slack length (OpenSim): 0.20999999999999999
-
-	optimal fiber length LO (MuJoCo): 0.058577794093573055
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.05857733960714438
-
-	maximum isometric force FO (MuJoCo): 47.3
-	maximum isometric force (OpenSim): 47.299999999999997
-EPL:
-	actuator_length (MuJoCo): 0.2931552746308677
-	actuator length range (MuJoCo): [0.2573521  0.31105613]
-	muscle length LM (MuJoCo): 0.06265519048329204
-
-	constant tendon length LT (MuJoCo): 0.23050008414757567
-	tendon slack length (OpenSim): 0.23050000000000001
-
-	optimal fiber length LO (MuJoCo): 0.053704029325963076
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.0537041823223395
-
-	maximum isometric force FO (MuJoCo): 88.3
-	maximum isometric force (OpenSim): 88.299999999999997
-EPB:
-	actuator_length (MuJoCo): 0.18291638320067827
-	actuator length range (MuJoCo): [0.14899909 0.21599479]
-	muscle length LM (MuJoCo): 0.06741513972115751
-
-	constant tendon length LT (MuJoCo): 0.11550124347952076
-	tendon slack length (OpenSim): 0.11550000000000001
-
-	optimal fiber length LO (MuJoCo): 0.06699569963625235
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.06699686562768115
-
-	maximum isometric force FO (MuJoCo): 46.0
-	maximum isometric force (OpenSim): 46
-FPL:
-	actuator_length (MuJoCo): 0.7971800467756534
-	actuator length range (MuJoCo): [0.22439393 0.27918288]
-	muscle length LM (MuJoCo): 0.6001805899479228
-
-	constant tendon length LT (MuJoCo): 0.1969994568277306
-	tendon slack length (OpenSim): 0.19700000000000001
-
-	optimal fiber length LO (MuJoCo): 0.054788949089003725
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.05478854755472214
-
-	maximum isometric force FO (MuJoCo): 201.0
-	maximum isometric force (OpenSim): 201
-APL:
-	actuator_length (MuJoCo): 0.19864491346841406
-	actuator length range (MuJoCo): [0.16480339 0.23540886]
-	muscle length LM (MuJoCo): 0.06914425640089439
-
-	constant tendon length LT (MuJoCo): 0.12950065706751968
-	tendon slack length (OpenSim): 0.1295
-
-	optimal fiber length LO (MuJoCo): 0.07060546979642102
-	optimal fiber length [w/opt. pennation angle] (OpenSim): 0.07060611369977877
-
-	maximum isometric force FO (MuJoCo): 116.7
-	maximum isometric force (OpenSim): 116.7
 
 MuJoCo time activation/deactivation constants: (0.01, 0.04)

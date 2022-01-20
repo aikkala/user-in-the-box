@@ -18,8 +18,11 @@ if __name__=="__main__":
     mujoco_output = "UIB/envs/mobl_arms/models/mobl_arms_muscles_modified.xml"
     model_properties_output = "UIB/envs/mobl_arms/models/MoBL_ARMS_analysis.xml"
 
-    #mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_original.xml"
-    #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
+    mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_original.xml"
+    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
+
+    mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_fixedjoints.xml"
+    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints.osim"
 
     # Read and parse OpenSim model
     osim_file = opensim_file(opensim_input)
@@ -42,7 +45,7 @@ if __name__=="__main__":
     # mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
 
     # Adjust musculotendon properties of MuJoCo model (pt1; via xml file)
-    adjust_mujoco_model_pt1(mujoco_xml, osim_file)
+    #adjust_mujoco_model_pt1(mujoco_xml, osim_file)
 
     # Store new (intermediate) MuJoCo model
     mujoco_xml['mujoco']['compiler']['lengthrange']['@mode'] = "none"  # disable automatic length range computation at compile time, since we compute them manually below
@@ -61,6 +64,11 @@ if __name__=="__main__":
     # Store musculotendon properties of both adjusted MuJoCo model and reference OpenSim model in text file
     print_musculotendon_properties(env, osim_file, stdout_file=model_properties_output)
 
-    env = gym.make(env_name, xml_file="models/mobl_arms_muscles_original.xml", sample_target=False)
-    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
+    #env = gym.make(env_name, xml_file="models/mobl_arms_muscles_original.xml", sample_target=False)
+    #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
+    env = gym.make(env_name, xml_file="models/mobl_arms_muscles_fixedjoints2.xml", sample_target=False)
+    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints2.osim"
+
+    #env = gym.make("gym_SG:ReacherSGbasic-v0")  #for testing "arm_hand_SG_osim_coordinates_complete_v5.3ao.xml"
+
     compare_MuJoCo_OpenSim_models(env, opensim_input)
