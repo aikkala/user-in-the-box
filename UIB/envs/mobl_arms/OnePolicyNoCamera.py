@@ -1,21 +1,24 @@
 import gym
 from gym import spaces
-import mujoco_py
 import numpy as np
-import os
 
 from UIB.envs.mobl_arms.base import BaseModel
 
 
-def sigmoid(x):
-  return 1 / (1 + np.exp(-x))
-
-
-class OnePolicyNoCamera(BaseModel, gym.Env):
+class OnePolicyNoCamera(BaseModel):
   metadata = {'render.modes': ['human']}
 
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
+
+    # Reset
+    observation = self.reset()
+
+    # Set observation space
+    low = np.ones_like(observation)*-float('inf')
+    high = np.ones_like(observation)*float('inf')
+    self.observation_space = spaces.Box(low=np.float32(low), high=np.float32(high))
+
 
   def get_observation(self):
     # Ignore eye qpos and qvel for now
@@ -30,5 +33,9 @@ class OnePolicyNoCamera(BaseModel, gym.Env):
     act = (self.sim.data.act.copy() - 0.5)*2
     finger_position = self.sim.data.get_geom_xpos(self.fingertip).copy() - self.target_origin.copy()
 
-    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position.copy(),
-                           np.array([self.target_radius]), act])
+    time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit,
+                                self.steps/self.max_episode_length])
+    dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwelling_threshold])
+
+    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, self.target_position.copy(),
+                           np.array([self.target_radius]), act, np.array([dwell_time]), np.array([time_left])])

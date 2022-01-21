@@ -7,7 +7,7 @@ import pathlib
 from abc import ABC, abstractmethod
 
 
-class BaseModel(ABC):
+class BaseModel(ABC, gym.Env):
 
   def __init__(self, **kwargs):
 
@@ -31,7 +31,11 @@ class BaseModel(ABC):
 
     # Max episode length
     self.steps = 0
-    self.max_episode_length = self.action_sample_freq*60
+    self.max_episode_length = self.action_sample_freq*10
+
+    # Dwelling based selection -- fingertip needs to be inside target for some time
+    self.steps_inside_target = 0
+    self.dwelling_threshold = int(0.3*self.action_sample_freq)
 
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])
@@ -68,22 +72,14 @@ class BaseModel(ABC):
     self.arm_nq = len(self.independent_joints) - self.eye_nq
 
     # Set action space -- motor actuators are always first
-    motors_limits = np.ones((self.nmotors,2)) * np.array([float('-inf'), float('inf')])
-    muscles_limits = np.ones((self.nmuscles,2)) * np.array([float('-inf'), float('inf')])
+    motors_limits = np.ones((self.nmotors,2)) * np.array([-1.0, 1.0])
+    muscles_limits = np.ones((self.nmuscles,2)) * np.array([-1.0, 1.0])
     self.action_space = spaces.Box(low=np.float32(muscles_limits[:, 0]), high=np.float32(muscles_limits[:, 1]))
 
     # Fingertip is tracked for e.g. reward calculation and logging
     self.fingertip = "hand_2distph"
 
-    # Reset
-    observation = self.reset()
-
-    # Set observation space
-    low = np.ones_like(observation)*-float('inf')
-    high = np.ones_like(observation)*float('inf')
-    self.observation_space = spaces.Box(low=np.float32(low), high=np.float32(high))
-
-    # Set camera stuff
+    # Set camera stuff, self._viewers needs to be initialised before self.get_observation() is called
     self.viewer = None
     self._viewers = {}
     self.metadata = {
@@ -116,13 +112,14 @@ class BaseModel(ABC):
     # Distance to target
     dist = np.linalg.norm(self.target_position - (finger_position - self.target_origin))
 
-    if dist < self.target_radius:
+    if dist < self.target_radius and self.steps_inside_target>=self.dwell_threshold:
 
       # Spawn a new target
       self.spawn_target()
 
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
+      self.steps_inside_target = 0
       velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
       reward = 2 #+ velocity_factor*2
       info["target_hit"] = True
@@ -133,10 +130,19 @@ class BaseModel(ABC):
       reward = np.exp(-dist*10)/10
       info["target_hit"] = False
 
+      # Check if fingertip is inside target
+      if dist < self.target_radius:
+        self.steps_inside_target += 1
+      else:
+        self.steps_inside_target = 0
+
+      # Check if time limit has been reached
       self.steps_since_last_hit += 1
       if self.steps_since_last_hit >= self.max_steps_without_hit:
         finished = True
         info["termination"] = "time_limit_reached"
+
+      # Check if episode length has been reached
       self.steps += 1
       if self.steps >= self.max_episode_length:
         finished = True
@@ -176,6 +182,7 @@ class BaseModel(ABC):
     self.sim.reset()
     self.steps_since_last_hit = 0
     self.steps = 0
+    self.steps_inside_target = 0
 
     # Randomly sample qpos, qvel, act
     nq = len(self.independent_joints)
@@ -234,15 +241,15 @@ class BaseModel(ABC):
 
   def get_state(self):
     state = {"step": self.steps, "timestep": self.sim.data.time,
-             "qpos": self.sim.data.qpos[self.independent_joints],
-             "qvel": self.sim.data.qvel[self.independent_joints],
-             "qacc": self.sim.data.qacc[self.independent_joints],
-             "act": self.sim.data.act,
-             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip),
-             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip),
-             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip),
-             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip),
-             "target_position": self.target_origin+self.target_position,
+             "qpos": self.sim.data.qpos[self.independent_joints].copy(),
+             "qvel": self.sim.data.qvel[self.independent_joints].copy(),
+             "qacc": self.sim.data.qacc[self.independent_joints].copy(),
+             "act": self.sim.data.act.copy(),
+             "fingertip_xpos": self.sim.data.get_geom_xpos(self.fingertip).copy(),
+             "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip).copy(),
+             "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip).copy(),
+             "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip).copy(),
+             "target_position": self.target_origin.copy()+self.target_position.copy(),
              "target_radius": self.target_radius}
     return state
 
