@@ -35,7 +35,7 @@ class BaseModel(ABC, gym.Env):
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
     self.steps_inside_target = 0
-    self.dwelling_threshold = int(0.3*self.action_sample_freq)
+    self.dwell_threshold = int(0.3*self.action_sample_freq)
 
     # Define area where targets will be spawned
     self.target_origin = np.array([0.5, 0.0, 0.8])

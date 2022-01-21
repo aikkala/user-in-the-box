@@ -35,7 +35,7 @@ class OnePolicyNoCamera(BaseModel):
 
     time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit,
                                 self.steps/self.max_episode_length])
-    dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwelling_threshold])
+    dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwell_threshold])
 
     return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, self.target_position.copy(),
                            np.array([self.target_radius]), act, np.array([dwell_time]), np.array([time_left])])
