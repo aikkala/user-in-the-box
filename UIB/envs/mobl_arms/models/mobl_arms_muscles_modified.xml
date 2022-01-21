@@ -19,6 +19,18 @@
         <default class="oculomotor">
             <general gainprm="1.01 0 0 0 0 0 0 0 0 0" />
         </default>
+        <default class="WrapCylinder">
+            <geom rgba="0.8 0.5 0.4 0" />
+        </default>
+        <default class="WrapSphere">
+            <geom rgba="0.8 0.5 0.4 0" />
+        </default>
+        <default class="WrapEllipsoid">
+            <geom rgba="0.8 0.5 0.4 0" />
+        </default>
+        <default class="WrapTorus">
+            <geom rgba="0.8 0.5 0.4 0" />
+        </default>
     </default>
     <asset>
         <texture type="2d" name="texplane" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.15 0.2" width="100" height="100" />
@@ -72,9 +84,10 @@
             <geom name="target-sphere" size="0.05" rgba="0.1 0.8 0.1 1" />
         </body>
         <body name="thorax" pos="0 0 0">
-            <inertial pos="-0.0194693 -0.124635 3.52071e-05" quat="0.982593 0.00053772 0.000250291 0.185769" mass="8.01418" diaginertia="0.0768128 0.0574863 0.0458735" />
+            <inertial pos="-0.026681 -0.125639 0.0267491" quat="0.980769 -0.00955952 -0.0466248 0.189278" mass="12.8632" diaginertia="0.113786 0.095141 0.0679957" />
             <joint name="r_z" pos="0 0 0" axis="0 0 1" stiffness="0" range="-6.28319 6.28319" armature="0" damping="0" />
             <geom name="thorax" type="mesh" mesh="thorax" />
+            <geom name="Thorax" class="WrapEllipsoid" size="0.105" pos="-0.0386 -0.1273 0.0709" quat="0.981923 0.0056728 -0.166468 0.0899048" />
             <site name="PECM1-P3" pos="-7e-05 0.00821 0.10454" />
             <site name="PECM2-P4" pos="0.03091 -0.03922 0.09705" />
             <site name="PECM2-P5" pos="0.02769 -0.04498 0.02271" />
@@ -107,6 +120,11 @@
                         <joint name="acromioclavicular_r3" pos="0 0 0" axis="-0.754084 0.297594 0.585487" limited="false" range="-99999.9 99999.9" />
                         <joint name="acromioclavicular_r1" pos="0 0 0" axis="0.6377 0.1186 0.7611" limited="false" range="-99999.9 99999.9" />
                         <geom name="scapula" type="mesh" mesh="scapula" />
+                        <geom name="TRIlongglen" class="WrapCylinder" size="0.003 0.015" pos="-0.0359 -0.0309 -0.0132" quat="0.351544 0.11052 -0.628373 0.685091" type="cylinder" />
+                        <geom name="Deltoid2" class="WrapEllipsoid" size="0.04" pos="-0.0058 -0.0378 0.0096" quat="-0.423983 0.568355 0.433548 -0.5561" />
+                        <geom name="TMIN" class="WrapEllipsoid" size="0.03" pos="-0.0418 -0.0519 -0.0359" quat="0.407551 -0.491839 -0.70683 -0.303953" />
+                        <geom name="Delt3" class="WrapTorus" size="0.04" pos="-0.0973 -0.0428 -0.037" quat="0.916498 0.246512 0.233166 -0.211889" />
+                        <geom name="INFSP" class="WrapTorus" size="0.008" pos="-0.0561 -0.0199 -0.0112" quat="0.95393 0.0340656 0.288173 0.0762432" />
                         <site name="DELT1-P3" pos="0.04347 -0.03252 0.00099" />
                         <site name="DELT2-P3" pos="5e-05 0.00294 0.02233" />
                         <site name="DELT2-P4" pos="-0.01078 -0.00034 0.0062" />
@@ -134,6 +152,11 @@
                         <site name="BIClong-P2" pos="-0.02094 -0.01309 -0.00461" />
                         <site name="BICshort-P1" pos="0.01268 -0.03931 -0.02625" />
                         <site name="BICshort-P2" pos="0.00093 -0.06704 -0.01593" />
+                        <site name="TRIlongglen-sidesite" pos="-0.0299 -0.0309 -0.0132" />
+                        <site name="Deltoid2-sidesite" pos="-0.0058 -0.1178 0.0096" />
+                        <site name="TMIN-sidesite" pos="0.0182 -0.0519 -0.0359" />
+                        <site name="Delt3-sidesite_torus" pos="-0.0973 -0.0428 -0.037" />
+                        <site name="INFSP-sidesite_torus" pos="-0.0561 -0.0199 -0.0112" />
                         <body name="scapphant" pos="-0.00955 -0.034 0.009">
                             <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1" />
                             <joint name="unrothum_r1" pos="0 0 0" axis="0.6377 0.1186 0.7611" limited="false" range="-99999.9 99999.9" />
@@ -150,6 +173,32 @@
                                         <inertial pos="0.018064 -0.140141 -0.012746" quat="0.407851 0.343714 -0.567755 0.627034" mass="1.99757" diaginertia="0.0128576 0.0121576 0.00239265" />
                                         <joint name="shoulder_rot" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.57 1.57" user="1" />
                                         <geom name="humerus" type="mesh" mesh="humerus" />
+                                        <geom name="delt2hum" class="WrapCylinder" size="0.0109 0.06" pos="0.0017 -0.0958 0.0011" quat="0.713951 0.699489 -0.0280017 0.0143153" type="cylinder" />
+                                        <geom name="infsp_new" class="WrapCylinder" size="0.0235 0.0575" pos="-0.0019 -0.019 0.0022" quat="0.634174 0.685305 0.103671 -0.342685" type="cylinder" />
+                                        <geom name="TMINhum" class="WrapCylinder" size="0.022 0.0565" pos="0.003 -0.0255 0.0013" quat="-0.0347275 -0.0160551 -0.671713 0.739823" type="cylinder" />
+                                        <geom name="TMAJ_LAThum" class="WrapCylinder" size="0.007 0.02" pos="0.0007 -0.0443 -0.0055" quat="0.560829 0.5131 -0.468587 0.45014" type="cylinder" />
+                                        <geom name="PEC12hum" class="WrapCylinder" size="0.009 0.035" pos="0.002 -0.0508 -0.0017" quat="0.62367 0.640854 0.289078 -0.341726" type="cylinder" />
+                                        <geom name="PEC3hum" class="WrapCylinder" size="0.008 0.05" pos="0.0009 -0.0551 -0.0004" quat="0.49519 0.406008 -0.52011 0.565182" type="cylinder" />
+                                        <geom name="LAT_TMAJhh" class="WrapCylinder" size="0.007 0.0225" pos="-0.0224 0.0102 0.0094" quat="0.931142 -0.14003 -0.059673 -0.331369" type="cylinder" />
+                                        <geom name="TRI" class="WrapCylinder" size="0.016 0.05" pos="0.0028 -0.2919 -0.0119" quat="0.99453 -0.0700498 0.00229591 0.0774439" type="cylinder" />
+                                        <geom name="CORBhum" class="WrapCylinder" size="0.008 0.05" pos="0.0027 -0.1202 -0.0059" quat="0.642258 -0.637511 0.335039 0.262362" type="cylinder" />
+                                        <geom name="PEC23hh" class="WrapSphere" size="0.02" pos="-0.0086 0.0021 -0.0004" />
+                                        <geom name="LAT_TMAJ2hh" class="WrapSphere" size="0.03" pos="-0.0016 0.0092 0.0052" quat="0.98852 -0.0616124 0.137953 0.000998816" />
+                                        <geom name="TMAJ_LAT_PEC_CORBhh" class="WrapSphere" size="0.03" pos="0.0007 0 0.006" />
+                                        <geom name="DELT_TMAJ_LAT_PEC_CORBhh" class="WrapSphere" size="0.03" pos="0.0007 0 0.006" />
+                                        <geom name="DELT1hh" class="WrapEllipsoid" size="0.05" pos="-0.0139 -0.0127 -0.0262" quat="0.836755 0.159976 0.454596 0.259984" />
+                                        <geom name="delt3hum" class="WrapEllipsoid" size="0.01 0.025" pos="0.0019 -0.0592 0.0011" quat="0.156765 0.126187 0.74954 -0.630628" type="cylinder" />
+                                        <geom name="SUPSP" class="WrapEllipsoid" size="0.02" pos="0.0002 0.0077 0.0043" quat="0.793941 0.0125061 0.014958 -0.607682" />
+                                        <geom name="INFSP_and_TMIN_hum_head" class="WrapEllipsoid" size="0.0216667" pos="-0.0003 0.0026 0.0038" quat="0.989184 -0.142563 -0.00937273 -0.0332033" />
+                                        <geom name="SUBSCAP" class="WrapEllipsoid" size="0.0216667" pos="-0.0025 0.0007 -0.0045" quat="0.881835 -0.408889 0.210161 0.104923" />
+                                        <geom name="LIGhh_s" class="WrapEllipsoid" size="0.02" pos="-0.001 0.003 0.003" quat="0.923956 -0.382499 0 0" />
+                                        <geom name="LIGhh_mi" class="WrapEllipsoid" size="0.02" pos="-0.001 0.004 0.001" quat="0.923956 -0.382499 0 0" />
+                                        <geom name="PEC1hh" class="WrapEllipsoid" size="0.02" pos="-0.0037 0.0005 -0.0025" quat="0.916757 -0.323265 -0.0902648 0.216583" />
+                                        <geom name="Elbow_BIC_BRD" class="WrapEllipsoid" size="0.015 0.05" pos="0.0019 -0.289 -0.014" quat="0.995524 -0.0630586 0.0695464 0.0108747" type="cylinder" />
+                                        <geom name="TRIlonghh" class="WrapEllipsoid" size="0.02" pos="-0.0078 -0.0041 -0.0014" quat="0.4142 0.226399 -0.879896 -0.0544578" />
+                                        <geom name="ANC" class="WrapEllipsoid" size="0.02" pos="0.0134 -0.2861 -0.0008" quat="0.861498 -0.045952 -0.0868545 0.498163" />
+                                        <geom name="BIClong" class="WrapEllipsoid" size="0.02" pos="0.0033 0.005 0.0003" quat="0.227667 -0.77413 0.117987 0.578766" />
+                                        <geom name="Elbow_PT_ECRL" class="WrapEllipsoid" size="0.018" pos="0.003 -0.2872 -0.0069" quat="0.947268 -0.0932711 -0.0283225 0.305257" />
                                         <site name="DELT1-P1" pos="0.00896 -0.11883 0.00585" />
                                         <site name="DELT1-P2" pos="0.01623 -0.11033 0.00412" />
                                         <site name="DELT2-P1" pos="0.00461 -0.13611 0.0056" />
@@ -207,10 +256,26 @@
                                         <site name="EDCM-P1" pos="0.00051 -0.28984 0.01949" />
                                         <site name="EDCI-P1" pos="0.00065 -0.28898 0.01869" />
                                         <site name="EDM-P1" pos="0.00089 -0.28919 0.01847" />
+                                        <site name="infsp_new-sidesite" pos="-0.0489 -0.019 0.0022" />
+                                        <site name="TMINhum-sidesite" pos="0.047 -0.0255 0.0013" />
+                                        <site name="TMAJ_LAThum-sidesite" pos="-0.0133 -0.0443 -0.0055" />
+                                        <site name="PEC12hum-sidesite" pos="0.02 -0.0508 -0.0017" />
+                                        <site name="PEC3hum-sidesite" pos="-0.0151 -0.0551 -0.0004" />
+                                        <site name="LAT_TMAJhh-sidesite" pos="-0.0224 -0.0038 0.0094" />
+                                        <site name="CORBhum-sidesite" pos="0.0187 -0.1202 -0.0059" />
+                                        <site name="DELT1hh-sidesite" pos="-0.0139 -0.0127 0.0738" />
+                                        <site name="delt3hum-sidesite" pos="0.0219 -0.0592 0.0011" />
+                                        <site name="PEC1hh-sidesite" pos="-0.0037 0.0005 -0.0425" />
+                                        <site name="Elbow_BIC_BRD-sidesite" pos="0.0319 -0.289 -0.014" />
+                                        <site name="TRIlonghh-sidesite" pos="-0.0078 -0.0041 0.0386" />
+                                        <site name="ANC-sidesite" pos="-0.0266 -0.2861 -0.0008" />
+                                        <site name="BIClong-sidesite" pos="0.0033 -0.035 0.0003" />
+                                        <site name="Elbow_PT_ECRL-sidesite" pos="0.039 -0.2872 -0.0069" />
                                         <body name="ulna" pos="0.0061 -0.2904 -0.0123">
                                             <inertial pos="0.00971783 -0.0959509 0.024286" quat="0.792048 0.609078 0.0156735 0.0379256" mass="1.1053" diaginertia="0.00543663 0.00523521 0.001" />
                                             <joint name="elbow_flexion" pos="0 0 0" axis="0.0494 0.0366 0.998108" range="0 2.26893" user="1" />
                                             <geom name="ulna" type="mesh" mesh="ulna" />
+                                            <geom name="PQ2" class="WrapCylinder" size="0.007 0.05" pos="-0.0012 -0.2092 0.0428" quat="0.540178 0.48199 -0.422694 0.545182" type="cylinder" />
                                             <site name="TRIlong-P5" pos="-0.0219 0.01046 -0.00078" />
                                             <site name="TRIlat-P5" pos="-0.0219 0.01046 -0.00078" />
                                             <site name="TRImed-P5" pos="-0.0219 0.01046 -0.00078" />
@@ -239,6 +304,9 @@
                                                 <inertial pos="0.0336341 -0.181559 0.0156" quat="0.770264 0.63559 0.0119833 0.0507376" mass="0.23359" diaginertia="0.001 0.001 0.001" />
                                                 <joint name="pro_sup" pos="0 0 0" axis="-0.017161 0.992666 -0.119668" range="-1.5708 1.5708" user="1" />
                                                 <geom name="radius" type="mesh" mesh="radius" />
+                                                <geom name="SUP" class="WrapCylinder" size="0.008 0.02" pos="0.0045 -0.0437 0.0059" quat="0.348354 0.118085 0.653837 -0.661213" type="cylinder" />
+                                                <geom name="PQ1" class="WrapCylinder" size="0.01 0.05" pos="0.0281 -0.1986 0.0288" quat="0.15975 -0.156797 -0.702724 -0.675332" type="cylinder" />
+                                                <geom name="ECU" class="WrapTorus" size="0.006" pos="-0.0163 -0.2417 0.0349" quat="0.868974 -0.476593 -0.0126206 0.132601" />
                                                 <site name="SUP-P1" pos="0.00996 -0.06096 0.00075" />
                                                 <site name="SUP-P2" pos="0.01201 -0.0517 -0.00107" />
                                                 <site name="BIClong-P11" pos="-0.002 -0.0375 -0.002" />
@@ -294,12 +362,42 @@
                                                 <site name="APL-P3" pos="0.03993 -0.16072 0.034" />
                                                 <site name="APL-P4" pos="0.04397 -0.17845 0.03134" />
                                                 <site name="APL-P5" pos="0.05505 -0.23084 0.02368" />
+                                                <site name="SUP-sidesite" pos="-0.0115 -0.0437 0.0059" />
+                                                <site name="ECU-sidesite_torus" pos="-0.0163 -0.2417 0.0349" />
                                                 <body name="proximal_row" pos="0.018 -0.242 0.025">
                                                     <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001" />
                                                     <geom name="lunate" type="mesh" mesh="lunate" />
                                                     <geom name="sdfastSCAPHOIDw" type="mesh" mesh="sdfastSCAPHOIDw" />
                                                     <geom name="sdfastPISIFORMw" type="mesh" mesh="sdfastPISIFORMw" />
                                                     <geom name="sdfastTRIQUETRALw" type="mesh" mesh="sdfastTRIQUETRALw" />
+                                                    <geom name="Extensor_ellipse" class="WrapEllipsoid" size="0.013" pos="0.0007 -0.0135 0.0047" quat="0.977473 -0.106567 0.15459 0.0963908" />
+                                                    <geom name="PL" class="WrapEllipsoid" size="0.012" pos="0.0057 -0.018 -0.0041" quat="0.998158 -0.0141897 0.050277 0.0308428" />
+                                                    <geom name="FDS" class="WrapEllipsoid" size="0.012" pos="0.0012 -0.0057 -0.0003" quat="0.999119 0.0045343 -0.0407917 -0.00871581" />
+                                                    <geom name="FDP" class="WrapEllipsoid" size="0.013" pos="-0.0022 -0.0069 0.0032" quat="0.733834 -0.669637 -0.0314447 0.109931" />
+                                                    <geom name="EDM" class="WrapEllipsoid" size="0.008" pos="-0.0167 -0.0022 0.0048" quat="0.0842151 0.991535 -0.0514386 0.084384" />
+                                                    <geom name="FPL" class="WrapEllipsoid" size="0.01" pos="0.017 -0.025 -0.0033" quat="0.995273 -0.0816033 -0.043664 -0.0294275" />
+                                                    <geom name="ECRL" class="WrapTorus" size="0.008" pos="0.0222 -0.0096 0.0208" quat="0.637341 0.675154 -0.168466 0.331034" />
+                                                    <geom name="ECRB" class="WrapTorus" size="0.008" pos="0.0126 -0.0095 0.0186" quat="0.787441 0.610836 -0.0111771 -0.0818019" />
+                                                    <geom name="FCR" class="WrapTorus" size="0.001" pos="0.0032 -0.0045 -0.019" quat="0.71204 -0.696183 -0.0894344 0.0181556" />
+                                                    <geom name="FCU" class="WrapTorus" size="0.0068" pos="-0.0123 -0.0124 -0.0171" quat="0.686461 -0.699506 0.110312 0.165208" />
+                                                    <geom name="EDCL" class="WrapTorus" size="0.008" pos="-0.0128 -0.0133 0.0148" quat="0.386235 0.907674 0.159784 0.0376831" />
+                                                    <geom name="EDCR" class="WrapTorus" size="0.0105" pos="-0.0098 -0.0137 0.0166" quat="0.516904 0.814719 -0.189621 0.181899" />
+                                                    <geom name="EDCM" class="WrapTorus" size="0.009" pos="-0.0007 -0.0117 0.0191" quat="0.51619 0.831215 -0.100219 0.180516" />
+                                                    <geom name="EDCI" class="WrapTorus" size="0.009" pos="0.009 -0.0149 0.0211" quat="0.660055 0.749868 0.0267536 0.0361877" />
+                                                    <site name="Extensor_ellipse-sidesite" pos="0.0007 -0.0135 0.0307" />
+                                                    <site name="PL-sidesite" pos="0.0057 -0.018 -0.0281" />
+                                                    <site name="FDS-sidesite" pos="0.0012 -0.0057 -0.0243" />
+                                                    <site name="FDP-sidesite" pos="-0.0022 0.0191 0.0032" />
+                                                    <site name="EDM-sidesite" pos="-0.0167 -0.0022 -0.0112" />
+                                                    <site name="FPL-sidesite" pos="0.017 -0.025 -0.0233" />
+                                                    <site name="ECRL-sidesite_torus" pos="0.0222 -0.0096 0.0208" />
+                                                    <site name="ECRB-sidesite_torus" pos="0.0126 -0.0095 0.0186" />
+                                                    <site name="FCR-sidesite_torus" pos="0.0032 -0.0045 -0.019" />
+                                                    <site name="FCU-sidesite_torus" pos="-0.0123 -0.0124 -0.0171" />
+                                                    <site name="EDCL-sidesite_torus" pos="-0.0128 -0.0133 0.0148" />
+                                                    <site name="EDCR-sidesite_torus" pos="-0.0098 -0.0137 0.0166" />
+                                                    <site name="EDCM-sidesite_torus" pos="-0.0007 -0.0117 0.0191" />
+                                                    <site name="EDCI-sidesite_torus" pos="0.009 -0.0149 0.0211" />
                                                     <body name="hand" pos="0.003992 -0.015054 0.002327">
                                                         <inertial pos="-0.00301314 -0.0424993 -0.00112205" quat="0.526799 0.470642 -0.462095 0.536141" mass="0.5819" diaginertia="0.001 0.001 0.001" />
                                                         <geom name="sdfast_1seg_hand_fr_c_5mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_5mc" />
@@ -321,6 +419,43 @@
                                                         <geom name="hand_thumbprox" type="mesh" mesh="hand_thumbprox" />
                                                         <geom name="hand_thumbdist" type="mesh" mesh="hand_thumbdist" />
                                                         <geom name="hand_1mc" type="mesh" mesh="hand_1mc" />
+                                                        <geom name="_2rdmcp_FDS" class="WrapCylinder" size="0.013 0.005" pos="0.0182 -0.0659 0.0087" quat="0.504168 -0.475417 0.494684 -0.524482" type="cylinder" />
+                                                        <geom name="_2rdmcp_FDP" class="WrapCylinder" size="0.0105 0.005" pos="0.0182 -0.0659 0.0087" quat="0.485557 -0.492391 0.477792 -0.541756" type="cylinder" />
+                                                        <geom name="_2rdmcp_ext" class="WrapCylinder" size="0.01 0.005" pos="0.0182 -0.0659 0.0087" quat="0.54796 -0.430494 0.534236 -0.478545" type="cylinder" />
+                                                        <geom name="_3rdmcp_FDS" class="WrapCylinder" size="0.013 0.005" pos="0.0007 -0.0655 0.0092" quat="0.352215 0.613143 0.194726 0.679766" type="cylinder" />
+                                                        <geom name="_3rdmcp_FDP" class="WrapCylinder" size="0.0105 0.005" pos="0.0046 -0.0662 0.0099" quat="0.352215 0.613143 0.194726 0.679766" type="cylinder" />
+                                                        <geom name="_3rdmcp_ext" class="WrapCylinder" size="0.01 0.005" pos="0.0007 -0.0655 0.0092" quat="0.387309 0.602111 0.226549 0.660401" type="cylinder" />
+                                                        <geom name="_4rdmcp_FDS" class="WrapCylinder" size="0.013 0.005" pos="-0.0139 -0.0642 0.0033" quat="0.4559 -0.336226 0.489089 -0.663249" type="cylinder" />
+                                                        <geom name="_4rdmcp_FDP" class="WrapCylinder" size="0.0105 0.005" pos="-0.0139 -0.0642 0.0033" quat="0.4559 -0.336226 0.489089 -0.663249" type="cylinder" />
+                                                        <geom name="_4rdmcp_ext" class="WrapCylinder" size="0.01 0.005" pos="-0.0139 -0.0642 0.0033" quat="0.235359 -0.467735 0.365349 -0.769643" type="cylinder" />
+                                                        <geom name="_5rdmcp_FDS" class="WrapCylinder" size="0.013 0.006" pos="-0.0235 -0.0561 -0.0057" quat="0.514699 -0.297269 0.402214 -0.696377" type="cylinder" />
+                                                        <geom name="_5rdmcp_FDP" class="WrapCylinder" size="0.0105 0.005" pos="-0.0235 -0.0561 -0.0057" quat="0.432555 -0.340891 0.365975 -0.750167" type="cylinder" />
+                                                        <geom name="_5rdmcp_ext" class="WrapCylinder" size="0.01 0.006" pos="-0.0235 -0.0561 -0.0057" quat="0.653221 -0.203168 0.45702 -0.568469" type="cylinder" />
+                                                        <geom name="Secondpm_FDS" class="WrapCylinder" size="0.0075 0.005" pos="0.0307 -0.0924 -0.0222" quat="0.701654 -0.299791 0.641317 -0.0807432" type="cylinder" />
+                                                        <geom name="Secondpm_FDP" class="WrapCylinder" size="0.008 0.005" pos="0.0307 -0.0924 -0.0222" quat="0.701654 -0.299791 0.641317 -0.0807432" type="cylinder" />
+                                                        <geom name="Secondpm_ext" class="WrapCylinder" size="0.0055 0.006" pos="0.0307 -0.0924 -0.0222" quat="0.701654 -0.299791 0.641317 -0.0807432" type="cylinder" />
+                                                        <geom name="Secondmd_flex" class="WrapCylinder" size="0.005 0.005" pos="0.0291 -0.0821 -0.045" quat="0.657978 0.091843 0.706005 0.245331" type="cylinder" />
+                                                        <geom name="Secondmd_ext" class="WrapCylinder" size="0.002 0.005" pos="0.0291 -0.0821 -0.045" quat="0.657978 0.091843 0.706005 0.245331" type="cylinder" />
+                                                        <geom name="Secondpm" class="WrapCylinder" size="0.004 0.005" pos="0.0306 -0.0911 -0.0223" quat="0.595011 0.428705 -0.615575 -0.288516" type="cylinder" />
+                                                        <geom name="Secondmd" class="WrapCylinder" size="0.003 0.005" pos="0.0295 -0.0815 -0.0441" quat="0.466777 0.600823 -0.345164 -0.549539" type="cylinder" />
+                                                        <geom name="MPthumb" class="WrapCylinder" size="0.0085 0.01" pos="0.0402 -0.0405 -0.0271" quat="0.904577 0.123988 0.114414 -0.391506" type="cylinder" />
+                                                        <geom name="IPthumb" class="WrapCylinder" size="0.0045 0.005" pos="0.0396 -0.0713 -0.0365" quat="0.977705 0.165602 0.00825833 -0.128846" type="cylinder" />
+                                                        <geom name="Thirdpm_FDS" class="WrapCylinder" size="0.0075 0.005" pos="0.0122 -0.0934 -0.0238" quat="0.720486 -0.198259 0.637578 -0.187315" type="cylinder" />
+                                                        <geom name="Thirdpm_FDP" class="WrapCylinder" size="0.008 0.005" pos="0.0122 -0.0934 -0.0238" quat="0.720486 -0.198259 0.637578 -0.187315" type="cylinder" />
+                                                        <geom name="Thirdpm_ext" class="WrapCylinder" size="0.0055 0.005" pos="0.0122 -0.0934 -0.0238" quat="0.720486 -0.198259 0.637578 -0.187315" type="cylinder" />
+                                                        <geom name="Thirdmd_flex" class="WrapCylinder" size="0.005 0.005" pos="0.019 -0.0814 -0.0494" quat="0.768057 0.221741 0.586112 0.131877" type="cylinder" />
+                                                        <geom name="Thirdmd_ext" class="WrapCylinder" size="0.002 0.005" pos="0.019 -0.0814 -0.0494" quat="0.768057 0.221741 0.586112 0.131877" type="cylinder" />
+                                                        <geom name="Fourthpm_FDS" class="WrapCylinder" size="0.0075 0.005" pos="-0.005 -0.0871 -0.0289" quat="0.772303 -0.00545462 0.534112 -0.343863" type="cylinder" />
+                                                        <geom name="Fourthpm_FDP" class="WrapCylinder" size="0.008 0.005" pos="-0.005 -0.0871 -0.0289" quat="0.772303 -0.00545462 0.534112 -0.343863" type="cylinder" />
+                                                        <geom name="Fourthpm_ext" class="WrapCylinder" size="0.0055 0.005" pos="-0.005 -0.0871 -0.0289" quat="0.772303 -0.00545462 0.534112 -0.343863" type="cylinder" />
+                                                        <geom name="Fourthmd_flex" class="WrapCylinder" size="0.005 0.005" pos="0.0094 -0.0778 -0.0469" quat="0.842867 0.293146 0.441348 0.0940923" type="cylinder" />
+                                                        <geom name="Fourthmd_ext" class="WrapCylinder" size="0.002 0.005" pos="0.0094 -0.0778 -0.0469" quat="0.842867 0.293146 0.441348 0.0940923" type="cylinder" />
+                                                        <geom name="Fifthpm_FDS" class="WrapCylinder" size="0.0075 0.005" pos="-0.0154 -0.0784 -0.0329" quat="0.716647 0.0685597 0.552737 -0.419759" type="cylinder" />
+                                                        <geom name="Fifthpm_FDP" class="WrapCylinder" size="0.008 0.005" pos="-0.0153 -0.0786 -0.0329" quat="0.651254 -0.00903294 0.5569 -0.515411" type="cylinder" />
+                                                        <geom name="Fifthpm_ext" class="WrapCylinder" size="0.0055 0.005" pos="-0.0152 -0.0785 -0.0328" quat="0.790513 0.186571 0.524796 -0.254696" type="cylinder" />
+                                                        <geom name="Fifthmd_flex" class="WrapCylinder" size="0.005 0.005" pos="0.0007 -0.0741 -0.0457" quat="0.842182 0.338265 0.404575 -0.112365" type="cylinder" />
+                                                        <geom name="Fifthmd_ext" class="WrapCylinder" size="0.002 0.005" pos="0.007 -0.0741 -0.0457" quat="0.842182 0.338265 0.404575 -0.112365" type="cylinder" />
+                                                        <geom name="_2ndmcp" class="WrapEllipsoid" size="0.005 0.015" pos="0.0206 -0.068 0.0044" quat="0.587323 -0.229042 -0.660427 0.407955" type="cylinder" />
                                                         <site name="ECRL-P4" pos="0.01717 -0.02122 0.00583" />
                                                         <site name="ECRB-P4" pos="0.005 -0.01136 0.0085" />
                                                         <site name="ECU-P6" pos="-0.02251 -0.01401 -0.00128" />
@@ -448,6 +583,41 @@
                                                         <site name="APL-P8" pos="0.02878 -0.00674 -0.0187" />
                                                         <site name="APL-P9" pos="0.03076 -0.01583 -0.01885" />
                                                         <site name="APL-P6" pos="0.0332244 0.00608975 -0.00870125" />
+                                                        <site name="_2rdmcp_FDS-sidesite" pos="0.0182 -0.0399 0.0087" />
+                                                        <site name="_2rdmcp_FDP-sidesite" pos="0.0182 -0.0449 0.0087" />
+                                                        <site name="_2rdmcp_ext-sidesite" pos="0.0182 -0.0859 0.0087" />
+                                                        <site name="_3rdmcp_FDS-sidesite" pos="-0.0253 -0.0655 0.0092" />
+                                                        <site name="_3rdmcp_FDP-sidesite" pos="-0.0164 -0.0662 0.0099" />
+                                                        <site name="_3rdmcp_ext-sidesite" pos="0.0007 -0.0455 0.0092" />
+                                                        <site name="_4rdmcp_FDS-sidesite" pos="-0.0139 -0.0382 0.0033" />
+                                                        <site name="_4rdmcp_FDP-sidesite" pos="-0.0139 -0.0432 0.0033" />
+                                                        <site name="_4rdmcp_ext-sidesite" pos="0.0061 -0.0642 0.0033" />
+                                                        <site name="_5rdmcp_FDS-sidesite" pos="-0.0235 -0.0301 -0.0057" />
+                                                        <site name="_5rdmcp_FDP-sidesite" pos="-0.0235 -0.0351 -0.0057" />
+                                                        <site name="_5rdmcp_ext-sidesite" pos="-0.0235 -0.0761 -0.0057" />
+                                                        <site name="Secondpm_FDS-sidesite" pos="0.0307 -0.0774 -0.0222" />
+                                                        <site name="Secondpm_FDP-sidesite" pos="0.0307 -0.0764 -0.0222" />
+                                                        <site name="Secondpm_ext-sidesite" pos="0.0307 -0.1034 -0.0222" />
+                                                        <site name="Secondmd_flex-sidesite" pos="0.0291 -0.0721 -0.045" />
+                                                        <site name="Secondmd_ext-sidesite" pos="0.0291 -0.0861 -0.045" />
+                                                        <site name="Secondmd-sidesite" pos="0.0355 -0.0815 -0.0441" />
+                                                        <site name="IPthumb-sidesite" pos="0.0306 -0.0713 -0.0365" />
+                                                        <site name="Thirdpm_FDS-sidesite" pos="0.0122 -0.0784 -0.0238" />
+                                                        <site name="Thirdpm_FDP-sidesite" pos="0.0122 -0.0774 -0.0238" />
+                                                        <site name="Thirdpm_ext-sidesite" pos="0.0122 -0.1044 -0.0238" />
+                                                        <site name="Thirdmd_flex-sidesite" pos="0.019 -0.0714 -0.0494" />
+                                                        <site name="Thirdmd_ext-sidesite" pos="0.019 -0.0854 -0.0494" />
+                                                        <site name="Fourthpm_FDS-sidesite" pos="-0.005 -0.0721 -0.0289" />
+                                                        <site name="Fourthpm_FDP-sidesite" pos="-0.005 -0.0711 -0.0289" />
+                                                        <site name="Fourthpm_ext-sidesite" pos="-0.005 -0.0981 -0.0289" />
+                                                        <site name="Fourthmd_flex-sidesite" pos="0.0094 -0.0678 -0.0469" />
+                                                        <site name="Fourthmd_ext-sidesite" pos="0.0094 -0.0818 -0.0469" />
+                                                        <site name="Fifthpm_FDS-sidesite" pos="-0.0154 -0.0634 -0.0329" />
+                                                        <site name="Fifthpm_FDP-sidesite" pos="-0.0153 -0.0626 -0.0329" />
+                                                        <site name="Fifthpm_ext-sidesite" pos="-0.0152 -0.0895 -0.0328" />
+                                                        <site name="Fifthmd_flex-sidesite" pos="0.0007 -0.0641 -0.0457" />
+                                                        <site name="Fifthmd_ext-sidesite" pos="0.007 -0.0781 -0.0457" />
+                                                        <site name="_2ndmcp-sidesite" pos="0.0106 -0.068 0.0044" />
                                                         <body name="index0" pos="0 0 0">
                                                             <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001" />
                                                             <geom name="sdfast_1seg_hand_fr_c_2mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_2mc" />
@@ -495,140 +665,211 @@
     <tendon>
         <spatial name="DELT1_tendon">
             <site site="DELT1-P1" />
+            <geom geom="delt2hum" />
             <site site="DELT1-P2" />
+            <geom geom="DELT1hh" sidesite="DELT1hh-sidesite" />
             <site site="DELT1-P3" />
+            <geom geom="delt2hum" />
             <site site="DELT1-P4" />
         </spatial>
         <spatial name="DELT2_tendon">
             <site site="DELT2-P1" />
+            <geom geom="Deltoid2" sidesite="Deltoid2-sidesite" />
             <site site="DELT2-P2" />
+            <geom geom="Deltoid2" sidesite="Deltoid2-sidesite" />
             <site site="DELT2-P3" />
+            <geom geom="Deltoid2" sidesite="Deltoid2-sidesite" />
             <site site="DELT2-P4" />
         </spatial>
         <spatial name="DELT3_tendon">
             <site site="DELT3-P1" />
+            <geom geom="Delt3" sidesite="Delt3-sidesite_torus" />
             <site site="DELT3-P2" />
+            <geom geom="DELT_TMAJ_LAT_PEC_CORBhh" />
             <site site="DELT3-P3" />
         </spatial>
         <spatial name="SUPSP_tendon">
             <site site="SUPSP-P1" />
+            <geom geom="SUPSP" />
             <site site="SUPSP-P2" />
+            <geom geom="SUPSP" />
             <site site="SUPSP-P3" />
         </spatial>
         <spatial name="INFSP_tendon">
             <site site="INFSP-P1" />
+            <geom geom="infsp_new" sidesite="infsp_new-sidesite" />
             <site site="INFSP-P2" />
         </spatial>
         <spatial name="SUBSC_tendon">
             <site site="SUBSC-P1" />
+            <geom geom="SUBSCAP" />
             <site site="SUBSC-P2" />
+            <geom geom="SUBSCAP" />
             <site site="SUBSC-P3" />
         </spatial>
         <spatial name="TMIN_tendon">
             <site site="TMIN-P1" />
+            <geom geom="TMIN" sidesite="TMIN-sidesite" />
             <site site="TMIN-P2" />
             <site site="TMIN-P3" />
         </spatial>
         <spatial name="TMAJ_tendon">
             <site site="TMAJ-P1" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="TMAJ-P2" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="TMAJ-P3" />
         </spatial>
         <spatial name="PECM1_tendon">
             <site site="PECM1-P1" />
+            <geom geom="Thorax" />
             <site site="PECM1-P2" />
+            <geom geom="Thorax" />
             <site site="PECM1-P3" />
+            <geom geom="Thorax" />
             <site site="PECM1-P4" />
         </spatial>
         <spatial name="PECM2_tendon">
             <site site="PECM2-P1" />
+            <geom geom="Thorax" />
             <site site="PECM2-P2" />
+            <geom geom="Thorax" />
             <site site="PECM2-P3" />
+            <geom geom="Thorax" />
             <site site="PECM2-P4" />
+            <geom geom="Thorax" />
             <site site="PECM2-P5" />
         </spatial>
         <spatial name="PECM3_tendon">
             <site site="PECM3-P1" />
+            <geom geom="Thorax" />
             <site site="PECM3-P2" />
+            <geom geom="Thorax" />
             <site site="PECM3-P3" />
+            <geom geom="Thorax" />
             <site site="PECM3-P4" />
+            <geom geom="Thorax" />
             <site site="PECM3-P5" />
         </spatial>
         <spatial name="LAT1_tendon">
             <site site="LAT1-P1" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT1-P2" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT1-P3" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT1-P4" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT1-P5" />
         </spatial>
         <spatial name="LAT2_tendon">
             <site site="LAT2-P1" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT2-P2" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT2-P3" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT2-P4" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT2-P5" />
         </spatial>
         <spatial name="LAT3_tendon">
             <site site="LAT3-P1" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT3-P2" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT3-P3" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT3-P4" />
+            <geom geom="LAT_TMAJ2hh" />
             <site site="LAT3-P5" />
         </spatial>
         <spatial name="CORB_tendon">
             <site site="CORB-P1" />
+            <geom geom="TMAJ_LAT_PEC_CORBhh" />
             <site site="CORB-P2" />
+            <geom geom="TMAJ_LAT_PEC_CORBhh" />
             <site site="CORB-P3" />
         </spatial>
         <spatial name="TRIlong_tendon">
             <site site="TRIlong-P1" />
+            <geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite" />
             <site site="TRIlong-P2" />
+            <geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite" />
             <site site="TRIlong-P3" />
+            <geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite" />
             <site site="TRIlong-P4" />
+            <geom geom="TRIlonghh" sidesite="TRIlonghh-sidesite" />
             <site site="TRIlong-P5" />
         </spatial>
         <spatial name="TRIlat_tendon">
             <site site="TRIlat-P1" />
+            <geom geom="TRI" />
             <site site="TRIlat-P2" />
+            <geom geom="TRI" />
             <site site="TRIlat-P3" />
+            <geom geom="TRI" />
             <site site="TRIlat-P4" />
+            <geom geom="TRI" />
             <site site="TRIlat-P5" />
         </spatial>
         <spatial name="TRImed_tendon">
             <site site="TRImed-P1" />
+            <geom geom="TRI" />
             <site site="TRImed-P2" />
+            <geom geom="TRI" />
             <site site="TRImed-P3" />
+            <geom geom="TRI" />
             <site site="TRImed-P4" />
+            <geom geom="TRI" />
             <site site="TRImed-P5" />
         </spatial>
         <spatial name="ANC_tendon">
             <site site="ANC-P1" />
+            <geom geom="ANC" sidesite="ANC-sidesite" />
             <site site="ANC-P2" />
         </spatial>
         <spatial name="SUP_tendon">
             <site site="SUP-P1" />
+            <geom geom="SUP" sidesite="SUP-sidesite" />
             <site site="SUP-P2" />
+            <geom geom="SUP" sidesite="SUP-sidesite" />
             <site site="SUP-P3" />
         </spatial>
         <spatial name="BIClong_tendon">
             <site site="BIClong-P1" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P2" />
+            <geom geom="BIClong" sidesite="BIClong-sidesite" />
             <site site="BIClong-P3" />
+            <geom geom="BIClong" sidesite="BIClong-sidesite" />
             <site site="BIClong-P4" />
+            <geom geom="BIClong" sidesite="BIClong-sidesite" />
             <site site="BIClong-P5" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P6" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P7" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P8" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P9" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BIClong-P11" />
         </spatial>
         <spatial name="BICshort_tendon">
             <site site="BICshort-P1" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P2" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P3" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P4" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P5" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P6" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BICshort-P8" />
         </spatial>
         <spatial name="BRA_tendon">
@@ -639,178 +880,286 @@
         </spatial>
         <spatial name="BRD_tendon">
             <site site="BRD-P1" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BRD-P2" />
+            <geom geom="Elbow_BIC_BRD" sidesite="Elbow_BIC_BRD-sidesite" />
             <site site="BRD-P3" />
         </spatial>
         <spatial name="ECRL_tendon">
             <site site="ECRL-P1" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="ECRL-P2" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="ECRL-P3" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="ECRL-P4" />
         </spatial>
         <spatial name="ECRB_tendon">
             <site site="ECRB-P1" />
+            <geom geom="ECRB" sidesite="ECRB-sidesite_torus" />
             <site site="ECRB-P2" />
+            <geom geom="ECRB" sidesite="ECRB-sidesite_torus" />
             <site site="ECRB-P3" />
+            <geom geom="ECRB" sidesite="ECRB-sidesite_torus" />
             <site site="ECRB-P4" />
         </spatial>
         <spatial name="ECU_tendon">
             <site site="ECU-P1" />
+            <geom geom="ECU" sidesite="ECU-sidesite_torus" />
             <site site="ECU-P2" />
+            <geom geom="ECU" sidesite="ECU-sidesite_torus" />
             <site site="ECU-P3" />
+            <geom geom="ECU" sidesite="ECU-sidesite_torus" />
             <site site="ECU-P4" />
+            <geom geom="ECU" sidesite="ECU-sidesite_torus" />
             <site site="ECU-P5" />
+            <geom geom="ECU" sidesite="ECU-sidesite_torus" />
             <site site="ECU-P6" />
         </spatial>
         <spatial name="FCR_tendon">
             <site site="FCR-P1" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FCR-P2" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FCR-P3" />
         </spatial>
         <spatial name="FCU_tendon">
             <site site="FCU-P1" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FCU-P2" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FCU-P3" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FCU-P4" />
         </spatial>
         <spatial name="PL_tendon">
             <site site="PL-P1" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PL-P2" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PL-P3" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PL-P4" />
         </spatial>
         <spatial name="PT_tendon">
             <site site="PT-P1" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PT-P2" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PT-P3" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PT-P4" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="PT-P5" />
         </spatial>
         <spatial name="PQ_tendon">
             <site site="PQ-P1" />
+            <geom geom="PQ1" />
             <site site="PQ-P2" />
         </spatial>
         <spatial name="FDSL_tendon">
             <site site="FDSL-P1" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSL-P2" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSL-P3" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSL-P4" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSL-P5" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSL-P6" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSL-P7" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSL-P8" />
         </spatial>
         <spatial name="FDSR_tendon">
             <site site="FDSR-P1" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSR-P2" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSR-P3" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSR-P4" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSR-P5" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSR-P6" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSR-P7" />
+            <geom geom="Elbow_PT_ECRL" sidesite="Elbow_PT_ECRL-sidesite" />
             <site site="FDSR-P8" />
         </spatial>
         <spatial name="FDSM_tendon">
             <site site="FDSM-P1" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSM-P2" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSM-P3" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSM-P4" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSM-P5" />
+            <geom geom="_3rdmcp_FDS" sidesite="_3rdmcp_FDS-sidesite" />
             <site site="FDSM-P6" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSM-P7" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSM-P8" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSM-P9" />
         </spatial>
         <spatial name="FDSI_tendon">
             <site site="FDSI-P1" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSI-P2" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSI-P3" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSI-P4" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSI-P5" />
+            <geom geom="_2rdmcp_FDS" sidesite="_2rdmcp_FDS-sidesite" />
             <site site="FDSI-P6" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSI-P7" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSI-P8" />
+            <geom geom="FDS" sidesite="FDS-sidesite" />
             <site site="FDSI-P9" />
         </spatial>
         <spatial name="FDPL_tendon">
             <site site="FDPL-P1" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P2" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P3" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P4" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P5" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P6" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P7" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P8" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPL-P9" />
         </spatial>
         <spatial name="FDPR_tendon">
             <site site="FDPR-P1" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P2" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P3" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P4" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P5" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P6" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P7" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P8" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPR-P9" />
         </spatial>
         <spatial name="FDPM_tendon">
             <site site="FDPM-P1" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P2" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P3" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P4" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P5" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P6" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P7" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P8" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P9" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPM-P10" />
         </spatial>
         <spatial name="FDPI_tendon">
             <site site="FDPI-P1" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P2" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P3" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P4" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P5" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P6" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P7" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P8" />
+            <geom geom="FDP" sidesite="FDP-sidesite" />
             <site site="FDPI-P9" />
         </spatial>
         <spatial name="EDCL_tendon">
             <site site="EDCL-P1" />
             <site site="EDCL-P2" />
             <site site="EDCL-P3" />
+            <geom geom="EDCL" sidesite="EDCL-sidesite_torus" />
             <site site="EDCL-P4" />
             <site site="EDCL-P5" />
+            <geom geom="_5rdmcp_ext" sidesite="_5rdmcp_ext-sidesite" />
             <site site="EDCL-P6" />
             <site site="EDCL-P7" />
+            <geom geom="Fifthpm_ext" sidesite="Fifthpm_ext-sidesite" />
             <site site="EDCL-P8" />
             <site site="EDCL-P9" />
+            <geom geom="Fifthmd_ext" sidesite="Fifthmd_ext-sidesite" />
             <site site="EDCL-P10" />
         </spatial>
         <spatial name="EDCR_tendon">
             <site site="EDCR-P1" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P2" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P3" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P4" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P5" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P6" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P7" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P8" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P9" />
+            <geom geom="EDCR" sidesite="EDCR-sidesite_torus" />
             <site site="EDCR-P10" />
         </spatial>
         <spatial name="EDCM_tendon">
             <site site="EDCM-P1" />
+            <geom geom="EDCM" sidesite="EDCM-sidesite_torus" />
             <site site="EDCM-P2" />
+            <geom geom="EDCM" sidesite="EDCM-sidesite_torus" />
             <site site="EDCM-P3" />
+            <geom geom="EDCM" sidesite="EDCM-sidesite_torus" />
             <site site="EDCM-P4" />
             <site site="EDCM-P5" />
+            <geom geom="_3rdmcp_ext" sidesite="_3rdmcp_ext-sidesite" />
             <site site="EDCM-P6" />
             <site site="EDCM-P7" />
+            <geom geom="Thirdpm_ext" sidesite="Thirdpm_ext-sidesite" />
             <site site="EDCM-P8" />
             <site site="EDCM-P9" />
+            <geom geom="Thirdmd_ext" sidesite="Thirdmd_ext-sidesite" />
             <site site="EDCM-P10" />
             <site site="EDCM-P11" />
         </spatial>
@@ -818,12 +1167,16 @@
             <site site="EDCI-P1" />
             <site site="EDCI-P2" />
             <site site="EDCI-P3" />
+            <geom geom="EDCI" sidesite="EDCI-sidesite_torus" />
             <site site="EDCI-P4" />
             <site site="EDCI-P5" />
+            <geom geom="_2rdmcp_ext" sidesite="_2rdmcp_ext-sidesite" />
             <site site="EDCI-P6" />
             <site site="EDCI-P7" />
+            <geom geom="Secondpm_ext" sidesite="Secondpm_ext-sidesite" />
             <site site="EDCI-P8" />
             <site site="EDCI-P9" />
+            <geom geom="Secondmd_ext" sidesite="Secondmd_ext-sidesite" />
             <site site="EDCI-P10" />
         </spatial>
         <spatial name="EDM_tendon">
@@ -831,61 +1184,102 @@
             <site site="EDM-P2" />
             <site site="EDM-P3" />
             <site site="EDM-P4" />
+            <geom geom="EDM" sidesite="EDM-sidesite" />
             <site site="EDM-P5" />
             <site site="EDM-P6" />
+            <geom geom="_5rdmcp_ext" sidesite="_5rdmcp_ext-sidesite" />
             <site site="EDM-P7" />
             <site site="EDM-P8" />
+            <geom geom="Fifthpm_ext" sidesite="Fifthpm_ext-sidesite" />
             <site site="EDM-P9" />
             <site site="EDM-P10" />
+            <geom geom="Fifthmd_ext" sidesite="Fifthmd_ext-sidesite" />
             <site site="EDM-P11" />
         </spatial>
         <spatial name="EIP_tendon">
             <site site="EIP-P1" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P2" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P3" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P4" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P5" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P6" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P7" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P8" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P9" />
+            <geom geom="Extensor_ellipse" sidesite="Extensor_ellipse-sidesite" />
             <site site="EIP-P10" />
         </spatial>
         <spatial name="EPL_tendon">
             <site site="EPL-P1" />
+            <geom geom="MPthumb" />
             <site site="EPL-P2" />
+            <geom geom="MPthumb" />
             <site site="EPL-P3" />
+            <geom geom="MPthumb" />
             <site site="EPL-P4" />
+            <geom geom="MPthumb" />
             <site site="EPL-P5" />
+            <geom geom="MPthumb" />
             <site site="EPL-P6" />
+            <geom geom="MPthumb" />
             <site site="EPL-P7" />
+            <geom geom="MPthumb" />
             <site site="EPL-P8" />
+            <geom geom="MPthumb" />
             <site site="EPL-P9" />
+            <geom geom="MPthumb" />
             <site site="EPL-P10" />
+            <geom geom="MPthumb" />
             <site site="EPL-P11" />
+            <geom geom="MPthumb" />
             <site site="EPL-P12" />
         </spatial>
         <spatial name="EPB_tendon">
             <site site="EPB-P1" />
+            <geom geom="MPthumb" />
             <site site="EPB-P2" />
+            <geom geom="MPthumb" />
             <site site="EPB-P3" />
+            <geom geom="MPthumb" />
             <site site="EPB-P4" />
+            <geom geom="MPthumb" />
             <site site="EPB-P5" />
+            <geom geom="MPthumb" />
             <site site="EPB-P6" />
+            <geom geom="MPthumb" />
             <site site="EPB-P7" />
+            <geom geom="MPthumb" />
             <site site="EPB-P8" />
         </spatial>
         <spatial name="FPL_tendon">
             <site site="FPL-P1" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P2" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P3" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P4" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P5" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P6" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P7" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P8" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P9" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P10" />
+            <geom geom="FPL" sidesite="FPL-sidesite" />
             <site site="FPL-P11" />
         </spatial>
         <spatial name="APL_tendon">

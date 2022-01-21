@@ -45,7 +45,7 @@ if __name__=="__main__":
     # mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
 
     # Adjust musculotendon properties of MuJoCo model (pt1; via xml file)
-    #adjust_mujoco_model_pt1(mujoco_xml, osim_file)
+    adjust_mujoco_model_pt1(mujoco_xml, osim_file)
 
     # Store new (intermediate) MuJoCo model
     mujoco_xml['mujoco']['compiler']['lengthrange']['@mode'] = "none"  # disable automatic length range computation at compile time, since we compute them manually below
