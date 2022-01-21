@@ -4,7 +4,7 @@
 		<lengthrange inttotal="25" mode="none"></lengthrange>
 	</compiler>
 	<default>
-		<joint limited="true" damping="100" armature="0.1" stiffness="2"></joint>
+		<joint limited="true" damping="0.5" armature="0.1" stiffness="2"></joint>
 		<geom rgba="0.8 0.6 .4 1" margin="0.001"></geom>
 		<site size="0.001"></site>
 		<tendon width="0.003" rgba=".95 .3 .3 1" limited="false"></tendon>
@@ -473,8 +473,8 @@
 		<mesh name="hand_5distph" file="Geometry/hand_5distph.stl" scale="       1        1        1"></mesh>
 		<mesh name="hand_thumbprox" file="Geometry/hand_thumbprox.stl" scale="       1        1        1"></mesh>
 		<mesh name="hand_thumbdist" file="Geometry/hand_thumbdist.stl" scale="       1        1        1"></mesh>
-		<mesh name="hand_1mc" file="Geometry/hand_1mc.stl" scale="       1        1        1"></mesh>
 		<texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="100" height="100"></texture>
+		<mesh name="hand_1mc" file="Geometry/hand_1mc.stl" scale="       1        1        1"></mesh>
 		<material name="MatPlane" reflectance="0.0" texture="texplane" texrepeat="1 1" texuniform="true"></material>
 	</asset>
 	<tendon>
@@ -627,6 +627,43 @@
 			<site site="BRD-P2"></site>
 			<site site="BRD-P3"></site>
 		</spatial>
+		<spatial name="ECRL_tendon">
+			<site site="ECRL-P1"></site>
+			<site site="ECRL-P2"></site>
+			<site site="ECRL-P3"></site>
+			<site site="ECRL-P4"></site>
+		</spatial>
+		<spatial name="ECRB_tendon">
+			<site site="ECRB-P1"></site>
+			<site site="ECRB-P2"></site>
+			<site site="ECRB-P3"></site>
+			<site site="ECRB-P4"></site>
+		</spatial>
+		<spatial name="ECU_tendon">
+			<site site="ECU-P1"></site>
+			<site site="ECU-P2"></site>
+			<site site="ECU-P3"></site>
+			<site site="ECU-P4"></site>
+			<site site="ECU-P5"></site>
+			<site site="ECU-P6"></site>
+		</spatial>
+		<spatial name="FCR_tendon">
+			<site site="FCR-P1"></site>
+			<site site="FCR-P2"></site>
+			<site site="FCR-P3"></site>
+		</spatial>
+		<spatial name="FCU_tendon">
+			<site site="FCU-P1"></site>
+			<site site="FCU-P2"></site>
+			<site site="FCU-P3"></site>
+			<site site="FCU-P4"></site>
+		</spatial>
+		<spatial name="PL_tendon">
+			<site site="PL-P1"></site>
+			<site site="PL-P2"></site>
+			<site site="PL-P3"></site>
+			<site site="PL-P4"></site>
+		</spatial>
 		<spatial name="PT_tendon">
 			<site site="PT-P1"></site>
 			<site site="PT-P2"></site>
@@ -638,17 +675,269 @@
 			<site site="PQ-P1"></site>
 			<site site="PQ-P2"></site>
 		</spatial>
+		<spatial name="FDSL_tendon">
+			<site site="FDSL-P1"></site>
+			<site site="FDSL-P2"></site>
+			<site site="FDSL-P3"></site>
+			<site site="FDSL-P4"></site>
+			<site site="FDSL-P5"></site>
+			<site site="FDSL-P6"></site>
+			<site site="FDSL-P7"></site>
+			<site site="FDSL-P8"></site>
+		</spatial>
+		<spatial name="FDSR_tendon">
+			<site site="FDSR-P1"></site>
+			<site site="FDSR-P2"></site>
+			<site site="FDSR-P3"></site>
+			<site site="FDSR-P4"></site>
+			<site site="FDSR-P5"></site>
+			<site site="FDSR-P6"></site>
+			<site site="FDSR-P7"></site>
+			<site site="FDSR-P8"></site>
+		</spatial>
+		<spatial name="FDSM_tendon">
+			<site site="FDSM-P1"></site>
+			<site site="FDSM-P2"></site>
+			<site site="FDSM-P3"></site>
+			<site site="FDSM-P4"></site>
+			<site site="FDSM-P5"></site>
+			<site site="FDSM-P6"></site>
+			<site site="FDSM-P7"></site>
+			<site site="FDSM-P8"></site>
+			<site site="FDSM-P9"></site>
+		</spatial>
+		<spatial name="FDSI_tendon">
+			<site site="FDSI-P1"></site>
+			<site site="FDSI-P2"></site>
+			<site site="FDSI-P3"></site>
+			<site site="FDSI-P4"></site>
+			<site site="FDSI-P5"></site>
+			<site site="FDSI-P6"></site>
+			<site site="FDSI-P7"></site>
+			<site site="FDSI-P8"></site>
+			<site site="FDSI-P9"></site>
+		</spatial>
+		<spatial name="FDPL_tendon">
+			<site site="FDPL-P1"></site>
+			<site site="FDPL-P2"></site>
+			<site site="FDPL-P3"></site>
+			<site site="FDPL-P4"></site>
+			<site site="FDPL-P5"></site>
+			<site site="FDPL-P6"></site>
+			<site site="FDPL-P7"></site>
+			<site site="FDPL-P8"></site>
+			<site site="FDPL-P9"></site>
+		</spatial>
+		<spatial name="FDPR_tendon">
+			<site site="FDPR-P1"></site>
+			<site site="FDPR-P2"></site>
+			<site site="FDPR-P3"></site>
+			<site site="FDPR-P4"></site>
+			<site site="FDPR-P5"></site>
+			<site site="FDPR-P6"></site>
+			<site site="FDPR-P7"></site>
+			<site site="FDPR-P8"></site>
+			<site site="FDPR-P9"></site>
+		</spatial>
+		<spatial name="FDPM_tendon">
+			<site site="FDPM-P1"></site>
+			<site site="FDPM-P2"></site>
+			<site site="FDPM-P3"></site>
+			<site site="FDPM-P4"></site>
+			<site site="FDPM-P5"></site>
+			<site site="FDPM-P6"></site>
+			<site site="FDPM-P7"></site>
+			<site site="FDPM-P8"></site>
+			<site site="FDPM-P9"></site>
+			<site site="FDPM-P10"></site>
+		</spatial>
+		<spatial name="FDPI_tendon">
+			<site site="FDPI-P1"></site>
+			<site site="FDPI-P2"></site>
+			<site site="FDPI-P3"></site>
+			<site site="FDPI-P4"></site>
+			<site site="FDPI-P5"></site>
+			<site site="FDPI-P6"></site>
+			<site site="FDPI-P7"></site>
+			<site site="FDPI-P8"></site>
+			<site site="FDPI-P9"></site>
+		</spatial>
+		<spatial name="EDCL_tendon">
+			<site site="EDCL-P1"></site>
+			<site site="EDCL-P2"></site>
+			<site site="EDCL-P3"></site>
+			<site site="EDCL-P4"></site>
+			<site site="EDCL-P5"></site>
+			<site site="EDCL-P6"></site>
+			<site site="EDCL-P7"></site>
+			<site site="EDCL-P8"></site>
+			<site site="EDCL-P9"></site>
+			<site site="EDCL-P10"></site>
+		</spatial>
+		<spatial name="EDCR_tendon">
+			<site site="EDCR-P1"></site>
+			<site site="EDCR-P2"></site>
+			<site site="EDCR-P3"></site>
+			<site site="EDCR-P4"></site>
+			<site site="EDCR-P5"></site>
+			<site site="EDCR-P6"></site>
+			<site site="EDCR-P7"></site>
+			<site site="EDCR-P8"></site>
+			<site site="EDCR-P9"></site>
+			<site site="EDCR-P10"></site>
+		</spatial>
+		<spatial name="EDCM_tendon">
+			<site site="EDCM-P1"></site>
+			<site site="EDCM-P2"></site>
+			<site site="EDCM-P3"></site>
+			<site site="EDCM-P4"></site>
+			<site site="EDCM-P5"></site>
+			<site site="EDCM-P6"></site>
+			<site site="EDCM-P7"></site>
+			<site site="EDCM-P8"></site>
+			<site site="EDCM-P9"></site>
+			<site site="EDCM-P10"></site>
+			<site site="EDCM-P11"></site>
+		</spatial>
+		<spatial name="EDCI_tendon">
+			<site site="EDCI-P1"></site>
+			<site site="EDCI-P2"></site>
+			<site site="EDCI-P3"></site>
+			<site site="EDCI-P4"></site>
+			<site site="EDCI-P5"></site>
+			<site site="EDCI-P6"></site>
+			<site site="EDCI-P7"></site>
+			<site site="EDCI-P8"></site>
+			<site site="EDCI-P9"></site>
+			<site site="EDCI-P10"></site>
+		</spatial>
+		<spatial name="EDM_tendon">
+			<site site="EDM-P1"></site>
+			<site site="EDM-P2"></site>
+			<site site="EDM-P3"></site>
+			<site site="EDM-P4"></site>
+			<site site="EDM-P5"></site>
+			<site site="EDM-P6"></site>
+			<site site="EDM-P7"></site>
+			<site site="EDM-P8"></site>
+			<site site="EDM-P9"></site>
+			<site site="EDM-P10"></site>
+			<site site="EDM-P11"></site>
+		</spatial>
+		<spatial name="EIP_tendon">
+			<site site="EIP-P1"></site>
+			<site site="EIP-P2"></site>
+			<site site="EIP-P3"></site>
+			<site site="EIP-P4"></site>
+			<site site="EIP-P5"></site>
+			<site site="EIP-P6"></site>
+			<site site="EIP-P7"></site>
+			<site site="EIP-P8"></site>
+			<site site="EIP-P9"></site>
+			<site site="EIP-P10"></site>
+		</spatial>
+		<spatial name="EPL_tendon">
+			<site site="EPL-P1"></site>
+			<site site="EPL-P2"></site>
+			<site site="EPL-P3"></site>
+			<site site="EPL-P4"></site>
+			<site site="EPL-P5"></site>
+			<site site="EPL-P6"></site>
+			<site site="EPL-P7"></site>
+			<site site="EPL-P8"></site>
+			<site site="EPL-P9"></site>
+			<site site="EPL-P10"></site>
+			<site site="EPL-P11"></site>
+			<site site="EPL-P12"></site>
+		</spatial>
+		<spatial name="EPB_tendon">
+			<site site="EPB-P1"></site>
+			<site site="EPB-P2"></site>
+			<site site="EPB-P3"></site>
+			<site site="EPB-P4"></site>
+			<site site="EPB-P5"></site>
+			<site site="EPB-P6"></site>
+			<site site="EPB-P7"></site>
+			<site site="EPB-P8"></site>
+		</spatial>
+		<spatial name="FPL_tendon">
+			<site site="FPL-P1"></site>
+			<site site="FPL-P2"></site>
+			<site site="FPL-P3"></site>
+			<site site="FPL-P4"></site>
+			<site site="FPL-P5"></site>
+			<site site="FPL-P6"></site>
+			<site site="FPL-P7"></site>
+			<site site="FPL-P8"></site>
+			<site site="FPL-P9"></site>
+			<site site="FPL-P10"></site>
+			<site site="FPL-P11"></site>
+		</spatial>
+		<spatial name="APL_tendon">
+			<site site="APL-P1"></site>
+			<site site="APL-P2"></site>
+			<site site="APL-P3"></site>
+			<site site="APL-P4"></site>
+			<site site="APL-P5"></site>
+			<site site="APL-P6"></site>
+			<site site="APL-P7"></site>
+			<site site="APL-P8"></site>
+			<site site="APL-P9"></site>
+		</spatial>
 	</tendon>
 	<actuator>
 		<general name="oculomotor-rx" joint="eye-rx" class="oculomotor"></general>
 		<general name="oculomotor-ry" joint="eye-ry" class="oculomotor"></general>
-		<muscle name="SUP" scale="379.6" tendon="SUP_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-		<muscle name="BIClong" scale="525.1" tendon="BIClong_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-		<muscle name="BICshort" scale="316.8" tendon="BICshort_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-		<muscle name="BRA" scale="1177.37" tendon="BRA_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-		<muscle name="BRD" scale="276" tendon="BRD_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-		<muscle name="PT" scale="557.2" tendon="PT_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-		<muscle name="PQ" scale="284.7" tendon="PQ_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="DELT1" force="1218.9" tendon="DELT1_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="DELT2" force="1103.5" tendon="DELT2_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="DELT3" force="201.6" tendon="DELT3_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="SUPSP" force="499.2" tendon="SUPSP_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="INFSP" force="1075.8" tendon="INFSP_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="SUBSC" force="1306.9" tendon="SUBSC_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="TMIN" force="269.5" tendon="TMIN_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="TMAJ" force="144" tendon="TMAJ_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="PECM1" force="444.3" tendon="PECM1_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="PECM2" force="658.3" tendon="PECM2_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="PECM3" force="498.1" tendon="PECM3_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="LAT1" force="290.5" tendon="LAT1_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="LAT2" force="317.5" tendon="LAT2_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="LAT3" force="189" tendon="LAT3_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="CORB" force="208.2" tendon="CORB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="TRIlong" force="771.8" tendon="TRIlong_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="TRIlat" force="717.5" tendon="TRIlat_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="TRImed" force="717.5" tendon="TRImed_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ANC" force="283.2" tendon="ANC_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="SUP" force="379.6" tendon="SUP_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="BIClong" force="525.1" tendon="BIClong_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="BICshort" force="316.8" tendon="BICshort_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="BRA" force="1177.37" tendon="BRA_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="BRD" force="276" tendon="BRD_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ECRL" tendon="ECRL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ECRB" tendon="ECRB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ECU" tendon="ECU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FCR" tendon="FCR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FCU" tendon="FCU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="PL" tendon="PL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="PT" force="557.2" tendon="PT_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="PQ" force="284.7" tendon="PQ_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDSL" tendon="FDSL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDSR" tendon="FDSR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDSM" tendon="FDSM_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDSI" tendon="FDSI_tendon" class="muscle" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDPL" tendon="FDPL_tendon" class="muscle" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDPR" tendon="FDPR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDPM" tendon="FDPM_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FDPI" tendon="FDPI_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EDCL" tendon="EDCL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EDCR" tendon="EDCR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EDCM" tendon="EDCM_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EDCI" tendon="EDCI_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EDM" tendon="EDM_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EIP" tendon="EIP_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EPL" tendon="EPL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="EPB" tendon="EPB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="FPL" tendon="FPL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="APL" tendon="APL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 	</actuator>
 	<equality>
 		<joint name="sternoclavicular_r2_con" joint1="sternoclavicular_r2" joint2="shoulder_elv" active="true" polycoef="1.11022e-16 -0.242001        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>

@@ -18,11 +18,11 @@ if __name__=="__main__":
     mujoco_output = "UIB/envs/mobl_arms/models/mobl_arms_muscles_modified.xml"
     model_properties_output = "UIB/envs/mobl_arms/models/MoBL_ARMS_analysis.xml"
 
-    mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_original.xml"
-    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
+    # mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_original.xml"
+    # opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
 
-    mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_fixedjoints.xml"
-    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints.osim"
+    # mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_fixedjoints.xml"
+    # opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints.osim"
 
     # Read and parse OpenSim model
     osim_file = opensim_file(opensim_input)
@@ -66,8 +66,12 @@ if __name__=="__main__":
 
     #env = gym.make(env_name, xml_file="models/mobl_arms_muscles_original.xml", sample_target=False)
     #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
-    env = gym.make(env_name, xml_file="models/mobl_arms_muscles_fixedjoints2.xml", sample_target=False)
-    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints2.osim"
+    #env = gym.make(env_name, xml_file="models/mobl_arms_muscles_fixedjoints.xml", sample_target=False)
+    #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints.osim"
+    #env = gym.make(env_name, xml_file="models/mobl_arms_muscles_fixedjoints2.xml", sample_target=False)
+    #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints2.osim"
+    ##env = gym.make(env_name, xml_file="models/SimpleArm.xml", sample_target=False)
+    ##opensim_input = "UIB/envs/mobl_arms/models/SimpleArm.osim"
 
     #env = gym.make("gym_SG:ReacherSGbasic-v0")  #for testing "arm_hand_SG_osim_coordinates_complete_v5.3ao.xml"
 

@@ -198,7 +198,7 @@ class MuscleActuated(gym.Env):
     qvel = self.sim.data.qvel[self.independent_joints].copy()
     qacc = self.sim.data.qacc[self.independent_joints].copy()
 
-    act = [0] #(self.sim.data.act.copy() - 0.5)*2  #TODO: uncomment this line
+    act = (self.sim.data.act.copy() - 0.5)*2
     #act = self.sim.data.act.copy()
     fingertip = "hand_2distph"
     finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]]
@@ -253,7 +253,7 @@ class MuscleActuated(gym.Env):
     self.sim.data.qpos[self.independent_joints] = qpos
     self.sim.data.qvel.fill(0)
     self.sim.data.qvel[self.independent_joints] = qvel
-    #self.sim.data.act[:] = act  #TODO: uncomment this line
+    self.sim.data.act[:] = act
 
     # Spawn target
     self.spawn_target(sample_target=sample_target)
