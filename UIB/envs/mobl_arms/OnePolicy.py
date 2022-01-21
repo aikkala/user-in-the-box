@@ -44,7 +44,13 @@ class OnePolicy(BaseModel):
     rgb = render[0]
     rgb = np.flipud((rgb/255.0 - 0.5)*2)
 
-    return {'proprioception': np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, act]),
+    # Time features (time left in episode, time spent inside target)
+    time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit,
+                                self.steps/self.max_episode_length])
+    dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwell_threshold])
+
+    return {'proprioception': np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, act,
+                                              np.array([dwell_time]), np.array([time_left])]),
             #'visual': np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), (2, 0, 1)),
             'visual': np.expand_dims(depth, 0),
             'ocular': np.concatenate([qpos[:2], qvel[:2], qacc[:2]])}
