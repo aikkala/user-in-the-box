@@ -125,23 +125,33 @@ class SimpleCNN(nn.Module):
     self.proprioception_size = proprioception_size
 
     self.current_estimate = None
-    self.alpha = 0.01
+    self.alpha = 0.1
+    self.nchannels = 2
 
     self.cnn_base = nn.Sequential(
-      nn.Conv2d(in_channels=1, out_channels=8, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      nn.Conv2d(in_channels=self.nchannels, out_channels=8, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
       nn.BatchNorm2d(8),
       nn.LeakyReLU(),
       nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
       nn.BatchNorm2d(16),
       nn.LeakyReLU(),
-      nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
-      nn.BatchNorm2d(32),
-      nn.LeakyReLU(),
+      #nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      #nn.BatchNorm2d(32),
+      #nn.LeakyReLU(),
+      #nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      #nn.BatchNorm2d(64),
+      #nn.LeakyReLU(),
+      #nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      #nn.BatchNorm2d(128),
+      #nn.LeakyReLU(),
+      #nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      #nn.BatchNorm2d(256),
+      #nn.LeakyReLU(),
       nn.Flatten()
     )
 
     # Figure out output size
-    out = self.cnn_base(torch.zeros(1, 1, height, width))
+    out = self.cnn_base(torch.zeros(1, self.nchannels, height, width))
     self.hidden_size = 256
 
     self.cnn_base = nn.Sequential(*self.cnn_base,
@@ -151,9 +161,9 @@ class SimpleCNN(nn.Module):
     self.encoder = nn.Linear(in_features=self.hidden_size+self.proprioception_size, out_features=self.hidden_size)
 
     # Finally the output
-    self.output = nn.Sequential(nn.Linear(in_features=self.hidden_size, out_features=int(self.hidden_size/2)),
-                                nn.LeakyReLU(),
-                                nn.Linear(in_features=int(self.hidden_size/2), out_features=4))
+    self.output = nn.Sequential(#nn.Linear(in_features=self.hidden_size, out_features=int(self.hidden_size/2)),
+                                #nn.LeakyReLU(),
+                                nn.Linear(in_features=int(self.hidden_size), out_features=3))
 
 
   def calculate_loss(self, seqs):
@@ -165,7 +175,9 @@ class SimpleCNN(nn.Module):
     print(targets_reshaped[0])
 
     # Estimate loss
-    loss = torch.mean(torch.sum(torch.abs(predicted - targets_reshaped), dim=1))
+    loss_fn = nn.HuberLoss()
+    loss = loss_fn(predicted, targets_reshaped)
+    #loss = torch.mean(torch.sum(torch.abs(predicted - targets_reshaped), dim=1))
 
     return loss, predicted, targets_reshaped
 
@@ -175,8 +187,8 @@ class SimpleCNN(nn.Module):
     encoded = []
     targets = []
     for idx, (img, prop, tgt) in enumerate(input):
-      encoded.append(self.encoder(torch.concat([self.cnn_base(torch.as_tensor(img)), torch.as_tensor(prop)], dim=1)))
-      targets.append(torch.as_tensor(tgt))
+      encoded.append(self.encoder(torch.concat([self.cnn_base(torch.as_tensor(img[::10])), torch.as_tensor(prop[::10])], dim=1)))
+      targets.append(torch.as_tensor(tgt[::10]))
 
     estimate = self.output(torch.cat(encoded))
 

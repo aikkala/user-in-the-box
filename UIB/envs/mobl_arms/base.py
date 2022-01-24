@@ -218,8 +218,9 @@ class BaseModel(ABC, gym.Env):
     rendered = self.sim.render(height=height, width=width, camera_name='oculomotor', depth=True)
     rgb = ((np.flipud(rendered[0]) / 255.0) - 0.5) * 2
     depth = (np.flipud(rendered[1]) - 0.5) * 2
-    return np.expand_dims(np.flipud(depth), 0)
+    #return np.expand_dims(np.flipud(depth), 0)
     #return np.concatenate([rgb.transpose([2, 0, 1]), np.expand_dims(depth, 0)])
+    return np.concatenate([np.expand_dims(rgb[:, :, 1], 0), np.expand_dims(depth, 0)])
 
   def grab_proprioception(self):
 
@@ -237,7 +238,7 @@ class BaseModel(ABC, gym.Env):
     #return np.concatenate([qpos[2:], qvel[2:], qacc[2:]])
 
   def grab_target(self):
-    return np.concatenate([self.target_position + self.target_origin, np.array([self.target_radius])])
+    return np.concatenate([self.target_position[1:], np.array([self.target_radius]) - 0.1])
 
   def get_state(self):
     state = {"step": self.steps, "timestep": self.sim.data.time,

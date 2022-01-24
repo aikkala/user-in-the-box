@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import pathlib
 import matplotlib.pyplot as pp
+from torch.optim.lr_scheduler import StepLR
 
 from UIB.archs.regressor import *
 
@@ -15,7 +16,7 @@ if __name__ == "__main__":
   project_path = pathlib.Path(__file__).parent.absolute()
 
   # Load policy
-  model_file = os.path.join(project_path, "../../output/current-best-v0/checkpoint/model_100000000_steps.zip")
+  model_file = os.path.join(project_path, "../../output/UIB:mobl-arms-muscles-v0-50-workers/checkpoint/model_100000000_steps.zip")
   print(f'Loading model: {model_file}')
   model = PPO.load(model_file)
 
@@ -24,7 +25,7 @@ if __name__ == "__main__":
 
   # One epoch is a data collection phase + training phase
   num_epochs = 10000
-  num_episodes = 50
+  num_episodes = 40
 
   # Initialise gym
   env_kwargs = {"target_radius_limit": np.array([0.05, 0.15])}
@@ -37,6 +38,7 @@ if __name__ == "__main__":
 
   # Initialise an optimizer
   optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
+  scheduler = StepLR(optimizer, step_size=200, gamma=0.5)
 
   # Start the training procedure
   train_error = []
@@ -116,6 +118,7 @@ if __name__ == "__main__":
       optimizer.zero_grad()
       loss.backward()
       optimizer.step()
+      scheduler.step()
 
       print(f'epoch {epoch}: Average MSE over sequence: {loss.item()}')
       train_error.append(np.log(loss.item()))
