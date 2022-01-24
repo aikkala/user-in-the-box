@@ -577,6 +577,8 @@ def append_OpenSim_wrap_path_to_MuJoCo_model(mujoco_xml, tendon_name, wrap_path)
 
             current_geom_name = wrap_path['wrap_object']
             current_geom = get_mujoco_geom(mujoco_xml, current_geom_name)
+            if current_geom is None:
+                continue
             current_geom_size = float(current_geom['@size']) if current_geom['@type'] == 'sphere' else \
             strinterval_to_nparray(current_geom['@size'])[0]  # only spheres and cylinders are allowed for tendon geoms
 
