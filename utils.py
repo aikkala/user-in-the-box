@@ -1479,6 +1479,11 @@ def compare_MuJoCo_OpenSim_models(env, osim_filepath):
         #print(f"STEP: {osim_env.istep}, TIME: {osim_env.state.getTime()}")
         observations_osim.append(osim_env.get_joint_values())
         #input((observations_osim[-1]))
+    #### ALTERNATIVE:
+    # n_steps = 500
+    # import pickle
+    # with open('observations_osim.pickle', 'rb') as handle:
+    #     observations_osim = pickle.load(handle)
 
     # Run MuJoCo Forward Simulation
     observations_mujoco = [env.get_joint_values()]
@@ -1519,6 +1524,6 @@ def compare_MuJoCo_OpenSim_models(env, osim_filepath):
         #input((env.sim.data.qpos, env.sim.data.qvel, env.sim.data.act, env.sim.data.ctrl))
         observations_mujoco.append(env.get_joint_values())
 
+    input(([np.linalg.norm(list({key: i[key][0] - j[key][0] for key in i.keys() & j.keys()}.values())) for i,j in zip(observations_mujoco, observations_osim)][::n_steps//10]))
     input(([i["shoulder_elv"][0] for i in observations_mujoco][::n_steps//10]))
-    input(([i["shoulder_elv"][0] for i in observations_osim][::n_steps//10]))
     input((observations_mujoco[-1], observations_osim[-1]))
