@@ -123,6 +123,7 @@ class BaseModel(ABC, gym.Env):
       velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
       reward = 2 #+ velocity_factor*2
       info["target_hit"] = True
+      info["inside_target"] = True
 
     else:
 
@@ -133,8 +134,10 @@ class BaseModel(ABC, gym.Env):
       # Check if fingertip is inside target
       if dist < self.target_radius:
         self.steps_inside_target += 1
+        info["inside_target"] = True
       else:
         self.steps_inside_target = 0
+        info["inside_target"] = False
 
       # Check if time limit has been reached
       self.steps_since_last_hit += 1

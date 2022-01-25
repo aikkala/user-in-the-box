@@ -29,7 +29,7 @@ class StateLogger(BaseLogger):
     super().__init__(num_episodes=num_episodes, keys=["step", "timestep", "qpos", "qvel", "qacc", "act",
                                                       "fingertip_xpos", "fingertip_xmat", "fingertip_xvelp",
                                                       "fingertip_xvelr", "termination", "target_hit", "target_position",
-                                                      "target_radius"])
+                                                      "target_radius", "inside_target"])
 
 class ActionLogger(BaseLogger):
   def __init__(self, num_episodes):
