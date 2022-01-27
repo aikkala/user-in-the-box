@@ -901,57 +901,57 @@
         </spatial>
     </tendon>
     <actuator>
-        <general name="oculomotor-rx" class="oculomotor" joint="eye-rx" gainprm="0.5 1.5 0 0 0 0 0 0 0 0" />
-        <general name="oculomotor-ry" class="oculomotor" joint="eye-ry" gainprm="0.5 1.5 0 0 0 0 0 0 0 0" />
-        <general name="DELT1" class="muscle" tendon="DELT1_tendon" lengthrange="0.138246 0.22874" gainprm="0.5 1.5 1218.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1218.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="DELT2" class="muscle" tendon="DELT2_tendon" lengthrange="0.161563 0.26569" gainprm="0.5 1.5 1103.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1103.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="DELT3" class="muscle" tendon="DELT3_tendon" lengthrange="0.103005 0.233014" gainprm="0.5 1.5 201.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 201.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="SUPSP" class="muscle" tendon="SUPSP_tendon" lengthrange="0.0733455 0.141038" gainprm="0.5 1.5 499.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 499.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="INFSP" class="muscle" tendon="INFSP_tendon" lengthrange="0.0664931 0.13788" gainprm="0.5 1.5 1075.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1075.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="SUBSC" class="muscle" tendon="SUBSC_tendon" lengthrange="0.0740172 0.156053" gainprm="0.5 1.5 1306.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1306.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TMIN" class="muscle" tendon="TMIN_tendon" lengthrange="0.105146 0.172841" gainprm="0.5 1.5 269.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 269.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TMAJ" class="muscle" tendon="TMAJ_tendon" lengthrange="0.098054 0.254163" gainprm="0.5 1.5 144 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 144 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PECM1" class="muscle" tendon="PECM1_tendon" lengthrange="0.0717493 0.209649" gainprm="0.5 1.5 444.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 444.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PECM2" class="muscle" tendon="PECM2_tendon" lengthrange="0.151241 0.275724" gainprm="0.5 1.5 658.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 658.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PECM3" class="muscle" tendon="PECM3_tendon" lengthrange="0.194762 0.320285" gainprm="0.5 1.5 498.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 498.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="LAT1" class="muscle" tendon="LAT1_tendon" lengthrange="0.235101 0.465303" gainprm="0.5 1.5 290.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 290.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="LAT2" class="muscle" tendon="LAT2_tendon" lengthrange="0.286369 0.506108" gainprm="0.5 1.5 317.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 317.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="LAT3" class="muscle" tendon="LAT3_tendon" lengthrange="0.270487 0.530864" gainprm="0.5 1.5 189 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 189 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="CORB" class="muscle" tendon="CORB_tendon" lengthrange="0.138521 0.221563" gainprm="0.5 1.5 208.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 208.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TRIlong" class="muscle" tendon="TRIlong_tendon" lengthrange="0.208536 0.339608" gainprm="0.5 1.5 771.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 771.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TRIlat" class="muscle" tendon="TRIlat_tendon" lengthrange="0.154199 0.266598" gainprm="0.5 1.5 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="TRImed" class="muscle" tendon="TRImed_tendon" lengthrange="0.146999 0.259398" gainprm="0.5 1.5 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="ANC" class="muscle" tendon="ANC_tendon" lengthrange="0.0314998 0.0585" gainprm="0.5 1.5 283.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 283.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="SUP" class="muscle" tendon="SUP_tendon" lengthrange="0.0444997 0.0775001" gainprm="0.5 1.5 379.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 379.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BIClong" class="muscle" tendon="BIClong_tendon" lengthrange="0.33015 0.44585" gainprm="0.5 1.5 525.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 525.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BICshort" class="muscle" tendon="BICshort_tendon" lengthrange="0.25835 0.39045" gainprm="0.5 1.5 316.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 316.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BRA" class="muscle" tendon="BRA_tendon" lengthrange="0.0963997 0.1822" gainprm="0.5 1.5 1177.37 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1177.37 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="BRD" class="muscle" tendon="BRD_tendon" lengthrange="0.2193 0.3919" gainprm="0.5 1.5 276 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 276 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="ECRL" class="muscle" tendon="ECRL_tendon" lengthrange="0.2845 0.3655" gainprm="0.5 1.5 337.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="ECRB" class="muscle" tendon="ECRB_tendon" lengthrange="0.25119 0.30897" gainprm="0.5 1.5 252.5 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="ECU" class="muscle" tendon="ECU_tendon" lengthrange="0.259524 0.321573" gainprm="0.5 1.5 192.9 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FCR" class="muscle" tendon="FCR_tendon" lengthrange="0.275357 0.338071" gainprm="0.5 1.5 407.9 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FCU" class="muscle" tendon="FCU_tendon" lengthrange="0.289894 0.339682" gainprm="0.5 1.5 479.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="PL" class="muscle" tendon="PL_tendon" lengthrange="0.301222 0.364867" gainprm="0.5 1.5 101 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="PT" class="muscle" tendon="PT_tendon" lengthrange="0.122226 0.170679" gainprm="0.5 1.5 557.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 557.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="PQ" class="muscle" tendon="PQ_tendon" lengthrange="0.0188857 0.0466573" gainprm="0.5 1.5 284.7 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 284.7 2000 0.5 1.6 1.5 1.3 1.2 0" />
-        <general name="FDSL" class="muscle" tendon="FDSL_tendon" lengthrange="0.364252 0.415556" gainprm="0.5 1.5 75.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FDSR" class="muscle" tendon="FDSR_tendon" lengthrange="0.364711 0.438131" gainprm="0.5 1.5 171.2 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FDSM" class="muscle" tendon="FDSM_tendon" lengthrange="0.332171 0.406513" gainprm="0.5 1.5 258.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FDSI" class="muscle" tendon="FDSI_tendon" lengthrange="0.316521 0.399564" gainprm="0.5 1.5 162.5 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FDPL" class="muscle" tendon="FDPL_tendon" lengthrange="0.318985 0.393157" gainprm="0.5 1.5 236.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FDPR" class="muscle" tendon="FDPR_tendon" lengthrange="0.331103 0.410307" gainprm="0.5 1.5 172.9 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FDPM" class="muscle" tendon="FDPM_tendon" lengthrange="0.344521 0.427564" gainprm="0.5 1.5 212.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FDPI" class="muscle" tendon="FDPI_tendon" lengthrange="0.338671 0.413013" gainprm="0.5 1.5 197.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EDCL" class="muscle" tendon="EDCL_tendon" lengthrange="0.36748 0.432441" gainprm="0.5 1.5 39.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EDCR" class="muscle" tendon="EDCR_tendon" lengthrange="0.396258 0.458771" gainprm="0.5 1.5 109.2 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EDCM" class="muscle" tendon="EDCM_tendon" lengthrange="0.401151 0.473451" gainprm="0.5 1.5 94.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EDCI" class="muscle" tendon="EDCI_tendon" lengthrange="0.399953 0.469856" gainprm="0.5 1.5 48.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EDM" class="muscle" tendon="EDM_tendon" lengthrange="0.368703 0.436111" gainprm="0.5 1.5 72.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EIP" class="muscle" tendon="EIP_tendon" lengthrange="0.239288 0.297866" gainprm="0.5 1.5 47.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EPL" class="muscle" tendon="EPL_tendon" lengthrange="0.257352 0.311056" gainprm="0.5 1.5 88.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="EPB" class="muscle" tendon="EPB_tendon" lengthrange="0.148999 0.215995" gainprm="0.5 1.5 46 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="FPL" class="muscle" tendon="FPL_tendon" lengthrange="0.224394 0.279183" gainprm="0.5 1.5 201 2000 0.4327 1.595 10 0.725016 1.4 0" />
-        <general name="APL" class="muscle" tendon="APL_tendon" lengthrange="0.164803 0.235409" gainprm="0.5 1.5 116.7 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="oculomotor-rx" class="oculomotor" joint="eye-rx" gainprm="0.5 2 0 0 0 0 0 0 0 0" />
+        <general name="oculomotor-ry" class="oculomotor" joint="eye-ry" gainprm="0.5 2 0 0 0 0 0 0 0 0" />
+        <general name="DELT1" class="muscle" tendon="DELT1_tendon" lengthrange="0.13825 0.273994" gainprm="0.5 2 1218.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1218.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="DELT2" class="muscle" tendon="DELT2_tendon" lengthrange="0.161568 0.317763" gainprm="0.5 2 1103.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1103.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="DELT3" class="muscle" tendon="DELT3_tendon" lengthrange="0.103008 0.298027" gainprm="0.5 2 201.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 201.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="SUPSP" class="muscle" tendon="SUPSP_tendon" lengthrange="0.0733484 0.174888" gainprm="0.5 2 499.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 499.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="INFSP" class="muscle" tendon="INFSP_tendon" lengthrange="0.0664955 0.173578" gainprm="0.5 2 1075.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1075.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="SUBSC" class="muscle" tendon="SUBSC_tendon" lengthrange="0.0740193 0.197076" gainprm="0.5 2 1306.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1306.9 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TMIN" class="muscle" tendon="TMIN_tendon" lengthrange="0.105149 0.206694" gainprm="0.5 2 269.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 269.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TMAJ" class="muscle" tendon="TMAJ_tendon" lengthrange="0.0980582 0.332227" gainprm="0.5 2 144 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 144 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PECM1" class="muscle" tendon="PECM1_tendon" lengthrange="0.0717527 0.278606" gainprm="0.5 2 444.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 444.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PECM2" class="muscle" tendon="PECM2_tendon" lengthrange="0.151245 0.337976" gainprm="0.5 2 658.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 658.3 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PECM3" class="muscle" tendon="PECM3_tendon" lengthrange="0.194766 0.383059" gainprm="0.5 2 498.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 498.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="LAT1" class="muscle" tendon="LAT1_tendon" lengthrange="0.235108 0.580421" gainprm="0.5 2 290.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 290.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="LAT2" class="muscle" tendon="LAT2_tendon" lengthrange="0.286377 0.615995" gainprm="0.5 2 317.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 317.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="LAT3" class="muscle" tendon="LAT3_tendon" lengthrange="0.270495 0.66107" gainprm="0.5 2 189 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 189 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="CORB" class="muscle" tendon="CORB_tendon" lengthrange="0.138525 0.263091" gainprm="0.5 2 208.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 208.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TRIlong" class="muscle" tendon="TRIlong_tendon" lengthrange="0.208541 0.405156" gainprm="0.5 2 771.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 771.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TRIlat" class="muscle" tendon="TRIlat_tendon" lengthrange="0.154203 0.322808" gainprm="0.5 2 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="TRImed" class="muscle" tendon="TRImed_tendon" lengthrange="0.147003 0.315607" gainprm="0.5 2 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="ANC" class="muscle" tendon="ANC_tendon" lengthrange="0.0315009 0.0720021" gainprm="0.5 2 283.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 283.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="SUP" class="muscle" tendon="SUP_tendon" lengthrange="0.0445007 0.0940029" gainprm="0.5 2 379.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 379.6 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BIClong" class="muscle" tendon="BIClong_tendon" lengthrange="0.330157 0.503716" gainprm="0.5 2 525.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 525.1 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BICshort" class="muscle" tendon="BICshort_tendon" lengthrange="0.258356 0.456514" gainprm="0.5 2 316.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 316.8 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BRA" class="muscle" tendon="BRA_tendon" lengthrange="0.0964024 0.225107" gainprm="0.5 2 1177.37 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1177.37 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="BRD" class="muscle" tendon="BRD_tendon" lengthrange="0.219306 0.478214" gainprm="0.5 2 276 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 276 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="ECRL" class="muscle" tendon="ECRL_tendon" lengthrange="0.284506 0.406013" gainprm="0.5 2 337.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="ECRB" class="muscle" tendon="ECRB_tendon" lengthrange="0.251195 0.33787" gainprm="0.5 2 252.5 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="ECU" class="muscle" tendon="ECU_tendon" lengthrange="0.259528 0.352609" gainprm="0.5 2 192.9 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FCR" class="muscle" tendon="FCR_tendon" lengthrange="0.275363 0.36944" gainprm="0.5 2 407.9 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FCU" class="muscle" tendon="FCU_tendon" lengthrange="0.289899 0.364587" gainprm="0.5 2 479.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="PL" class="muscle" tendon="PL_tendon" lengthrange="0.301228 0.396702" gainprm="0.5 2 101 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="PT" class="muscle" tendon="PT_tendon" lengthrange="0.122229 0.194911" gainprm="0.5 2 557.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 557.2 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="PQ" class="muscle" tendon="PQ_tendon" lengthrange="0.0188864 0.0605448" gainprm="0.5 2 284.7 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 284.7 2000 0.5 1.6 1.5 1.3 1.2 0" />
+        <general name="FDSL" class="muscle" tendon="FDSL_tendon" lengthrange="0.364259 0.441223" gainprm="0.5 2 75.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FDSR" class="muscle" tendon="FDSR_tendon" lengthrange="0.364717 0.474857" gainprm="0.5 2 171.2 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FDSM" class="muscle" tendon="FDSM_tendon" lengthrange="0.332177 0.443698" gainprm="0.5 2 258.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FDSI" class="muscle" tendon="FDSI_tendon" lengthrange="0.316527 0.441099" gainprm="0.5 2 162.5 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FDPL" class="muscle" tendon="FDPL_tendon" lengthrange="0.318991 0.430256" gainprm="0.5 2 236.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FDPR" class="muscle" tendon="FDPR_tendon" lengthrange="0.331109 0.449925" gainprm="0.5 2 172.9 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FDPM" class="muscle" tendon="FDPM_tendon" lengthrange="0.344528 0.4691" gainprm="0.5 2 212.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FDPI" class="muscle" tendon="FDPI_tendon" lengthrange="0.338677 0.450198" gainprm="0.5 2 197.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EDCL" class="muscle" tendon="EDCL_tendon" lengthrange="0.367487 0.464936" gainprm="0.5 2 39.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EDCR" class="muscle" tendon="EDCR_tendon" lengthrange="0.396264 0.490045" gainprm="0.5 2 109.2 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EDCM" class="muscle" tendon="EDCM_tendon" lengthrange="0.401157 0.509618" gainprm="0.5 2 94.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EDCI" class="muscle" tendon="EDCI_tendon" lengthrange="0.399959 0.504825" gainprm="0.5 2 48.8 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EDM" class="muscle" tendon="EDM_tendon" lengthrange="0.36871 0.46983" gainprm="0.5 2 72.4 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EIP" class="muscle" tendon="EIP_tendon" lengthrange="0.239293 0.327165" gainprm="0.5 2 47.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EPL" class="muscle" tendon="EPL_tendon" lengthrange="0.257357 0.337919" gainprm="0.5 2 88.3 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="EPB" class="muscle" tendon="EPB_tendon" lengthrange="0.149002 0.249501" gainprm="0.5 2 46 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="FPL" class="muscle" tendon="FPL_tendon" lengthrange="0.224399 0.306587" gainprm="0.5 2 201 2000 0.4327 1.595 10 0.725016 1.4 0" />
+        <general name="APL" class="muscle" tendon="APL_tendon" lengthrange="0.164807 0.27072" gainprm="0.5 2 116.7 2000 0.4327 1.595 10 0.725016 1.4 0" />
     </actuator>
 </mujoco>

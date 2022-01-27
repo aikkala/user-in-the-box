@@ -243,7 +243,9 @@ def adjust_mujoco_model_pt2(env, osim_file, scale_ratio=None):
     # MUJOCO MODEL ADJUSTMENT: adjust scale ratios of optimal fiber length
     if not scale_ratio:
         # [values taken from Garner and Pandy (2002), https://web.ecs.baylor.edu/faculty/garner/Research/GarnerPandy2003ParamEst.pdf]
-        scale_ratio = [0.5, 1.5]
+        #scale_ratio = [0.5, 1.5]
+
+        scale_ratio = [0.5, 2]  #use larger scale ratios than from literature
     env.sim.model.actuator_gainprm[:, :2] = [scale_ratio] * env.sim.model.nu
 
     # MUJOCO MODEL ADJUSTMENT: adjust maximum isometric force
