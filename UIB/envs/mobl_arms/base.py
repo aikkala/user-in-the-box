@@ -18,36 +18,25 @@ class BaseModel(ABC, gym.Env):
     xml_file = "models/mobl_arms_muscles.xml"
 
     # Set action sampling
-    if "action_sample_freq" in kwargs:
-      self.action_sample_freq = kwargs["action_sample_freq"]
-    else:
-      self.action_sample_freq = 10
+    self.action_sample_freq = kwargs.get('action_sample_freq', 10)
     self.timestep = 0.002
     self.frame_skip = int(1/(self.timestep*self.action_sample_freq))
 
     # Use early termination if target is not hit in time
     self.steps_since_last_hit = 0
     self.max_steps_without_hit = self.action_sample_freq*4
-
-    # Max episode length
     self.steps = 0
-    self.max_episode_length = self.action_sample_freq*10
+
+    # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
+    self.trial_idx = 0
+    self.max_trials = kwargs.get('max_trials', None)
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
     self.steps_inside_target = 0
     self.dwell_threshold = int(0.3*self.action_sample_freq)
 
-    # Define area where targets will be spawned
-    self.target_origin = np.array([0.5, 0.0, 0.8])
-    self.target_position = self.target_origin.copy()
-    self.target_limits_y = np.array([-0.3, 0.3])
-    self.target_limits_z = np.array([-0.3, 0.3])
-
     # Radius limits for target
-    if "target_radius_limit" in kwargs:
-      self.target_radius_limit = kwargs["target_radius_limit"]
-    else:
-      self.target_radius_limit = np.array([0.01, 0.05])
+    self.target_radius_limit = kwargs.get('target_radius_limit', np.array([0.05, 0.15]))
 
     # Minimum distance to new spawned targets is twice the max target radius limit
     self.new_target_distance_threshold = 2*self.target_radius_limit[1]
@@ -58,6 +47,31 @@ class BaseModel(ABC, gym.Env):
     # Initialise model and sim
     self.model = mujoco_py.load_model_from_path(os.path.join(self.project_path, xml_file))
     self.sim = mujoco_py.MjSim(self.model, nsubsteps=self.frame_skip)
+
+    # Do a forward step so stuff like geom and body positions are calculated
+    self.sim.forward()
+
+    # Define plane where targets will be spawned: 0.5m in front of shoulder, or the "humphant" body. Note that this
+    # body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
+    #self.target_origin = np.array([0.5, 0.0, 0.8])
+    self.target_origin = self.sim.data.get_body_xpos("humphant") + np.array([0.5, 0, 0])
+    self.target_position = self.target_origin.copy()
+    self.target_limits_y = np.array([-0.3, 0.3])
+    self.target_limits_z = np.array([-0.3, 0.3])
+
+    # Update plane location
+    self.target_plane_geom_idx = self.model._geom_name2id["target-plane"]
+    self.target_plane_body_idx = self.model._body_name2id["target-plane"]
+    self.model.geom_size[self.target_plane_geom_idx] = np.array([0.005,
+                                                            (self.target_limits_y[1] - self.target_limits_y[0])/2,
+                                                            (self.target_limits_z[1] - self.target_limits_z[0])/2])
+    self.model.body_pos[self.target_plane_body_idx] = self.target_origin
+    self.model.geom_rgba[self.target_plane_geom_idx][-1] = 0.1
+
+    # Fix gaze towards the plane
+    self.oculomotor_camera_idx = self.model._camera_name2id["oculomotor"]
+    self.model.cam_mode[self.oculomotor_camera_idx] = 3
+    self.model.cam_targetbodyid[self.oculomotor_camera_idx] = self.target_plane_body_idx
 
     # Get indices of dependent and independent joints
     self.dependent_joints = np.unique(self.model.eq_obj1id[self.model.eq_active.astype(bool)])
@@ -78,6 +92,9 @@ class BaseModel(ABC, gym.Env):
 
     # Fingertip is tracked for e.g. reward calculation and logging
     self.fingertip = "hand_2distph"
+
+    # Define a cost function
+    self.cost_function = kwargs.get('cost_function', None)
 
     # Set camera stuff, self._viewers needs to be initialised before self.get_observation() is called
     self.viewer = None
@@ -120,10 +137,10 @@ class BaseModel(ABC, gym.Env):
       # Reset counter, add hit bonus to reward
       self.steps_since_last_hit = 0
       self.steps_inside_target = 0
-      velocity_factor = np.exp(-(self.sim.data.get_geom_xvelp(self.fingertip)**2).sum()*10)
-      reward = 2 #+ velocity_factor*2
+      reward = 2
       info["target_hit"] = True
       info["inside_target"] = True
+      self.trial_idx += 1
 
     else:
 
@@ -145,11 +162,20 @@ class BaseModel(ABC, gym.Env):
         finished = True
         info["termination"] = "time_limit_reached"
 
-      # Check if episode length has been reached
-      self.steps += 1
-      if self.steps >= self.max_episode_length:
+      if self.max_trials is not None and self.trial_idx >= self.max_trials:
         finished = True
-        info["termination"] = "episode_length_reached"
+        info["termination"] = "max_trials_reached"
+
+      # Increment steps
+      self.steps += 1
+
+      # Add an effort cost to reward
+      if self.cost_function == "neural_effort":
+        reward -= 1e-4 * np.sum(self.sim.data.ctrl**2)
+      elif self.cost_function == "composite":
+        angle_acceleration = np.sum(self.sim.data.qacc[self.independent_joints]**2)
+        energy = np.sum(self.sim.data.qacc[self.independent_joints]**2 * self.sim.data.qfrc_unc[self.independent_joints]**2)
+        reward -= 1e-6 * (energy + 0.05*angle_acceleration)
 
     return self.get_observation(), reward, finished, info
 
@@ -186,6 +212,7 @@ class BaseModel(ABC, gym.Env):
     self.steps_since_last_hit = 0
     self.steps = 0
     self.steps_inside_target = 0
+    self.trial_idx = 0
 
     # Randomly sample qpos, qvel, act
     nq = len(self.independent_joints)
@@ -241,7 +268,10 @@ class BaseModel(ABC, gym.Env):
     #return np.concatenate([qpos[2:], qvel[2:], qacc[2:]])
 
   def grab_target(self):
-    return np.concatenate([self.target_position[1:], np.array([self.target_radius]) - 0.1])
+    # Use self.target_position for normalised position around self.target_origin
+    # Make target radius zero mean using known limits
+    normalised_radius = self.target_radius - (self.target_radius_limit[1]-self.target_radius_limit[0])
+    return np.concatenate([self.target_position[1:].copy(), np.array([normalised_radius])])
 
   def get_state(self):
     state = {"step": self.steps, "timestep": self.sim.data.time,

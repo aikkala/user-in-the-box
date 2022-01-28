@@ -33,8 +33,7 @@ class OnePolicyNoCamera(BaseModel):
     act = (self.sim.data.act.copy() - 0.5)*2
     finger_position = self.sim.data.get_geom_xpos(self.fingertip).copy() - self.target_origin.copy()
 
-    time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit,
-                                self.steps/self.max_episode_length])
+    time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit])
     dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwell_threshold])
 
     return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, self.target_position.copy(),
