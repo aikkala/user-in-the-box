@@ -19,19 +19,31 @@ class VisualAndProprioceptionExtractor(BaseFeaturesExtractor):
     # so go over all the spaces and compute output feature sizes
     for key, subspace in observation_space.spaces.items():
       if key == "visual":
+        fake_observation = th.as_tensor(observation_space["visual"].sample()[None])
         # Run through a simple CNN
         cnn = nn.Sequential(
-          nn.Conv2d(in_channels=1, out_channels=8, kernel_size=(3,3), padding=(1,1), stride=(2,2)),
+          nn.Conv2d(in_channels=fake_observation.shape[1], out_channels=16, kernel_size=(3, 3), stride=(1, 1), padding="same"),
           nn.LeakyReLU(),
-          nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3,3), padding=(1,1), stride=(2,2)),
+          nn.MaxPool2d(2),
+          nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=(1, 1), padding="same"),
           nn.LeakyReLU(),
-          nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3,3), padding=(1,1), stride=(2,2)),
+          nn.MaxPool2d(2),
+          nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), stride=(1, 1), padding="same"),
+          nn.LeakyReLU(),
+          nn.MaxPool2d(2),
+          nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3, 3), stride=(1, 1), padding="same"),
+          nn.LeakyReLU(),
+          nn.MaxPool2d(2),
+          nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), stride=(1, 1), padding="same"),
+          nn.LeakyReLU(),
+          nn.MaxPool2d(2),
+          nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3, 3), stride=(1, 1), padding="same"),
           nn.LeakyReLU(),
           nn.Flatten())
 
         # Compute shape by doing one forward pass
         with th.no_grad():
-            n_flatten = cnn(th.as_tensor(observation_space["visual"].sample()[None])).shape[1]
+            n_flatten = cnn(fake_observation).shape[1]
 
         extractors[key] = nn.Sequential(
           cnn,
