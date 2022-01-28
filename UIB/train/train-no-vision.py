@@ -61,5 +61,5 @@ if __name__=="__main__":
                                            name_prefix='model')
 
   # Do the learning first with constant learning rate
-  model.learn(total_timesteps=100_000_000, callback=[WandbCallback(verbose=2), checkpoint_callback])
+  model.learn(total_timesteps=config["total_timesteps"], callback=[WandbCallback(verbose=2), checkpoint_callback])
   run.finish()
