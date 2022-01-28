@@ -28,7 +28,7 @@
       <geom name="eye-ball" type="sphere" size="0.025"/>
       <joint name="eye-rx" type="hinge" axis="1 0 0" limited="true" range="-0.5 1.57"/>
       <joint name="eye-ry" type="hinge" axis="0 1 0" limited="true" range="-1.3 1.3"/>
-      <camera name="oculomotor" mode="fixed" fovy="90"/>
+      <camera name="oculomotor" mode="fixed" fovy="80"/>
     </body>
     <body name="target" pos="0.5 0 0.8">
       <geom name="target-sphere" type="sphere" size="0.05" rgba="0.1 0.8 0.1 1.0"/>
