@@ -50,6 +50,6 @@ class OnePolicy(BaseModel):
 
     return {'proprioception': np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, act,
                                               np.array([dwell_time]), np.array([time_left])]),
-            #'visual': np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), (2, 0, 1)),
-            'visual': np.expand_dims(depth, 0),
+            'visual': np.stack([rgb[:,:,1], depth], axis=0),
+            #'visual': np.expand_dims(depth, 0),
             'ocular': np.concatenate([qpos[:2], qvel[:2], qacc[:2]])}
