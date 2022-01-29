@@ -25,6 +25,7 @@ if __name__=="__main__":
     "num_cpu": 10,
     "env_kwargs": {"target_radius_limit": np.array([0.05, 0.15]),
                    "action_sample_freq": 20,
+                   "max_trials": 10,
                    "cost_function": "neural_effort"},
     "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                       "net_arch": [256, 256],
