@@ -29,7 +29,7 @@ class BaseModel(ABC, gym.Env):
 
     # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
     self.trial_idx = 0
-    self.max_trials = kwargs.get('max_trials', None)
+    self.max_trials = kwargs.get('max_trials', 10)
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
     self.steps_inside_target = 0
@@ -174,7 +174,7 @@ class BaseModel(ABC, gym.Env):
       elif self.cost_function == "composite":
         angle_acceleration = np.sum(self.sim.data.qacc[self.independent_joints]**2)
         energy = np.sum(self.sim.data.qacc[self.independent_joints]**2 * self.sim.data.qfrc_unc[self.independent_joints]**2)
-        reward -= 1e-6 * (energy + 0.05*angle_acceleration)
+        reward -= 1e-7 * (energy + 0.05*angle_acceleration)
 
     return self.get_observation(), reward, finished, info
 
