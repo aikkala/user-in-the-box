@@ -64,6 +64,9 @@ if __name__=="__main__":
                                            save_path=os.path.join(model_folder, run.name, "checkpoints"),
                                            name_prefix='model')
 
+  # Save env_kwargs also to checkpoint folder, easier to load them for evaluation
+  np.save(os.path.join(model_folder, run.name, 'checkpoints', 'env_kwargs.npy'), config["env_kwargs"])
+
   # Do the learning first with constant learning rate
   model.learn(total_timesteps=config["total_timesteps"], callback=[WandbCallback(verbose=2), checkpoint_callback])
   run.finish()
