@@ -10,6 +10,10 @@ class OnePolicy(BaseModel):
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
 
+    # Size of ocular image
+    self.height = 80
+    self.width = 120
+
     # Reset
     observation = self.reset()
 
@@ -38,11 +42,11 @@ class OnePolicy(BaseModel):
     finger_position = self.sim.data.get_geom_xpos(self.fingertip).copy() - self.target_origin
 
     # Get depth array and normalise
-    render = self.sim.render(width=120, height=80, camera_name='oculomotor', depth=True)
+    render = self.sim.render(width=self.width, height=self.height, camera_name='oculomotor', depth=True)
     depth = render[1]
     depth = np.flipud((depth - 0.5)*2)
-    rgb = render[0]
-    rgb = np.flipud((rgb/255.0 - 0.5)*2)
+    #rgb = render[0]
+    #rgb = np.flipud((rgb/255.0 - 0.5)*2)
 
     # Time features (time left in episode, time spent inside target)
     time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit])
@@ -50,6 +54,6 @@ class OnePolicy(BaseModel):
 
     return {'proprioception': np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, act,
                                               np.array([dwell_time]), np.array([time_left])]),
-            'visual': np.stack([rgb[:,:,1], depth], axis=0),
-            #'visual': np.expand_dims(depth, 0),
+            #'visual': np.stack([rgb[:,:,1], depth], axis=0),
+            'visual': np.expand_dims(depth, 0),
             'ocular': np.concatenate([qpos[:2], qvel[:2], qacc[:2]])}
