@@ -240,9 +240,8 @@ class BaseModel(ABC, gym.Env):
 
   def grab_image(self, height, width):
 
-    # Move estimate out of the way
-    self.model.body_pos[self.model._body_name2id["target-estimate"]] = np.array([0, 0, 0])
-    self.model.geom_size[self.model._geom_name2id["target-sphere-estimate"]][0] = 0.001
+    # Make sure estimate is not in the image
+    self.model.geom_rgba[self.model._geom_name2id["target-sphere-estimate"]][-1] = 0
 
     rendered = self.sim.render(height=height, width=width, camera_name='oculomotor', depth=True)
     rgb = ((np.flipud(rendered[0]) / 255.0) - 0.5) * 2
