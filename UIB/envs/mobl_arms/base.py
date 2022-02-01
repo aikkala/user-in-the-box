@@ -66,11 +66,12 @@ class BaseModel(ABC, gym.Env):
                                                             (self.target_limits_y[1] - self.target_limits_y[0])/2,
                                                             (self.target_limits_z[1] - self.target_limits_z[0])/2])
     self.model.body_pos[self.target_plane_body_idx] = self.target_origin
+    self.model.geom_rgba[self.target_plane_geom_idx][-1] = 0.1
 
     # Fix gaze towards the plane
-    self.oculomotor_camera_idx = self.model._camera_name2id["oculomotor"]
-    self.model.cam_mode[self.oculomotor_camera_idx] = 3
-    self.model.cam_targetbodyid[self.oculomotor_camera_idx] = self.target_plane_body_idx
+    #self.oculomotor_camera_idx = self.model._camera_name2id["oculomotor"]
+    #self.model.cam_mode[self.oculomotor_camera_idx] = 3
+    #self.model.cam_targetbodyid[self.oculomotor_camera_idx] = self.target_plane_body_idx
 
     # Get indices of dependent and independent joints
     self.dependent_joints = np.unique(self.model.eq_obj1id[self.model.eq_active.astype(bool)])
