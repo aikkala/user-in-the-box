@@ -57,9 +57,14 @@ if __name__=="__main__":
   wandb.save(os.path.join(model_folder, run.name, 'checkpoints', "model_*_steps.zip"),
              base_path=os.path.join(model_folder, run.name, 'checkpoints'))
   save_freq = config["save_freq"] // config["num_cpu"]
+  checkpoint_folder = os.path.join(model_folder, run.name, 'checkpoints')
   checkpoint_callback = CheckpointCallback(save_freq=save_freq,
-                                           save_path=os.path.join(model_folder, run.name, "checkpoints"),
+                                           save_path=checkpoint_folder,
                                            name_prefix='model')
+
+  # Save env_kwargs also to checkpoint folder, easier to load them for evaluation
+  os.makedirs(checkpoint_folder, exist_ok=True)
+  np.save(os.path.join(checkpoint_folder, 'env_kwargs.npy'), config["env_kwargs"])
 
   # Do the learning first with constant learning rate
   model.learn(total_timesteps=config["total_timesteps"], callback=[WandbCallback(verbose=2), checkpoint_callback])
