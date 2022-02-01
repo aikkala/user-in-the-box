@@ -24,7 +24,7 @@
     <scale framewidth="0.01" framelength="1.0"/>
   </visual>
   <worldbody>
-    <body name="eye" pos="0 0 1.2" euler="0 -0.79 -1.57">
+    <body name="eye" pos="0 0 1.2" euler="0 -1.2 -1.57">
       <geom name="eye-ball" type="sphere" size="0.025"/>
       <joint name="eye-rx" type="hinge" axis="1 0 0" limited="true" range="-0.5 1.57"/>
       <joint name="eye-ry" type="hinge" axis="0 1 0" limited="true" range="-1.3 1.3"/>
