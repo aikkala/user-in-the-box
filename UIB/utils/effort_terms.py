@@ -40,3 +40,5 @@ class MuscleState(BaseTerm):
     self.weight = weight
   def get(self, env):
     return self.weight * np.sum(env.sim.data.act ** 2)
+  def __repr__(self):
+    return "MuscleState"
