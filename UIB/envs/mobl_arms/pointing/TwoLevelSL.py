@@ -8,11 +8,12 @@ import torch
 from stable_baselines3 import PPO
 
 
-from UIB.archs.regressor import SimpleSequentialCNN, SimpleCNN
+from UIB.archs.regressor import SimpleSequentialCNN, SimpleCNN, VisionTransformer
 
 from UIB.envs.mobl_arms.base import BaseModel
+from torch import nn
 
-class TwoLevelSL(BaseModel, gym.Env):
+class TwoLevelSL(BaseModel):
 
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
@@ -27,19 +28,30 @@ class TwoLevelSL(BaseModel, gym.Env):
     #                                            seq_max_len=self.max_steps_without_hit+1)
     self.target_extractor = SimpleCNN(height=self.height, width=self.width,
                                       proprioception_size=self.grab_proprioception().size)
+    #self.target_extractor = VisionTransformer()
     self.target_extractor.load_state_dict(torch.load(target_extractor_file))
-    self.target_extractor.eval()
+
+    # TODO SimpleCNN performs way worse if it's set to eval mode; has to do with BatchNorms.
+    #  Setting track_running_stats = False seems to help (or just run in train mode)
+    #self.target_extractor.eval()
+    for m in self.target_extractor.modules():
+      for child in m.children():
+        if type(child) == nn.BatchNorm2d:
+          child.track_running_stats = False
 
     # Load policy
     policy_file = os.path.join(os.path.join(self.project_path,
-                                            '../../../output/current-best-v0/checkpoint/model_100000000_steps.zip'))
+                                            '../../../output/UIB:mobl-arms-muscles-v0-50-workers/checkpoint/model_100000000_steps.zip'))
     self.policy = PPO.load(policy_file)
 
   def get_action(self, observation):
 
     # Estimate target position and radius
-    estimate = self.target_extractor.estimate(self.grab_image(height=self.height, width=self.width),
-                                              self.grab_proprioception()).squeeze()
+    estimate = np.zeros((4,))
+    estimate[1:] = self.target_extractor.estimate(self.grab_image(height=self.height, width=self.width),
+                                                  self.grab_proprioception()).squeeze()
+    estimate[:3] += self.target_origin
+    estimate[3] += 0.1
 
     # Update position of estimate for rendering
     self.model.body_pos[self.model._body_name2id["target-estimate"]] = estimate[:3]
@@ -53,7 +65,7 @@ class TwoLevelSL(BaseModel, gym.Env):
     observation[target_idxs] = estimate
 
     # Use policy to get action
-    action, _ = self.policy.predict(observation, deterministic=False)
+    action, _ = self.policy.predict(observation, deterministic=True)
 
     return action
 
@@ -70,15 +82,25 @@ class TwoLevelSL(BaseModel, gym.Env):
     act = (self.sim.data.act.copy() - 0.5) * 2
     finger_position = self.sim.data.get_geom_xpos(self.fingertip) - self.target_origin
 
-    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position - self.target_origin, self.target_position,
-                           np.array([self.target_radius]), act])
+    # Time features (time left in episode, time spent inside target)
+    time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit,
+                                self.steps/self.max_episode_length])
+    dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwell_threshold])
+
+
+    return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position, self.target_position,
+                           np.array([self.target_radius]), act, np.array([dwell_time]), np.array([time_left])])
 
   def step(self, action):
 
     observation, reward, done, info = BaseModel.step(self, action)
 
-    # Zero out lstm hidden states if target has been hit
+    # We might need to reset something if target is hit
     if info["target_hit"]:
       self.target_extractor.initialise()
+
+      # Reset estimate location
+      self.model.body_pos[self.model._body_name2id["target-estimate"]] = np.array([0, 0, 0])
+      self.model.geom_size[self.model._geom_name2id["target-sphere-estimate"]][0] = 0.001
 
     return observation, reward, done, info

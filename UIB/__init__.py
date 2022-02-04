@@ -1,5 +1,5 @@
 from gym.envs.registration import register
 
-register(id='mobl-arms-muscles-v0', entry_point='UIB.envs.mobl_arms:OnePolicyNoCamera')
-register(id='mobl-arms-muscles-v01', entry_point='UIB.envs.mobl_arms:TwoLevelSL')
-register(id='mobl-arms-muscles-v1', entry_point='UIB.envs.mobl_arms:OnePolicy')
+register(id='mobl-arms-pointing-v0', entry_point='UIB.envs.mobl_arms.pointing.PointingEnv:Proprioception')
+register(id='mobl-arms-pointing-v1', entry_point='UIB.envs.mobl_arms.pointing.PointingEnv:ProprioceptionAndVisual')
+register(id='mobl-arms-tracking-v1', entry_point='UIB.envs.mobl_arms.tracking.TrackingEnv:ProprioceptionAndVisual')
