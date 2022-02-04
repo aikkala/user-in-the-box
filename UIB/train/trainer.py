@@ -12,10 +12,6 @@ if __name__=="__main__":
   # Load a config
   config = mobl_arms_pointing_v1
 
-  import gym
-  env = gym.make(config["env_name"], **config["env_kwargs"])
-  env.step(env.action_space.sample())
-
   # Ask user to name this run
   name = timeout_input("Give a name for this run. Input empty string or wait for 30 seconds for a random name.",
                        timeout=30, default="")
