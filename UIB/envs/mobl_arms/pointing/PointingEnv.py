@@ -1,6 +1,5 @@
 import numpy as np
 import mujoco_py
-from abc import ABC
 from gym import spaces
 
 from UIB.envs.mobl_arms.models.FixedEye.FixedEye import FixedEye
@@ -172,6 +171,9 @@ class ProprioceptionAndVisual(PointingEnv):
 
     # Get proprioception + visual observation
     observation = super().get_observation()
+
+    # Use only depth image
+    observation["visual"] = observation["visual"][:, :, 3, None]
 
     # Time features (time left to reach target, time spent inside target)
     time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit])
