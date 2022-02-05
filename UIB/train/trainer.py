@@ -12,9 +12,13 @@ if __name__=="__main__":
   # Load a config
   config = mobl_arms_pointing_v1
 
-  # Ask user to name this run
-  name = timeout_input("Give a name for this run. Input empty string or wait for 30 seconds for a random name.",
-                       timeout=30, default="")
+  # Get name for this run from config
+  name = config.get("name", None)
+
+  if name is None:
+    # Ask user to name this run
+    name = timeout_input("Give a name for this run. Input empty string or wait for 30 seconds for a random name.",
+                         timeout=30, default="")
 
   # Initialsie wandb
   run = wandb.init(project="uib", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
