@@ -7,6 +7,7 @@ import pathlib
 from abc import ABC, abstractmethod
 
 from UIB.utils.functions import project_path
+from UIB.utils import effort_terms
 
 
 class FixedEye(ABC, gym.Env):
@@ -41,7 +42,7 @@ class FixedEye(ABC, gym.Env):
 
     # Get reward function and effort term
     self.reward_function = kwargs.get('reward_function', None)
-    self.effort_term = kwargs.get('effort_term', None)
+    self.effort_term = kwargs.get('effort_term', effort_terms.Zero())
 
     # Observations from eye shouldn't be rendered when they are not needed
     self.render_observations = kwargs.get('render_observations', True)
@@ -68,7 +69,6 @@ class FixedEye(ABC, gym.Env):
   def step(self, action):
     pass
 
-  @abstractmethod
   def get_observation(self):
 
     # Normalise qpos
