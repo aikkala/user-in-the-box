@@ -19,7 +19,7 @@ class Neural(BaseTerm):
     return "Neural"
 
 class Composite(BaseTerm):
-  def __init__(self, weight=1e-5):
+  def __init__(self, weight=1e-7):
     self.weight = weight
   def get(self, env):
     mujoco_py.cymj._mj_inverse(env.sim.model, env.sim.data)
