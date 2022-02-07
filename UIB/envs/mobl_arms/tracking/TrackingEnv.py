@@ -5,8 +5,7 @@ from gym import spaces
 
 from UIB.envs.mobl_arms.models.FixedEye.FixedEye import FixedEye
 
-class TrackingEnv(ABC, FixedEye):
-  metadata = {'render.modes': ['human']}
+class TrackingEnv(FixedEye):
 
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
@@ -17,8 +16,6 @@ class TrackingEnv(ABC, FixedEye):
 
     # Target radius
     self.target_radius = kwargs.get('target_radius', 0.05)
-
-    self.sin_y, self.sin_z = self.generate_trajectory()
 
     # Do a forward step so stuff like geom and body positions are calculated
     self.sim.forward()
@@ -37,6 +34,9 @@ class TrackingEnv(ABC, FixedEye):
                                                             (self.target_limits_y[1] - self.target_limits_y[0])/2,
                                                             (self.target_limits_z[1] - self.target_limits_z[0])/2])
     self.model.body_pos[self.target_plane_body_idx] = self.target_origin
+
+    # Generate trajectory
+    self.sin_y, self.sin_z = self.generate_trajectory()
 
 
   def step(self, action):
@@ -70,13 +70,7 @@ class TrackingEnv(ABC, FixedEye):
       info["termination"] = "time_limit_reached"
 
     # Add an effort cost to reward
-    if self.cost_function == "neural_effort":
-      reward -= 1e-4 * np.sum(self.sim.data.ctrl ** 2)
-    elif self.cost_function == "composite":
-      angle_acceleration = np.sum(self.sim.data.qacc[self.independent_joints] ** 2)
-      energy = np.sum(
-        self.sim.data.qacc[self.independent_joints] ** 2 * self.sim.data.qfrc_unc[self.independent_joints] ** 2)
-      reward -= 1e-7 * (energy + 0.05 * angle_acceleration)
+    reward += self.effort_term.get(self)
 
     return self.get_observation(), reward, finished, info
 
@@ -91,19 +85,29 @@ class TrackingEnv(ABC, FixedEye):
     # Update target location
     self.update_target_location()
 
-    super().reset()
+    return super().reset()
 
   def generate_trajectory(self):
-    sin_y = self.generate_sine_wave(self.max_episode_steps, num_components=5)
-    sin_z = self.generate_sine_wave(self.max_episode_steps, num_components=5)
+    sin_y = self.generate_sine_wave(self.target_limits_y, self.max_episode_steps, num_components=5)
+    sin_z = self.generate_sine_wave(self.target_limits_z, self.max_episode_steps, num_components=5)
     return sin_y, sin_z
 
-  def generate_sine_wave(self, length, num_components=5):
-    t = np.linspace(-0.3, 0.3, length)
+  def generate_sine_wave(self, limits, length, num_components=5, min_amplitude=5, max_amplitude=50,
+                         min_phase_diff=-10, max_phase_diff=10):
+
+    # Generate a sine wave with multiple components
+    t = np.linspace(limits[0], limits[1], length)
     sine = np.zeros((t.size,))
     for _ in range(num_components):
-      sine += np.sin(np.random.uniform(5, 50) * t + np.random.uniform(-10, 10))
-    sine = 0.3 * (sine / num_components)
+      sine += np.sin(self.rng.uniform(min_amplitude, max_amplitude) * t +
+                     self.rng.uniform(min_phase_diff, max_phase_diff))
+
+    # Normalise to [0, 1]
+    sine = 0.5*((sine/num_components)+1)
+
+    # Shift to fit limits
+    sine = limits[0] + (limits[1] - limits[0])*sine
+
     return sine
 
   def update_target_location(self):
@@ -114,14 +118,9 @@ class TrackingEnv(ABC, FixedEye):
 
 
 class ProprioceptionAndVisual(TrackingEnv):
-  metadata = {'render.modes': ['human']}
 
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
-
-    # Size of ocular image
-    self.height = 80
-    self.width = 120
 
     # Reset
     observation = self.reset()
@@ -136,5 +135,8 @@ class ProprioceptionAndVisual(TrackingEnv):
 
     # Get proprioception + visual observation
     observation = super().get_observation()
+
+    # Use only depth image
+    observation["visual"] = observation["visual"][:, :, 3, None]
 
     return observation
