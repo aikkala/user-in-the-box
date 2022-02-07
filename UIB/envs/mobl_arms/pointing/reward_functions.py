@@ -25,9 +25,12 @@ class NegativeDistanceWithHitBonus(BaseFunction):
 
   def get(self, env, dist, info):
     if info["target_hit"]:
-      return 5
+      return 10
+    elif info["inside_target"]:
+      return 0
     else:
-      return -dist**2
+      # Negative distance to target sphere surface squared
+      return -(dist-env.target_radius)**2
 
   def __repr__(self):
     return "NegativeDistanceWithHitBonus"
