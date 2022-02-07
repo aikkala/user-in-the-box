@@ -81,8 +81,8 @@ class FixedEye(ABC, gym.Env):
     qvel = self.sim.data.qvel[self.independent_joints].copy()
     qacc = self.sim.data.qacc[self.independent_joints].copy()
 
-    # Get fingertip position, normalised by the known origin of target 2D plane
-    fingertip_position = self.sim.data.get_geom_xpos(self.fingertip) - self.target_origin
+    # Get fingertip position; not normalised
+    fingertip_position = self.sim.data.get_geom_xpos(self.fingertip)
 
     # Normalise act
     act = (self.sim.data.act.copy() - 0.5) * 2
