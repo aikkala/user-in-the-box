@@ -25,12 +25,9 @@ class BaseLogger:
       pickle.dump(self.data, handle)
 
 class StateLogger(BaseLogger):
-  def __init__(self, num_episodes):
-    super().__init__(num_episodes=num_episodes, keys=["step", "timestep", "qpos", "qvel", "qacc", "act",
-                                                      "fingertip_xpos", "fingertip_xmat", "fingertip_xvelp",
-                                                      "fingertip_xvelr", "termination", "target_hit", "target_position",
-                                                      "target_radius", "inside_target"])
+  def __init__(self, num_episodes, keys):
+    super().__init__(num_episodes=num_episodes, keys=keys)
 
 class ActionLogger(BaseLogger):
   def __init__(self, num_episodes):
-    super().__init__(num_episodes=num_episodes, keys=["step", "timestep", "action", "ctrl"])
+    super().__init__(num_episodes=num_episodes, keys=["step", "timestep", "action", "ctrl", "reward"])

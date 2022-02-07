@@ -166,8 +166,7 @@ class FixedEye(ABC, gym.Env):
              "fingertip_xmat": self.sim.data.get_geom_xmat(self.fingertip).copy(),
              "fingertip_xvelp": self.sim.data.get_geom_xvelp(self.fingertip).copy(),
              "fingertip_xvelr": self.sim.data.get_geom_xvelr(self.fingertip).copy(),
-             "target_position": self.target_origin.copy()+self.target_position.copy(),
-             "target_radius": self.target_radius}
+             "termination": False}
     return state
 
   def render(self, mode='human', width=1280, height=800, camera_id=None, camera_name=None):

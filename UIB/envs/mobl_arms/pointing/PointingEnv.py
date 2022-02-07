@@ -115,6 +115,14 @@ class PointingEnv(FixedEye):
 
     return self.get_observation(), reward, finished, info
 
+  def get_state(self):
+    state = super().get_state()
+    state["target_position"] = self.target_origin.copy()+self.target_position.copy(),
+    state["target_radius"] = self.target_radius
+    state["target_hit"] = False
+    state["inside_target"] = False
+    return state
+
   def reset(self):
 
     # Reset counters
