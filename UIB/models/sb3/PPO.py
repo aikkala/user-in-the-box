@@ -22,7 +22,7 @@ class PPO(BaseModel):
     # Initialise model
     self.model = PPO_sb3(config["policy_type"], parallel_envs, verbose=1, policy_kwargs=config["policy_kwargs"],
                          tensorboard_log=run_folder, n_steps=config["nsteps"], batch_size=config["batch_size"],
-                         target_kl=config["target_kl"], learning_rate=config["lr"])
+                         target_kl=config["target_kl"], learning_rate=config["lr"], device=config["device"])
 
 
     save_freq = config["save_freq"] // config["num_workers"]
