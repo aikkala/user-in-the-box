@@ -1,16 +1,12 @@
-import gym
-from gym import spaces
-import mujoco_py
 import numpy as np
 import os
-import pathlib
 import torch
 from stable_baselines3 import PPO
 
 
-from UIB.archs.regressor import SimpleSequentialCNN, SimpleCNN, VisionTransformer
+from UIB.archs.regressor import SimpleCNN
 
-from UIB.envs.mobl_arms.base import BaseModel
+from UIB.envs.mobl_arms.models.FixedEye.FixedEye import BaseModel
 from torch import nn
 
 class TwoLevelSL(BaseModel):
