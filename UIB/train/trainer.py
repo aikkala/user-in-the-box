@@ -10,7 +10,7 @@ from wandb.integration.sb3 import WandbCallback
 if __name__=="__main__":
 
   # Load a config
-  config = mobl_arms_pointing_v1
+  config = mobl_arms_tracking_v1
 
   # Get name for this run from config
   name = config.get("name", None)
@@ -31,7 +31,8 @@ if __name__=="__main__":
   run_folder = os.path.join(model_folder, run.name)
   model = config["model"](config, run_folder=run_folder)
 
-  # Save config
+  # Save config (except those that can't be pickled)
+  config["lr"] = None
   np.save(os.path.join(run_folder, 'config.npy'), config)
 
   # Haven't figured out how to periodically save models in wandb; this is currently done inside the model class
