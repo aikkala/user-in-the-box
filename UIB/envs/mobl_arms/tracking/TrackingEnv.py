@@ -72,6 +72,9 @@ class TrackingEnv(FixedEye):
     # Add an effort cost to reward
     reward += self.effort_term.get(self)
 
+    # Update target location
+    self.update_target_location()
+
     return self.get_observation(), reward, finished, info
 
   def reset(self):
@@ -96,7 +99,7 @@ class TrackingEnv(FixedEye):
                          min_phase_diff=-10, max_phase_diff=10):
 
     # Generate a sine wave with multiple components
-    t = np.linspace(limits[0], limits[1], length)
+    t = np.linspace(limits[0], limits[1], length+1)
     sine = np.zeros((t.size,))
     for _ in range(num_components):
       sine += np.sin(self.rng.uniform(min_amplitude, max_amplitude) * t +
@@ -111,6 +114,7 @@ class TrackingEnv(FixedEye):
     return sine
 
   def update_target_location(self):
+    self.target_position[0] = 0
     self.target_position[1] = self.sin_y[self.steps]
     self.target_position[2] = self.sin_z[self.steps]
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
