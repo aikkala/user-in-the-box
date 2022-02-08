@@ -31,10 +31,6 @@ class PPO(BaseModel):
                                                   save_path=checkpoint_folder,
                                                   name_prefix='model')
 
-    # Save env_kwargs also to checkpoint folder, easier to load them for evaluation
-    os.makedirs(checkpoint_folder, exist_ok=True)
-    np.save(os.path.join(checkpoint_folder, 'env_kwargs.npy'), config["env_kwargs"])
-
   def learn(self, wandb_callback):
     self.model.learn(total_timesteps=self.config["total_timesteps"],
                      callback=[wandb_callback, self.checkpoint_callback])
