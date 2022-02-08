@@ -27,6 +27,7 @@ if __name__=="__main__":
 
   # Define output directories
   run_folder = os.path.join(output_path(), config["env_name"], run.name)
+  os.makedirs(run_folder, exist_ok=True)
 
   # Initialise model
   model = config["model"](config, run_folder=run_folder)
