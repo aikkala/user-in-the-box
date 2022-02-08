@@ -6,6 +6,7 @@ from UIB.models.sb3.schedule import linear_schedule
 from UIB.models.sb3.policies import MultiInputActorCriticPolicyTanhActions
 from UIB.models.sb3.feature_extractor import VisualAndProprioceptionExtractor
 from UIB.models.sb3.PPO import PPO
+from UIB.models.sb3.recurrent_policies import RecurrentMultiInputActorCriticPolicyTanhActions
 from UIB.models.sb3.RecurrentPPO import RecurrentPPO
 
 from UIB.utils import effort_terms
@@ -55,6 +56,7 @@ mobl_arms_pointing_v1 = {
 }
 
 mobl_arms_tracking_v1 = {
+  "name": "test-tracking-v1",
   "model": RecurrentPPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-tracking-v1",
@@ -64,7 +66,7 @@ mobl_arms_tracking_v1 = {
   "env_kwargs": {"target_radius": 0.05,
                  "action_sample_freq": 20,
                  "effort_term": effort_terms.Composite()},
-  "policy_type": "MultiInputLstmPolicy",
+  "policy_type": RecurrentMultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
                     "log_std_init": 0.0,
