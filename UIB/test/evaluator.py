@@ -6,6 +6,8 @@ from stable_baselines3 import PPO
 import re
 import argparse
 import scipy.ndimage
+import pickle
+from pathlib import Path
 
 from UIB.utils.logger import StateLogger, ActionLogger
 from UIB.utils.functions import output_path
@@ -73,13 +75,14 @@ if __name__=="__main__":
 
   # If config file is given load that
   if args.config_file is not None:
-    config = np.load(args.config_file)
+    with open(args.config_file, 'rb') as file:
+      config = pickle.load(file)
 
     # Define output directories
     env_name = config["env_name"]
-    model_dir = os.path.join(output_path(), config["env_name"], 'trained-models', config["name"])
-    checkpoint_dir = os.path.join(model_dir, 'checkpoints')
-    evaluate_dir = os.path.join(output_path(), config["env_name"], 'evaluate', config["name"])
+    run_folder = Path(args.config_file).parent.absolute()
+    checkpoint_dir = os.path.join(run_folder, 'checkpoints')
+    evaluate_dir = os.path.join(output_path(), config["env_name"], config["name"])
 
   else:
 
@@ -169,13 +172,13 @@ if __name__=="__main__":
         env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl * 0.7
         imgs.append(grab_pip_image(env))
 
-    print(f"Episode {episode_idx}: {env.trial_idx} targets hit, length {env.steps*env.dt} seconds ({env.steps} steps), reward {reward}. ")
+    print(f"Episode {episode_idx}: length {env.steps*env.dt} seconds ({env.steps} steps), reward {reward}. ")
     episode_lengths.append(env.steps)
     rewards.append(reward)
-    num_trials.append(env.trial_idx)
+    #num_trials.append(env.trial_idx)
 
   print(f'Averages over {args.num_episodes} episodes: '
-        f'targets hit {np.mean(num_trials)}, length {np.mean(episode_lengths)*env.dt} seconds ({np.mean(episode_lengths)} steps), reward {np.mean(rewards)}')
+        f'length {np.mean(episode_lengths)*env.dt} seconds ({np.mean(episode_lengths)} steps), reward {np.mean(rewards)}')
 
   if args.logging:
     # Output log
