@@ -1,4 +1,5 @@
 import os
+import pickle
 
 from UIB.utils.functions import output_path, timeout_input
 from UIB.train.configs import *
@@ -25,15 +26,15 @@ if __name__=="__main__":
   run = wandb.init(project="uib", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
 
   # Define output directories
-  model_folder = os.path.join(output_path(), config["env_name"], 'trained-models')
+  run_folder = os.path.join(output_path(), config["env_name"], run.name)
 
   # Initialise model
-  run_folder = os.path.join(model_folder, run.name)
   model = config["model"](config, run_folder=run_folder)
 
   # Save config (except those that can't be pickled)
   config["lr"] = None
-  np.save(os.path.join(run_folder, 'config.npy'), config)
+  with open(os.path.join(run_folder, 'config.pickle'), 'wb') as file:
+    pickle.dump(config, file)
 
   # Haven't figured out how to periodically save models in wandb; this is currently done inside the model class
   # TODO this doesn't seem to work; do the files need to be in wandb.run.dir?
