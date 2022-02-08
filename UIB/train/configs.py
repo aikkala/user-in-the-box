@@ -57,7 +57,7 @@ mobl_arms_pointing_v1 = {
 
 mobl_arms_tracking_v1 = {
   "name": "test-tracking-v1",
-  "model": RecurrentPPO,
+  "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-tracking-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
@@ -65,8 +65,8 @@ mobl_arms_tracking_v1 = {
   "device": "cuda",
   "env_kwargs": {"target_radius": 0.05,
                  "action_sample_freq": 20,
-                 "effort_term": effort_terms.Composite()},
-  "policy_type": RecurrentMultiInputActorCriticPolicyTanhActions,
+                 "effort_term": effort_terms.Zero()},
+  "policy_type": MultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
                     "log_std_init": 0.0,

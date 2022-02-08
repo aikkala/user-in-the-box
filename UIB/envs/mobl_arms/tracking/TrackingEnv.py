@@ -2,6 +2,7 @@ import numpy as np
 import mujoco_py
 from abc import ABC
 from gym import spaces
+from collections import deque
 
 from UIB.envs.mobl_arms.models.FixedEye.FixedEye import FixedEye
 
@@ -11,8 +12,11 @@ class TrackingEnv(FixedEye):
     super().__init__(**kwargs)
 
     # Define episode length
-    self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*10)
+    self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*4)
     self.steps = 0
+
+    # Define a visual buffer
+    self.visual_buffer = deque(maxlen=3)
 
     # Target radius
     self.target_radius = kwargs.get('target_radius', 0.05)
@@ -82,6 +86,9 @@ class TrackingEnv(FixedEye):
     # Reset counters
     self.steps = 0
 
+    # Reset visual buffer
+    self.visual_buffer.clear()
+
     # Generate a new trajectory
     self.sin_y, self.sin_z = self.generate_trajectory()
 
@@ -140,7 +147,15 @@ class ProprioceptionAndVisual(TrackingEnv):
     # Get proprioception + visual observation
     observation = super().get_observation()
 
+    depth = observation["visual"][:, :, 3, None]
+
+    if len(self.visual_buffer) > 0:
+      self.visual_buffer.pop()
+
+    while len(self.visual_buffer) < self.visual_buffer.maxlen:
+      self.visual_buffer.appendleft(depth)
+
     # Use only depth image
-    observation["visual"] = observation["visual"][:, :, 3, None]
+    observation["visual"] = np.concatenate([img for img in self.visual_buffer], axis=2)
 
     return observation
