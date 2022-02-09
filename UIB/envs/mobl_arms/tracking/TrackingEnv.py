@@ -1,6 +1,5 @@
 import numpy as np
 import mujoco_py
-from abc import ABC
 from gym import spaces
 from collections import deque
 
@@ -61,11 +60,17 @@ class TrackingEnv(FixedEye):
     # Get finger position
     finger_position = self.sim.data.get_geom_xpos(self.fingertip)
 
-    # Distance to target
+    # Distance to target origin
     dist = np.linalg.norm(self.target_position - (finger_position - self.target_origin))
 
-    # Estimate reward
-    reward = np.exp(-dist * 10)
+    # Is fingertip inside target?
+    if dist <= self.target_radius:
+      info["inside_target"] = True
+      reward = 2
+    else:
+      info["inside_target"] = False
+      # Estimate reward as distance to target surface
+      reward = np.exp(-(dist-self.target_radius) * 10)/10
 
     # Check if time limit has been reached
     self.steps += 1
@@ -156,6 +161,7 @@ class ProprioceptionAndVisual(TrackingEnv):
       self.visual_buffer.appendleft(depth)
 
     # Use only depth image
-    observation["visual"] = np.concatenate([img for img in self.visual_buffer], axis=2)
+    observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[2],
+                                            self.visual_buffer[2] - self.visual_buffer[0]], axis=2)
 
     return observation
