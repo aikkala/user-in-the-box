@@ -15,7 +15,7 @@ class FixedEye(ABC, gym.Env):
   def __init__(self, **kwargs):
 
     # Model file
-    xml_file = os.path.join(project_path(), "envs/mobl_arms/models/FixedEye/mobl_arms_muscles_modified.xml")
+    xml_file = os.path.join(project_path(), "envs/mobl_arms/models/FixedEye/mobl_arms_muscles.xml")
 
     # Set action sampling
     self.action_sample_freq = kwargs.get('action_sample_freq', 10)
