@@ -118,7 +118,7 @@ class TrackingEnv(FixedEye):
     max_frequency = self.min_frequency + (self.max_frequency-self.min_frequency) * self.freq_curriculum()
 
     # Generate a sine wave with multiple components
-    t = np.arange(self.max_episode_steps) * self.dt
+    t = np.arange(self.max_episode_steps+1) * self.dt
     sine = np.zeros((t.size,))
     for _ in range(num_components):
       sine += self.rng.uniform(min_amplitude, max_amplitude) *\
