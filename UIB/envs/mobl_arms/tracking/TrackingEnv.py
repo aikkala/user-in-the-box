@@ -11,8 +11,14 @@ class TrackingEnv(FixedEye):
     super().__init__(**kwargs)
 
     # Define episode length
-    self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*4)
+    episode_length_seconds = kwargs.get('episode_length_seconds', 4)
+    self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*episode_length_seconds)
     self.steps = 0
+
+    # Define some limits for target movement speed
+    self.min_frequency = 0.1
+    self.max_frequency = 2
+    self.freq_curriculum = kwargs.get('freq_curriculum', lambda x: 1.0)
 
     # Define a visual buffer
     self.visual_buffer = deque(maxlen=3)
@@ -66,11 +72,11 @@ class TrackingEnv(FixedEye):
     # Is fingertip inside target?
     if dist <= self.target_radius:
       info["inside_target"] = True
-      reward = 2
+      reward = 0
     else:
       info["inside_target"] = False
       # Estimate reward as distance to target surface
-      reward = np.exp(-(dist-self.target_radius) * 10)/10
+      reward = np.exp(-(dist-self.target_radius) * 10) - 1
 
     # Check if time limit has been reached
     self.steps += 1
@@ -103,24 +109,24 @@ class TrackingEnv(FixedEye):
     return super().reset()
 
   def generate_trajectory(self):
-    sin_y = self.generate_sine_wave(self.target_limits_y, self.max_episode_steps, num_components=5)
-    sin_z = self.generate_sine_wave(self.target_limits_z, self.max_episode_steps, num_components=5)
+    sin_y = self.generate_sine_wave(self.target_limits_y, num_components=5)
+    sin_z = self.generate_sine_wave(self.target_limits_z, num_components=5)
     return sin_y, sin_z
 
-  def generate_sine_wave(self, limits, length, num_components=5, min_amplitude=5, max_amplitude=50,
-                         min_phase_diff=-10, max_phase_diff=10):
+  def generate_sine_wave(self, limits, num_components=5, min_amplitude=1, max_amplitude=5):
+
+    max_frequency = self.min_frequency + (self.max_frequency-self.min_frequency) * self.freq_curriculum()
 
     # Generate a sine wave with multiple components
-    t = np.linspace(limits[0], limits[1], length+1)
+    t = np.arange(self.max_episode_steps) * self.dt
     sine = np.zeros((t.size,))
     for _ in range(num_components):
-      sine += np.sin(self.rng.uniform(min_amplitude, max_amplitude) * t +
-                     self.rng.uniform(min_phase_diff, max_phase_diff))
+      sine += self.rng.uniform(min_amplitude, max_amplitude) *\
+              np.sin(self.rng.uniform(self.min_frequency, max_frequency)*2*np.pi*t + self.rng.uniform(0, 2*np.pi))
 
-    # Normalise to [0, 1]
-    sine = 0.5*((sine/num_components)+1)
-
-    # Shift to fit limits
+    # Normalise to fit limits
+    sine = sine-np.min(sine)
+    sine = sine / np.max(sine)
     sine = limits[0] + (limits[1] - limits[0])*sine
 
     return sine

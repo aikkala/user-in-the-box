@@ -59,6 +59,7 @@ mobl_arms_pointing_v1 = {
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
 
+target_speed_curriculum = LinearCurriculum("target_speed_curriculum", start_value=0, end_value=1, end_timestep=20_000_000)
 mobl_arms_tracking_v1 = {
   "name": "test-tracking-v1",
   "model": PPO,
@@ -69,7 +70,9 @@ mobl_arms_tracking_v1 = {
   "device": "cuda",
   "env_kwargs": {"target_radius": 0.05,
                  "action_sample_freq": 20,
-                 "effort_term": effort_terms.Zero()},
+                 "effort_term": effort_terms.Zero(),
+                 "freq_curriculum": target_speed_curriculum.value,
+                 "episode_length_seconds": 10},
   "policy_type": MultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
