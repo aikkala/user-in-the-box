@@ -1,13 +1,13 @@
 import os
-import numpy as np
+import gym
 
 from stable_baselines3 import PPO as PPO_sb3
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, EveryNTimesteps
 
 from UIB.models.base import BaseModel
-
+from UIB.models.sb3.callbacks import EvalCallback
 
 class PPO(BaseModel):
 
@@ -25,12 +25,18 @@ class PPO(BaseModel):
                          target_kl=config["target_kl"], learning_rate=config["lr"], device=config["device"])
 
 
+    # Create a checkpoint callback
     save_freq = config["save_freq"] // config["num_workers"]
     checkpoint_folder = os.path.join(run_folder, 'checkpoints')
     self.checkpoint_callback = CheckpointCallback(save_freq=save_freq,
                                                   save_path=checkpoint_folder,
                                                   name_prefix='model')
 
+    # Create an evaluation callback
+    eval_env = gym.make(config["env_name"], **config["env_kwargs"])
+    self.eval_callback = EveryNTimesteps(n_steps=config["total_timesteps"]//100, callback=EvalCallback(eval_env, num_eval_episodes=20))
+
   def learn(self, wandb_callback):
+    env_callbacks = self.config["env_kwargs"].get("callbacks", [])
     self.model.learn(total_timesteps=self.config["total_timesteps"],
-                     callback=[wandb_callback, self.checkpoint_callback])
+                     callback=[wandb_callback, self.checkpoint_callback, self.eval_callback, *env_callbacks])

@@ -38,3 +38,99 @@ class LinearStdDecayCallback(BaseCallback):
 
     def _on_training_end(self) -> None:
       pass
+
+
+class LinearCurriculum(BaseCallback):
+  """
+  A callback to implement linear curriculum for one parameter
+
+  :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
+  """
+
+  def __init__(self, name, start_value, end_value, end_timestep, verbose=0):
+    super().__init__(verbose)
+    self.name = name
+    self.variable = start_value
+    self.start_value = start_value
+    self.end_value = end_value
+    self.end_timestep = end_timestep
+    self.coeff = (end_value - start_value) / end_timestep
+
+  def value(self):
+    return self.variable
+
+  def update(self, num_timesteps):
+    self.variable = self.start_value + self.coeff * num_timesteps
+
+  def _on_training_start(self) -> None:
+    pass
+
+  def _on_rollout_start(self) -> None:
+    self.training_env.env_method("callback", self.name, self.num_timesteps)
+
+  def _on_step(self) -> bool:
+    return True
+
+  def _on_rollout_end(self) -> None:
+    pass
+
+  def _on_training_end(self) -> None:
+    pass
+
+class EvalCallback(BaseCallback):
+  """
+  A custom callback that derives from ``BaseCallback``.
+
+  :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
+  """
+
+  def __init__(self, env, num_eval_episodes, verbose=0):
+    super().__init__(verbose)
+    self.env = env
+    self.num_eval_episodes = num_eval_episodes
+
+  def _on_training_start(self) -> None:
+    pass
+
+  def _on_rollout_start(self) -> None:
+
+    # Run a few episodes to evaluate progress, with and without deterministic actions
+    det_info = self.evaluate(deterministic=True)
+    sto_info = self.evaluate(deterministic=False)
+
+    # Log evaluations
+    self.logger.record("evaluate/deterministic/ep_rew_mean", det_info[0])
+    self.logger.record("evaluate/deterministic/ep_len_mean", det_info[1])
+    self.logger.record("evaluate/deterministic/ep_targets_hit_mean", det_info[2])
+
+    self.logger.record("evaluate/stochastic/ep_rew_mean", sto_info[0])
+    self.logger.record("evaluate/stochastic/ep_len_mean", sto_info[1])
+    self.logger.record("evaluate/stochastic/ep_targets_hit_mean", sto_info[2])
+
+    self.logger.dump(step=self.num_timesteps)
+
+  def _on_step(self) -> bool:
+    return True
+
+  def _on_rollout_end(self) -> None:
+    pass
+
+  def _on_training_end(self) -> None:
+    pass
+
+  def evaluate(self, deterministic):
+    rewards = np.zeros((self.num_eval_episodes,))
+    episode_lengths = np.zeros((self.num_eval_episodes,))
+    targets_hit = np.zeros((self.num_eval_episodes,))
+
+    for i in range(self.num_eval_episodes):
+      obs = self.env.reset()
+      done = False
+      while not done:
+        action, _ = self.model.predict(obs, deterministic=deterministic)
+        obs, r, done, info = self.env.step(action)
+        rewards[i] += r
+      episode_lengths[i] = self.env.steps
+      targets_hit[i] = self.env.trial_idx
+
+    return np.mean(rewards), np.mean(episode_lengths), np.mean(targets_hit)

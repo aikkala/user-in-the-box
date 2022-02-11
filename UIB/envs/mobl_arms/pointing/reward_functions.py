@@ -56,3 +56,22 @@ class NegativeBinaryWithHitBonus(BaseFunction):
 
   def __repr__(self):
     return "NegativeBinary"
+
+
+class NegativeExpDistance(BaseFunction):
+
+  def __init__(self, k):
+    self.k = k
+
+  def get(self, env, dist, info):
+    if info["inside_target"]:
+      return 0
+    else:
+      if callable(self.k):
+        k = self.k()
+      else:
+        k = self.k
+      return np.exp(-dist*k) - 1
+
+  def __repr__(self):
+    return "ExpDistance"

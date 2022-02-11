@@ -62,6 +62,9 @@ class FixedEye(ABC, gym.Env):
     self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([1.5, -1.5, 0.9])
     self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([0.6582, 0.6577, 0.2590, 0.2588])
 
+    # Get callbacks
+    self.callbacks = {callback.name: callback for callback in kwargs.get('callbacks', [])}
+
   def set_ctrl(self, action):
     self.sim.data.ctrl[:] = np.clip(self.sim.data.act[:] + action, 0, 1)
 
@@ -122,6 +125,9 @@ class FixedEye(ABC, gym.Env):
     self.sim.forward()
 
     return self.get_observation()
+
+  def callback(self, callback_name, num_timesteps):
+    self.callbacks[callback_name].update(num_timesteps)
 
   def grab_image(self, height, width):
 
