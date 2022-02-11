@@ -107,8 +107,9 @@ class PointingEnv(FixedEye):
     # Increase counter
     self.steps += 1
 
-    # Calculate reward
-    reward = self.reward_function.get(self, dist, info)
+    # Calculate reward; note, inputting distance to surface into reward function, hence distance can be negative if
+    # fingertip is inside target
+    reward = self.reward_function.get(self, dist-self.target_radius, info)
 
     # Add an effort cost to reward
     reward -= self.effort_term.get(self)
