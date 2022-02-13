@@ -52,14 +52,10 @@ def grab_pip_image(env):
 if __name__=="__main__":
 
   parser = argparse.ArgumentParser(description='Evaluate a policy.')
-  parser.add_argument('env_name', type=str,
-                      help='name of the environment')
-  parser.add_argument('checkpoint_dir', type=str,
-                      help='directory where checkpoints are')
+  parser.add_argument('config_file', type=str,
+                      help='config file used for training the model')
   parser.add_argument('--checkpoint', type=str, default=None,
                       help='filename of a specific checkpoint (default: None, latest checkpoint is used)')
-  parser.add_argument('--config_file', type=str, default=None,
-                      help='config file used for training the model (default: None)')
   parser.add_argument('--num_episodes', type=int, default=10,
                       help='how many episodes are evaluated (default: 10)')
   parser.add_argument('--record', action='store_true', help='enable recording')
@@ -74,22 +70,14 @@ if __name__=="__main__":
 
 
   # If config file is given load that
-  if args.config_file is not None:
-    with open(args.config_file, 'rb') as file:
-      config = pickle.load(file)
+  with open(args.config_file, 'rb') as file:
+    config = pickle.load(file)
 
-    # Define output directories
-    env_name = config["env_name"]
-    run_folder = Path(args.config_file).parent.absolute()
-    checkpoint_dir = os.path.join(run_folder, 'checkpoints')
-    evaluate_dir = os.path.join(output_path(), config["env_name"], config["name"])
-
-  else:
-
-    # Get env name and checkpoint dir
-    env_name = args.env_name
-    checkpoint_dir = args.checkpoint_dir
-    evaluate_dir = os.path.join(checkpoint_dir, '..', 'evaluate')
+  # Define output directories
+  env_name = config["env_name"]
+  run_folder = Path(args.config_file).parent.absolute()
+  checkpoint_dir = os.path.join(run_folder, 'checkpoints')
+  evaluate_dir = os.path.join(output_path(), config["env_name"], config["name"])
 
   # Make sure output dir exists
   os.makedirs(evaluate_dir, exist_ok=True)
@@ -105,18 +93,12 @@ if __name__=="__main__":
   print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}')
   model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
-  env_kwargs = {}
-  if args.config_file is not None:
-    env_kwargs = config["env_kwargs"]
-  else:
-    # Load env_kwargs if they have been saved
-    env_kwargs_file = os.path.join(checkpoint_dir, "env_kwargs.npy")
-    if os.path.exists(env_kwargs_file):
-      print(f"Loading env_kwargs: {env_kwargs_file}")
-      env_kwargs = np.load(env_kwargs_file, allow_pickle=True).item()
+  # Load env_kwargs
+  env_kwargs = config["env_kwargs"]
 
   # Override kwargs
-  env_kwargs["action_sample_freq"] = 100
+  env_kwargs["action_sample_freq"] = 20
+  env_kwargs["freq_curriculum"] = lambda : 0.5
 
   print(f"env_kwargs are: {env_kwargs}")
 
@@ -133,7 +115,7 @@ if __name__=="__main__":
 
   # Visualise evaluations
   episode_lengths = []
-  num_trials = []
+  targets_hit = []
   rewards = []
   imgs = []
   for episode_idx in range(args.num_episodes):
@@ -154,7 +136,7 @@ if __name__=="__main__":
     while not done:
 
       # Get actions from policy
-      action, _states = model.predict(obs, deterministic=False)
+      action, _states = model.predict(obs, deterministic=True)
 
       # Take a step
       obs, r, done, info = env.step(action)
@@ -172,12 +154,13 @@ if __name__=="__main__":
         env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl * 0.7
         imgs.append(grab_pip_image(env))
 
-    print(f"Episode {episode_idx}: length {env.steps*env.dt} seconds ({env.steps} steps), reward {reward}. ")
+    #print(f"Episode {episode_idx}: targets hit {env.targets_hit}, length {env.steps*env.dt} seconds ({env.steps} steps), reward {reward}. ")
+    print(f"Episode {episode_idx}: length {env.steps * env.dt} seconds ({env.steps} steps), reward {reward}. ")
     episode_lengths.append(env.steps)
     rewards.append(reward)
-    #num_trials.append(env.trial_idx)
+    #targets_hit.append(env.targets_hit)
 
-  print(f'Averages over {args.num_episodes} episodes: '
+  print(f'Averages over {args.num_episodes} episodes: '#targets hit {np.mean(targets_hit)}, '
         f'length {np.mean(episode_lengths)*env.dt} seconds ({np.mean(episode_lengths)} steps), reward {np.mean(rewards)}')
 
   if args.logging:
