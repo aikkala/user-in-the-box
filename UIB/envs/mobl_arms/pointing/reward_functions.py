@@ -21,6 +21,21 @@ class ExpDistanceWithHitBonus(BaseFunction):
   def __repr__(self):
     return "ExpDistanceWithHitBonus"
 
+class ExpDistanceWithTimeBonus(BaseFunction):
+
+  def get(self, env, dist, info):
+    if info["target_hit"]:
+      time_left = 1 - (env.steps_since_last_hit / env.max_steps_without_hit)
+      max_reward = env.max_steps_without_hit*env.dt
+      return 1 + time_left*max_reward
+    else:
+      # Get distance to surface
+      dist = dist - env.target_radius
+      return np.exp(-dist * 10) / 10
+
+  def __repr__(self):
+    return "ExpDistanceWithHitBonus"
+
 class NegativeDistanceWithHitBonus(BaseFunction):
 
   def get(self, env, dist, info):
@@ -46,16 +61,16 @@ class PositiveBinary(BaseFunction):
   def __repr__(self):
     return "PositiveBinary"
 
-class NegativeBinaryWithHitBonus(BaseFunction):
+class TimeCost(BaseFunction):
 
   def get(self, env, dist, info):
     if info["target_hit"]:
-      return 10
+      return 8
     else:
-      return -1
+      return -0.1
 
   def __repr__(self):
-    return "NegativeBinary"
+    return "TimeCost"
 
 
 class NegativeExpDistance(BaseFunction):
