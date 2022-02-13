@@ -73,7 +73,7 @@ class TimeCost(BaseFunction):
     return "TimeCost"
 
 
-class NegativeExpDistance(BaseFunction):
+class NegativeExpDistanceWithHitBonus(BaseFunction):
 
   def __init__(self, k):
     self.k = k
@@ -91,4 +91,4 @@ class NegativeExpDistance(BaseFunction):
       return (np.exp(-dist*k) - 1)/10
 
   def __repr__(self):
-    return "ExpDistance"
+    return "NegativeExpDistanceWithHitBonus"
