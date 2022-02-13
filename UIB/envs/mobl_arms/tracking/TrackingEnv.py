@@ -16,9 +16,9 @@ class TrackingEnv(FixedEye):
     self.steps = 0
 
     # Define some limits for target movement speed
-    self.min_frequency = 0.1
+    self.min_frequency = 0.01
     self.max_frequency = 2
-    self.freq_curriculum = kwargs.get('freq_curriculum', lambda x: 1.0)
+    self.freq_curriculum = kwargs.get('freq_curriculum', lambda : 1.0)
 
     # Define a visual buffer
     self.visual_buffer = deque(maxlen=3)
@@ -72,11 +72,11 @@ class TrackingEnv(FixedEye):
     # Is fingertip inside target?
     if dist <= self.target_radius:
       info["inside_target"] = True
-      reward = 0
+      reward = 1
     else:
       info["inside_target"] = False
       # Estimate reward as distance to target surface
-      reward = np.exp(-(dist-self.target_radius) * 10) - 1
+      reward = np.exp(-(dist-self.target_radius)*10)/10
 
     # Check if time limit has been reached
     self.steps += 1
