@@ -64,14 +64,16 @@ class NegativeExpDistance(BaseFunction):
     self.k = k
 
   def get(self, env, dist, info):
-    if info["inside_target"]:
+    if info["target_hit"]:
+      return 8
+    elif info["inside_target"]:
       return 0
     else:
       if callable(self.k):
         k = self.k()
       else:
         k = self.k
-      return np.exp(-dist*k) - 1
+      return (np.exp(-dist*k) - 1)/10
 
   def __repr__(self):
     return "ExpDistance"

@@ -96,8 +96,12 @@ class PointingEnv(FixedEye):
       # Check if time limit has been reached
       self.steps_since_last_hit += 1
       if self.steps_since_last_hit >= self.max_steps_without_hit:
-        finished = True
-        info["termination"] = "time_limit_reached"
+        #finished = True
+        #info["termination"] = "time_limit_reached"
+        # Spawn a new target
+        self.steps_since_last_hit = 0
+        self.trial_idx += 1
+        self.spawn_target()
 
     # Check if max number trials reached
     if self.trial_idx >= self.max_trials:
@@ -185,11 +189,12 @@ class ProprioceptionAndVisual(PointingEnv):
     observation["visual"] = observation["visual"][:, :, 3, None]
 
     # Time features (time left to reach target, time spent inside target)
-    time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit])
+    #time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit])
+    targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
     dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwell_threshold])
 
     # Append to proprioception since those will be handled with a fully-connected layer
-    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([dwell_time, time_left])])
+    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([dwell_time, targets_hit])])
 
     return observation
 
