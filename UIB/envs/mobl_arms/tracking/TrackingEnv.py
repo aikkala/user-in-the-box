@@ -15,9 +15,13 @@ class TrackingEnv(FixedEye):
     self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*episode_length_seconds)
     self.steps = 0
 
+    # Define some early termination limits
+    self.max_steps_outside_target = self.action_sample_freq*1
+    self.steps_outside_target = 0
+
     # Define some limits for target movement speed
     self.min_frequency = 0.01
-    self.max_frequency = 2
+    self.max_frequency = 0.5
     self.freq_curriculum = kwargs.get('freq_curriculum', lambda : 1.0)
 
     # Define a visual buffer
@@ -25,6 +29,7 @@ class TrackingEnv(FixedEye):
 
     # Target radius
     self.target_radius = kwargs.get('target_radius', 0.05)
+    self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
 
     # Do a forward step so stuff like geom and body positions are calculated
     self.sim.forward()
@@ -73,16 +78,23 @@ class TrackingEnv(FixedEye):
     if dist <= self.target_radius:
       info["inside_target"] = True
       reward = 1
+      self.steps_outside_target = 0
     else:
       info["inside_target"] = False
       # Estimate reward as distance to target surface
       reward = np.exp(-(dist-self.target_radius)*10)/10
+      self.steps_outside_target += 1
 
     # Check if time limit has been reached
     self.steps += 1
     if self.steps >= self.max_episode_steps:
       finished = True
       info["termination"] = "time_limit_reached"
+
+    # Check if fingertip hasn't been inside target for a long time
+    if self.steps_outside_target >= self.max_steps_outside_target:
+      finished = True
+      info["termination"] = "max_steps_outside_target_reached"
 
     # Add an effort cost to reward
     reward += self.effort_term.get(self)
@@ -96,6 +108,7 @@ class TrackingEnv(FixedEye):
 
     # Reset counters
     self.steps = 0
+    self.steps_outside_target = 0
 
     # Reset visual buffer
     self.visual_buffer.clear()
@@ -169,5 +182,12 @@ class ProprioceptionAndVisual(TrackingEnv):
     # Use only depth image
     observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[2],
                                             self.visual_buffer[2] - self.visual_buffer[0]], axis=2)
+
+    # Estimate time outside target
+    time_left = -1.0 + 2*np.min([1.0, self.steps_outside_target/self.max_steps_outside_target])
+
+    # Append to proprioception since those will be handled with a fully-connected layer
+    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([time_left])])
+
 
     return observation
