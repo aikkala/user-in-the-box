@@ -19,6 +19,7 @@ class PointingEnv(FixedEye):
     # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
     self.trial_idx = 0
     self.max_trials = kwargs.get('max_trials', 10)
+    self.targets_hit = 0
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
     self.steps_inside_target = 0
@@ -59,7 +60,7 @@ class PointingEnv(FixedEye):
     self.set_ctrl(action)
 
     finished = False
-    info = {"termination": False}
+    info = {"termination": False, "target_spawned": False}
     try:
       self.sim.step()
     except mujoco_py.builder.MujocoException:
@@ -85,9 +86,11 @@ class PointingEnv(FixedEye):
       # Update counters
       info["target_hit"] = True
       self.trial_idx += 1
+      self.targets_hit += 1
       self.steps_since_last_hit = 0
       self.steps_inside_target = 0
       self.spawn_target()
+      info["target_spawned"] = True
 
     else:
 
@@ -102,6 +105,7 @@ class PointingEnv(FixedEye):
         self.steps_since_last_hit = 0
         self.trial_idx += 1
         self.spawn_target()
+        info["target_spawned"] = True
 
     # Check if max number trials reached
     if self.trial_idx >= self.max_trials:
@@ -122,10 +126,13 @@ class PointingEnv(FixedEye):
 
   def get_state(self):
     state = super().get_state()
-    state["target_position"] = self.target_origin.copy()+self.target_position.copy(),
+    state["target_position"] = self.target_origin.copy()+self.target_position.copy()
     state["target_radius"] = self.target_radius
     state["target_hit"] = False
     state["inside_target"] = False
+    state["target_spawned"] = False
+    state["trial_idx"] = self.trial_idx
+    state["targets_hit"] = self.targets_hit
     return state
 
   def reset(self):
@@ -135,6 +142,7 @@ class PointingEnv(FixedEye):
     self.steps = 0
     self.steps_inside_target = 0
     self.trial_idx = 0
+    self.targets_hit = 0
 
     # Spawn a new location
     self.spawn_target()
@@ -162,6 +170,16 @@ class PointingEnv(FixedEye):
     # Set target radius
     self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
 
+    self.sim.forward()
+
+  def set_target_position(self, position):
+    self.target_position = position.copy()
+    self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
+    self.sim.forward()
+
+  def set_target_radius(self, radius):
+    self.target_radius = radius
+    self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
     self.sim.forward()
 
 
