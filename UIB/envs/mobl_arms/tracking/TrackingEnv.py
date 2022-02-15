@@ -16,11 +16,11 @@ class TrackingEnv(FixedEye):
     self.steps = 0
 
     # Define some early termination limits
-    self.max_steps_outside_target = self.action_sample_freq*1
+    self.max_steps_outside_target = self.max_episode_steps+1#self.action_sample_freq*1
     self.steps_outside_target = 0
 
     # Define some limits for target movement speed
-    self.min_frequency = 0.01
+    self.min_frequency = 0.0
     self.max_frequency = 0.5
     self.freq_curriculum = kwargs.get('freq_curriculum', lambda : 1.0)
 
@@ -77,12 +77,9 @@ class TrackingEnv(FixedEye):
     # Is fingertip inside target?
     if dist <= self.target_radius:
       info["inside_target"] = True
-      reward = 1
       self.steps_outside_target = 0
     else:
       info["inside_target"] = False
-      # Estimate reward as distance to target surface
-      reward = np.exp(-(dist-self.target_radius)*10)/10
       self.steps_outside_target += 1
 
     # Check if time limit has been reached
@@ -96,8 +93,12 @@ class TrackingEnv(FixedEye):
       finished = True
       info["termination"] = "max_steps_outside_target_reached"
 
+    # Calculate reward; note, inputting distance to surface into reward function, hence distance can be negative if
+    # fingertip is inside target
+    reward = self.reward_function.get(self, dist-self.target_radius, info)
+
     # Add an effort cost to reward
-    reward += self.effort_term.get(self)
+    reward -= self.effort_term.get(self)
 
     # Update target location
     self.update_target_location()
@@ -133,13 +134,16 @@ class TrackingEnv(FixedEye):
     # Generate a sine wave with multiple components
     t = np.arange(self.max_episode_steps+1) * self.dt
     sine = np.zeros((t.size,))
+    sum_amplitude = 0
     for _ in range(num_components):
-      sine += self.rng.uniform(min_amplitude, max_amplitude) *\
+      amplitude = self.rng.uniform(min_amplitude, max_amplitude)
+      sine +=  amplitude *\
               np.sin(self.rng.uniform(self.min_frequency, max_frequency)*2*np.pi*t + self.rng.uniform(0, 2*np.pi))
+      sum_amplitude += amplitude
 
     # Normalise to fit limits
-    sine = sine-np.min(sine)
-    sine = sine / np.max(sine)
+    #sine = sine-np.min(sine)
+    sine = (sine + sum_amplitude) / (2*sum_amplitude)
     sine = limits[0] + (limits[1] - limits[0])*sine
 
     return sine
@@ -180,14 +184,13 @@ class ProprioceptionAndVisual(TrackingEnv):
       self.visual_buffer.appendleft(depth)
 
     # Use only depth image
-    observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[2],
-                                            self.visual_buffer[2] - self.visual_buffer[0]], axis=2)
+    observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[2]], axis=2)
 
     # Estimate time outside target
-    time_left = -1.0 + 2*np.min([1.0, self.steps_outside_target/self.max_steps_outside_target])
+    #time_left = -1.0 + 2*np.min([1.0, self.steps_outside_target/self.max_steps_outside_target])
 
     # Append to proprioception since those will be handled with a fully-connected layer
-    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([time_left])])
+    #observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([time_left])])
 
 
     return observation
