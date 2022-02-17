@@ -16,7 +16,7 @@ class TrackingEnv(FixedEye):
     self.steps = 0
 
     # Define some early termination limits
-    self.max_steps_outside_target = self.action_sample_freq*1
+    self.max_steps_outside_target = self.action_sample_freq*20
     self.steps_outside_target = 0
 
     # Define some limits for target movement speed
@@ -184,10 +184,10 @@ class ProprioceptionAndVisual(TrackingEnv):
                                             self.visual_buffer[2] - self.visual_buffer[0]], axis=2)
 
     # Estimate time outside target
-    time_left = -1.0 + 2*np.min([1.0, self.steps_outside_target/self.max_steps_outside_target])
+    #time_left = -1.0 + 2*np.min([1.0, self.steps_outside_target/self.max_steps_outside_target])
 
     # Append to proprioception since those will be handled with a fully-connected layer
-    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([time_left])])
+    #observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([time_left])])
 
 
     return observation
