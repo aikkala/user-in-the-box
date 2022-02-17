@@ -12,6 +12,7 @@ from UIB.models.sb3.callbacks import LinearCurriculum
 
 from UIB.utils import effort_terms
 import UIB.envs.mobl_arms.pointing.reward_functions as pointing_rewards
+import UIB.envs.mobl_arms.tracking.reward_functions as tracking_rewards
 
 
 mobl_arms_pointing_v0 = {
@@ -71,6 +72,7 @@ mobl_arms_tracking_v1 = {
   "env_kwargs": {"target_radius": 0.05,
                  "action_sample_freq": 20,
                  "effort_term": effort_terms.Neural(),
+                 "reward_function": tracking_rewards.ExpDistanceWithHitBonus(k=10),
                  "freq_curriculum": target_speed_curriculum.value,
                  "episode_length_seconds": 10,
                  "callbacks": [target_speed_curriculum]},
@@ -80,6 +82,6 @@ mobl_arms_tracking_v1 = {
                     "log_std_init": 0.0,
                     "features_extractor_class": VisualAndProprioceptionExtractor,
                     "normalize_images": False},
-    "lr": linear_schedule(initial_value=1e-4, min_value=1e-7, threshold=0.5),
+  "lr": linear_schedule(initial_value=1e-4, min_value=1e-7, threshold=0.5),
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
