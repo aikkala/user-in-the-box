@@ -45,6 +45,9 @@ class FixedEye(ABC, gym.Env):
     self.reward_function = kwargs.get('reward_function', None)
     self.effort_term = kwargs.get('effort_term', effort_terms.Zero())
 
+    # Add noise to proprioception observations?
+    self.proprioception_noise = kwargs.get('proprioception_noise', None)
+
     # Observations from eye shouldn't be rendered when they are not needed
     self.render_observations = kwargs.get('render_observations', True)
 
@@ -91,6 +94,13 @@ class FixedEye(ABC, gym.Env):
     # Normalise act
     act = (self.sim.data.act.copy() - 0.5) * 2
 
+    # Proprioception features
+    proprioception = np.concatenate([qpos, qvel, qacc, fingertip_position, act])
+
+    # If self.proprioception_noise is defined, add zero-mean gaussian noise into proprioception
+    if self.proprioception_noise is not None:
+      proprioception += self.rng.normal(scale=self.proprioception_noise, size=proprioception.size)
+
     if self.render_observations:
       # Get visual observation and normalize
       render = self.sim.render(width=self.width, height=self.height, camera_name='oculomotor', depth=True)
@@ -102,8 +112,7 @@ class FixedEye(ABC, gym.Env):
     else:
       visual = None
 
-    return {'proprioception': np.concatenate([qpos, qvel, qacc, fingertip_position, act]),
-            'visual': visual}
+    return {'proprioception': proprioception, 'visual': visual}
 
   def reset(self):
 
