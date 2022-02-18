@@ -5,6 +5,7 @@ import numpy as np
 import os
 import pathlib
 from abc import ABC, abstractmethod
+import xml.etree.ElementTree as ET
 
 from UIB.utils.functions import project_path
 from UIB.utils import effort_terms
@@ -12,10 +13,13 @@ from UIB.utils import effort_terms
 
 class FixedEye(ABC, gym.Env):
 
-  def __init__(self, **kwargs):
+  # Model file
+  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles.xml")
 
-    # Model file
-    xml_file = os.path.join(project_path(), "envs/mobl_arms/models/FixedEye/mobl_arms_muscles.xml")
+  # Fingertip
+  fingertip = "hand_2distph"
+
+  def __init__(self, **kwargs):
 
     # Set action sampling
     self.action_sample_freq = kwargs.get('action_sample_freq', 10)
@@ -26,7 +30,7 @@ class FixedEye(ABC, gym.Env):
     self.rng = np.random.default_rng()
 
     # Initialise model and sim
-    self.model = mujoco_py.load_model_from_path(os.path.join(project_path(), xml_file))
+    self.model = mujoco_py.load_model_from_path(self.xml_file)
     self.sim = mujoco_py.MjSim(self.model, nsubsteps=self.frame_skip)
 
     # Get indices of dependent and independent joints
@@ -36,9 +40,6 @@ class FixedEye(ABC, gym.Env):
     # Set action space
     muscles_limits = np.ones((self.model.na,2)) * np.array([-1.0, 1.0])
     self.action_space = spaces.Box(low=np.float32(muscles_limits[:, 0]), high=np.float32(muscles_limits[:, 1]))
-
-    # Fingertip is tracked for e.g. reward calculation and logging
-    self.fingertip = "hand_2distph"
 
     # Get reward function and effort term
     self.reward_function = kwargs.get('reward_function', None)

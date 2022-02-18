@@ -2,7 +2,7 @@ import numpy as np
 import mujoco_py
 from gym import spaces
 
-from UIB.envs.mobl_arms.models.FixedEye.FixedEye import FixedEye
+from UIB.envs.mobl_arms.models.FixedEye import FixedEye
 from UIB.envs.mobl_arms.pointing.reward_functions import ExpDistanceWithHitBonus
 
 class PointingEnv(FixedEye):
