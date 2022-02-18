@@ -221,6 +221,7 @@ class Proprioception(PointingEnv):
   metadata = {'render.modes': ['human']}
 
   def __init__(self, **kwargs):
+
     # Make sure images aren't rendered while get_observation is called, it would slow down computations a lot
     super().__init__(render_observations=False, **kwargs)
 
@@ -233,15 +234,17 @@ class Proprioception(PointingEnv):
     self.observation_space = spaces.Box(low=np.float32(low), high=np.float32(high))
 
   def get_observation(self):
+
     # Get proprioception + visual observation
     observation = super().get_observation()
 
     # Time features (time left to reach target, time spent inside target)
-    time_left = -1.0 + 2 * np.min([1.0, self.steps_since_last_hit / self.max_steps_without_hit])
+    #time_left = -1.0 + 2 * np.min([1.0, self.steps_since_last_hit / self.max_steps_without_hit])
+    targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
     dwell_time = -1.0 + 2 * np.min([1.0, self.steps_inside_target / self.dwell_threshold])
 
     # Append target position + radius and time features to proprioception
     features = np.concatenate([observation["proprioception"], self.target_position.copy(),
-                               np.array([self.target_radius, dwell_time, time_left])])
+                               np.array([self.target_radius, dwell_time, targets_hit])])
 
     return features
