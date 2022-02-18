@@ -3,11 +3,9 @@ import numpy as np
 from platform import uname
 
 from UIB.models.sb3.schedule import linear_schedule
-from UIB.models.sb3.policies import MultiInputActorCriticPolicyTanhActions
+from UIB.models.sb3.policies import MultiInputActorCriticPolicyTanhActions, ActorCriticPolicyTanhActions
 from UIB.models.sb3.feature_extractor import VisualAndProprioceptionExtractor
 from UIB.models.sb3.PPO import PPO
-from UIB.models.sb3.recurrent_policies import RecurrentMultiInputActorCriticPolicyTanhActions
-from UIB.models.sb3.RecurrentPPO import RecurrentPPO
 from UIB.models.sb3.callbacks import LinearCurriculum
 
 from UIB.utils import effort_terms
@@ -30,7 +28,7 @@ mobl_arms_pointing_v0 = {
                  "effort_term": effort_terms.Neural(),
                  "reward_function": pointing_rewards.NegativeExpDistanceWithHitBonus(k=10),
                  "callbacks": []},
-  "policy_type": MultiInputActorCriticPolicyTanhActions,
+  "policy_type": ActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
                     "log_std_init": 0.0},
