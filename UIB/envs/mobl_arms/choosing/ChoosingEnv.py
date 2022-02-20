@@ -28,17 +28,20 @@ class ChoosingEnv(FixedEye):
     screen.append(ET.Element('geom', name='screen', type="box", size="0.2 0.2 0.005"))
     worldbody.append(screen)
 
+    # Try to place buttons in front of shoulder
+    shoulder_pos = np.array([-0.017555, -0.17, 0.993])
+
     # Add buttons of different colors
     self.buttons = []
-    self.current_button = None
-    self.add_button(root, worldbody, idx=0, position=np.array([0.5, 0.225, 0.8]), euler="0 -0.79 0",
-                    color=np.array([0.8, 0.1, 0.1, 1.0]))
-    self.add_button(root, worldbody, idx=1, position=np.array([0.5, 0.075, 0.8]), euler="0 -0.79 0",
-                    color=np.array([0.1, 0.8, 0.1, 1.0]))
-    self.add_button(root, worldbody, idx=2, position=np.array([0.5, -0.075, 0.8]), euler="0 -0.79 0",
-                    color=np.array([0.1, 0.1, 0.8, 1.0]))
-    self.add_button(root, worldbody, idx=3, position=np.array([0.5, -0.225, 0.8]), euler="0 -0.79 0",
-                    color=np.array([0.8, 0.8, 0.1, 1.0]))
+    self.add_button(root, worldbody, idx=0, position=shoulder_pos + np.array([0.41, -0.07, -0.15]),
+                    euler="0 -0.79 0", color=np.array([0.8, 0.1, 0.1, 1.0]))
+    self.add_button(root, worldbody, idx=1, position=shoulder_pos + np.array([0.41, 0.07, -0.15]),
+                    euler="0 -0.79 0", color=np.array([0.1, 0.8, 0.1, 1.0]))
+    self.add_button(root, worldbody, idx=2, position=shoulder_pos + np.array([0.5, -0.07, -0.05]),
+                    euler="0 -0.79 0", color=np.array([0.1, 0.1, 0.8, 1.0]))
+    self.add_button(root, worldbody, idx=3, position=shoulder_pos + np.array([0.5, 0.07, -0.05]),
+                    euler="0 -0.79 0", color=np.array([0.8, 0.8, 0.1, 1.0]))
+    self.current_button = self.buttons[0]
 
     # Save the modified XML file and replace old one
     xml_file = os.path.join(project_path(), 'envs/mobl_arms/models/variants/choosing_env.xml')
@@ -149,8 +152,12 @@ class ChoosingEnv(FixedEye):
 
   def choose_button(self):
 
-    # Choose a new button randomly
-    self.current_button = np.random.choice(self.buttons)
+    # Choose a new button randomly, but don't choose the same button as previous one
+    while True:
+      new_button = np.random.choice(self.buttons)
+      if new_button["idx"] != self.current_button["idx"]:
+        self.current_button = new_button
+        break
 
     # Set color of screen
     self.model.geom_rgba[self.model._geom_name2id['screen']] = self.current_button["color"]
