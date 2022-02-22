@@ -97,9 +97,10 @@ class FixedEye(ABC, gym.Env):
     # Proprioception features
     proprioception = np.concatenate([qpos, qvel, qacc, fingertip_position, act])
 
-    # If self.proprioception_noise is defined, add zero-mean gaussian noise into proprioception
+    # If self.proprioception_noise is defined, scramble observations with some probability
     if self.proprioception_noise is not None:
-      proprioception += self.rng.normal(scale=self.proprioception_noise, size=proprioception.size)
+      if self.rng.random() < self.proprioception_noise:
+        self.rng.shuffle(proprioception)
 
     if self.render_observations:
       # Get visual observation and normalize
