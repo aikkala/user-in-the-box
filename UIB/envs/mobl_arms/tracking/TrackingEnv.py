@@ -3,7 +3,8 @@ import mujoco_py
 from gym import spaces
 from collections import deque
 
-from UIB.envs.mobl_arms.models.FixedEye.FixedEye import FixedEye
+from UIB.envs.mobl_arms.models.FixedEye import FixedEye
+from UIB.envs.mobl_arms.tracking.reward_functions import ExpDistanceWithHitBonus
 
 class TrackingEnv(FixedEye):
 
@@ -15,17 +16,18 @@ class TrackingEnv(FixedEye):
     self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*episode_length_seconds)
     self.steps = 0
 
-    # Define some early termination limits
-    self.max_steps_outside_target = self.max_episode_steps+1#self.action_sample_freq*1
-    self.steps_outside_target = 0
-
     # Define some limits for target movement speed
     self.min_frequency = 0.0
     self.max_frequency = 0.5
     self.freq_curriculum = kwargs.get('freq_curriculum', lambda : 1.0)
 
-    # Define a visual buffer
-    self.visual_buffer = deque(maxlen=3)
+    # Define a default reward function
+    if self.reward_function is None:
+      self.reward_function = ExpDistanceWithHitBonus()
+
+    # Define a visual buffer; use a size equivalent to 0.1 seconds
+    maxlen = 1 + int(0.1/self.dt)
+    self.visual_buffer = deque(maxlen=maxlen)
 
     # Target radius
     self.target_radius = kwargs.get('target_radius', 0.05)
@@ -77,21 +79,14 @@ class TrackingEnv(FixedEye):
     # Is fingertip inside target?
     if dist <= self.target_radius:
       info["inside_target"] = True
-      self.steps_outside_target = 0
     else:
       info["inside_target"] = False
-      self.steps_outside_target += 1
 
     # Check if time limit has been reached
     self.steps += 1
     if self.steps >= self.max_episode_steps:
       finished = True
       info["termination"] = "time_limit_reached"
-
-    # Check if fingertip hasn't been inside target for a long time
-    if self.steps_outside_target >= self.max_steps_outside_target:
-      finished = True
-      info["termination"] = "max_steps_outside_target_reached"
 
     # Calculate reward; note, inputting distance to surface into reward function, hence distance can be negative if
     # fingertip is inside target
@@ -109,7 +104,6 @@ class TrackingEnv(FixedEye):
 
     # Reset counters
     self.steps = 0
-    self.steps_outside_target = 0
 
     # Reset visual buffer
     self.visual_buffer.clear()
@@ -142,7 +136,6 @@ class TrackingEnv(FixedEye):
       sum_amplitude += amplitude
 
     # Normalise to fit limits
-    #sine = sine-np.min(sine)
     sine = (sine + sum_amplitude) / (2*sum_amplitude)
     sine = limits[0] + (limits[1] - limits[0])*sine
 
@@ -184,13 +177,8 @@ class ProprioceptionAndVisual(TrackingEnv):
       self.visual_buffer.appendleft(depth)
 
     # Use only depth image
-    observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[2]], axis=2)
-
-    # Estimate time outside target
-    #time_left = -1.0 + 2*np.min([1.0, self.steps_outside_target/self.max_steps_outside_target])
-
-    # Append to proprioception since those will be handled with a fully-connected layer
-    #observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([time_left])])
-
+    #observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[-1]], axis=2)
+    observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[-1],
+                                            self.visual_buffer[-1] - self.visual_buffer[0]], axis=2)
 
     return observation
