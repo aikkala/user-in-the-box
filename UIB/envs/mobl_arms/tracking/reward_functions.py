@@ -13,7 +13,7 @@ class BaseFunction(ABC):
 class ExpDistanceWithHitBonus(BaseFunction):
 
   def get(self, env, dist, info):
-    if info["target_hit"]:
+    if info["inside_target"]:
       return 1
     else:
       return np.exp(-dist * 10) / 10

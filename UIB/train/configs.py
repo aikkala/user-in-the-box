@@ -62,7 +62,7 @@ mobl_arms_pointing_v1 = {
 
 target_speed_curriculum = LinearCurriculum("target_speed_curriculum", start_value=0, end_value=1, end_timestep=50_000_000)
 mobl_arms_tracking_v1 = {
-  "name": "tracking-big-net-no-early-termination",
+  "name": "tracking-v1",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-tracking-v1",
@@ -72,13 +72,13 @@ mobl_arms_tracking_v1 = {
   "env_kwargs": {"target_radius": 0.05,
                  "action_sample_freq": 20,
                  "effort_term": effort_terms.Neural(),
-                 "reward_function": tracking_rewards.NegativeExpDistanceWithHitBonus(k=10),
+                 "reward_function": tracking_rewards.ExpDistanceWithHitBonus(),
                  "freq_curriculum": target_speed_curriculum.value,
                  "episode_length_seconds": 10,
                  "callbacks": [target_speed_curriculum]},
   "policy_type": MultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
-                    "net_arch": [512, 512, 512],
+                    "net_arch": [256, 256],
                     "log_std_init": 0.0,
                     "features_extractor_class": VisualAndProprioceptionExtractor,
                     "normalize_images": False},
