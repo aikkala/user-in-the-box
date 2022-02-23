@@ -100,7 +100,9 @@ class FixedEye(ABC, gym.Env):
     # If self.proprioception_noise is defined, scramble observations with some probability
     if self.proprioception_noise is not None:
       if self.rng.random() < self.proprioception_noise:
-        self.rng.shuffle(proprioception)
+        #self.rng.shuffle(proprioception)
+        #proprioception = self.rng.uniform(low=-1, high=1, size=proprioception.size)
+        proprioception = np.array([])
 
     if self.render_observations:
       # Get visual observation and normalize
