@@ -29,13 +29,13 @@ class NegativeExpDistanceWithHitBonus(BaseFunction):
 
   def get(self, env, dist, info):
     if info["inside_target"]:
-      return 0.1
+      return 1
     else:
       if callable(self.k):
         k = self.k()
       else:
         k = self.k
-      return (np.exp(-dist*k) - 1)/10
+      return np.exp(-dist*k) - 1
 
   def __repr__(self):
     return "NegativeExpDistanceWithHitBonus"
