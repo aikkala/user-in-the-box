@@ -628,58 +628,56 @@
 			<site site="BRD-P2"></site>
 			<site site="BRD-P3"></site>
 		</spatial>
-   <spatial name="ECRL_tendon" springlength="0.244" damping="0.017">
-      <site site="ECRL-P1"></site>
-      <site site="ECRL-P2"></site>
-      <site site="ECRL-P3"></site>
-      <site site="ECRL-P4"></site>
-    </spatial>
-    <spatial name="ECRB_tendon" springlength="0.2223" damping="0.017">
-      <site site="ECRB-P1"></site>
-      <site site="ECRB-P2"></site>
-      <site site="ECRB-P3"></site>
-      <site site="ECRB-P4"></site>
-    </spatial>
-    <spatial name="ECU_tendon" springlength="0.2285" damping="0.017">
-      <site site="ECU-P1"></site>
-      <site site="ECU-P2"></site>
-      <site site="ECU-P3"></site>
-      <site site="ECU-P4"></site>
-      <site site="ECU-P5"></site>
-      <site site="ECU-P6"></site>
-    </spatial>
-    <spatial name="FCR_tendon" springlength="0.244" damping="0.017">
-      <site site="FCR-P1"></site>
-      <site site="FCR-P2"></site>
-      <site site="FCR-P3"></site>
-    </spatial>
-    <spatial name="FCU_tendon" springlength="0.265" damping="0.017">
-      <site site="FCU-P1"></site>
-      <site site="FCU-P2"></site>
-      <site site="FCU-P3"></site>
-      <site site="FCU-P4"></site>
-    </spatial>
-    <spatial name="PL_tendon" springlength="0.2694" damping="0.017">
-      <site site="PL-P1"></site>
-      <site site="PL-P2"></site>
-      <site site="PL-P3"></site>
-      <site site="PL-P4"></site>
-    </spatial>
+	    <spatial name="ECRL_tendon" springlength="0.244" damping="0.017">
+		    <site site="ECRL-P1"></site>
+		    <site site="ECRL-P2"></site>
+		    <site site="ECRL-P3"></site>
+		    <site site="ECRL-P4"></site>
+		</spatial>
+		<spatial name="ECRB_tendon" springlength="0.2223" damping="0.017">
+		    <site site="ECRB-P1"></site>
+		    <site site="ECRB-P2"></site>
+		    <site site="ECRB-P3"></site>
+		  	<site site="ECRB-P4"></site>
+		</spatial>
+		<spatial name="ECU_tendon" springlength="0.2285" damping="0.017">
+		    <site site="ECU-P1"></site>
+		  	<site site="ECU-P2"></site>
+		  	<site site="ECU-P3"></site>
+		  	<site site="ECU-P4"></site>
+		  	<site site="ECU-P5"></site>
+		  	<site site="ECU-P6"></site>
+		</spatial>
+		<spatial name="FCR_tendon" springlength="0.244" damping="0.017">
+		    <site site="FCR-P1"></site>
+		  	<site site="FCR-P2"></site>
+		  	<site site="FCR-P3"></site>
+		</spatial>
+		<spatial name="FCU_tendon" springlength="0.265" damping="0.017">
+		    <site site="FCU-P1"></site>
+		  	<site site="FCU-P2"></site>
+		  	<site site="FCU-P3"></site>
+		  	<site site="FCU-P4"></site>
+		</spatial>
+		<spatial name="PL_tendon" springlength="0.2694" damping="0.017">
+		    <site site="PL-P1"></site>
+		  	<site site="PL-P2"></site>
+		  	<site site="PL-P3"></site>
+		  	<site site="PL-P4"></site>
+		</spatial>
 		<spatial name="PT_tendon" springlength="0.098" damping="0.017">
-			<site site="PT-P1"></site>
-			<site site="PT-P2"></site>
-			<site site="PT-P3"></site>
-			<site site="PT-P4"></site>
-			<site site="PT-P5"></site>
+		    <site site="PT-P1"></site>
+		  	<site site="PT-P2"></site>
+		  	<site site="PT-P3"></site>
+		  	<site site="PT-P4"></site>
+		  	<site site="PT-P5"></site>
 		</spatial>
 		<spatial name="PQ_tendon" springlength="0.005" damping="0.017">
-			<site site="PQ-P1"></site>
-			<site site="PQ-P2"></site>
+		    <site site="PQ-P1"></site>
+		  	<site site="PQ-P2"></site>
 		</spatial>
 	</tendon>
 	<actuator>
-		<general name="oculomotor-rx" joint="eye-rx" class="oculomotor"></general>
-		<general name="oculomotor-ry" joint="eye-ry" class="oculomotor"></general>
 		<muscle name="DELT1" scale="1218.9" tendon="DELT1_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="DELT2" scale="1103.5" tendon="DELT2_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="DELT3" scale="201.6" tendon="DELT3_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
@@ -704,12 +702,12 @@
 		<muscle name="BICshort" scale="316.8" tendon="BICshort_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="BRA" scale="1177.37" tendon="BRA_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="BRD" scale="276" tendon="BRD_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="ECRL" tendon="ECRL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="ECRB" tendon="ECRB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="ECU" tendon="ECU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="FCR" tendon="FCR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="FCU" tendon="FCU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
-    <muscle name="PL" tendon="PL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ECRL" tendon="ECRL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ECRB" tendon="ECRB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="ECU" tendon="ECU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="FCR" tendon="FCR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="FCU" tendon="FCU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="PL" tendon="PL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="PT" scale="557.2" tendon="PT_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="PQ" scale="284.7" tendon="PQ_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 	</actuator>
@@ -725,8 +723,8 @@
 		<joint name="unrothum_r2_con" joint1="unrothum_r2" joint2="shoulder_elv" active="true" polycoef="-2.77556e-17 0.0490002        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
 		<joint name="unrothum_r3_con" joint1="unrothum_r3" joint2="shoulder_elv" active="true" polycoef="1.11022e-16 -0.396002        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
 		<joint name="shoulder1_r2_con" joint1="shoulder1_r2" joint2="elv_angle" active="true" polycoef="       0       -1        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
-    <joint name="wrist_hand_r1_con" joint1="wrist_hand_r1" joint2="deviation" active="true" polycoef="2.77556e-17  1.35714 -0.818507        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
-    <joint name="wrist_hand_r3_con" joint1="wrist_hand_r3" joint2="flexion" active="true" polycoef="       0      0.5        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
+    	<joint name="wrist_hand_r1_con" joint1="wrist_hand_r1" joint2="deviation" active="true" polycoef="2.77556e-17  1.35714 -0.818507        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
+    	<joint name="wrist_hand_r3_con" joint1="wrist_hand_r3" joint2="flexion" active="true" polycoef="       0      0.5        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
 		<joint name="r_z_constraint" active="true" joint1="r_z" polycoef="0        0        0        0        0"></joint>
 		<weld name="origin_to_worldbody" body1="thorax" active="false"></weld>
 	</equality>
