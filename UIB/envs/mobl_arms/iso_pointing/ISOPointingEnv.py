@@ -13,7 +13,7 @@ def add_target(worldbody, target_radius, idx, position):
   # Add target
   target = ET.Element('body', name=f'target{idx}-body', pos=np.array2string(position)[1:-1])
   target.append(ET.Element('geom', name=f'target{idx}', type="sphere", size=str(target_radius),
-                           rgba="1.0 1.0 1.0 0.08"))
+                           rgba="0.1 0.8 0.1 0.0"))
   worldbody.append(target)
 
   # Add to collection of targets
@@ -56,7 +56,6 @@ class ISOPointingEnv(FixedEye):
     for idx, pos in enumerate(positions):
       self.targets.append(add_target(worldbody, target_radius=self.target_radius, idx=idx,
                                      position=self.target_origin + pos))
-    self.target_idx = 0
 
     # Save the modified XML file and replace old one
     xml_file = os.path.join(project_path(), f'envs/mobl_arms/models/variants/iso_pointing_env_{user}.xml')
@@ -66,6 +65,10 @@ class ISOPointingEnv(FixedEye):
 
     # Now initialise variants with the modified XML file
     super().__init__(**kwargs)
+
+    # Initialise first target
+    self.target_idx = -1
+    self.next_target()
 
     # Use early termination if target is not hit in time
     self.steps_since_last_hit = 0
@@ -186,14 +189,18 @@ class ISOPointingEnv(FixedEye):
 
     # Disable highlight of previous target
     self.model.geom_rgba[self.model._geom_name2id[self.targets[self.target_idx]["name"]]] = \
-      np.array([1.0, 1.0, 1.0, 0.08])
+      np.array([0.1, 0.8, 0.1, 0.0])
 
     # Choose next target in the list
-    self.target_idx = (self.target_idx+1) % len(self.targets)
+    #self.target_idx = (self.target_idx+1) % len(self.targets)
+    available_targets = list(range(len(self.targets)))
+    if self.target_idx in available_targets:
+      del available_targets[self.target_idx]
+    self.target_idx = self.rng.choice(available_targets)
 
     # Highlight new target
     self.model.geom_rgba[self.model._geom_name2id[self.targets[self.target_idx]["name"]]] = \
-      np.array([1.0, 1.0, 0.0, 1.0])
+      np.array([0.1, 0.8, 0.1, 1.0])
 
     self.sim.forward()
 
@@ -219,7 +226,7 @@ class ProprioceptionAndVisual(ISOPointingEnv):
     observation = super().get_observation()
 
     # Use only depth image
-    #observation["visual"] = observation["visual"][:, :, 3, None]
+    observation["visual"] = observation["visual"][:, :, 3, None]
 
     # Time features (how many targets left, time spent inside target)
     #targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
