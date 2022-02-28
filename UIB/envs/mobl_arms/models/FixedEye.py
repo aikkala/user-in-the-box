@@ -45,9 +45,6 @@ class FixedEye(ABC, gym.Env):
     self.reward_function = kwargs.get('reward_function', None)
     self.effort_term = kwargs.get('effort_term', effort_terms.Zero())
 
-    # Add noise to proprioception observations?
-    self.proprioception_noise = kwargs.get('proprioception_noise', None)
-
     # Observations from eye shouldn't be rendered when they are not needed
     self.render_observations = kwargs.get('render_observations', True)
 
@@ -96,13 +93,6 @@ class FixedEye(ABC, gym.Env):
 
     # Proprioception features
     proprioception = np.concatenate([qpos, qvel, qacc, fingertip_position, act])
-
-    # If self.proprioception_noise is defined, scramble observations with some probability
-    if self.proprioception_noise is not None:
-      if self.rng.random() < self.proprioception_noise:
-        #self.rng.shuffle(proprioception)
-        #proprioception = self.rng.uniform(low=-1, high=1, size=proprioception.size)
-        proprioception = np.array([])
 
     if self.render_observations:
       # Get visual observation and normalize
