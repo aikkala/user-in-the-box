@@ -119,6 +119,7 @@ mobl_arms_iso_pointing_v1 = {
   "num_workers": 10,
   "device": "cuda",
   "env_kwargs": {"user": "U1",
+                 "target_radius_limit": np.array([0.025, 0.15]),
                  "action_sample_freq": 20,
                  "effort_term": effort_terms.Neural(),
                  "reward_function": iso_pointing_rewards.NegativeExpDistanceWithHitBonus(k=10),
