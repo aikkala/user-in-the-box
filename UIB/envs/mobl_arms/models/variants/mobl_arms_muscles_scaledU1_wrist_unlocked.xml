@@ -26,6 +26,8 @@
 	<worldbody>
 		<body name="eye" pos="0 0 1.2" euler="0 -1.2 -1.57">
 			<geom name="eye-ball" type="sphere" size="0.025"></geom>
+			<joint name="eye-rx" type="hinge" axis="1 0 0" limited="true" range="-0.5 1.57"></joint>
+			<joint name="eye-ry" type="hinge" axis="0 1 0" limited="true" range="-1.3 1.3"></joint>
 			<camera name="oculomotor" mode="fixed" fovy="90"></camera>
 		</body>
 		<body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0">
@@ -256,6 +258,8 @@
 													<geom name="sdfastPISIFORMw" type="mesh" mesh="sdfastPISIFORMw"></geom>
 													<geom name="sdfastTRIQUETRALw" type="mesh" mesh="sdfastTRIQUETRALw"></geom>
 													<inertial pos="       0        0        0" mass="0.00010000000000000003" fullinertia="1.48038e-05 1.48038e-05 1.48038e-05        0        0        0"></inertial>
+                          <joint name="deviation" type="hinge" pos="0 0 0" axis="-0.819064 -0.135611 -0.557444" limited="true" range="-0.174533 0.436332" ref="0" user="1"></joint>
+                          <joint name="flexion" type="hinge" pos="0 0 0" axis="0.956427 -0.252207 0.147104" limited="true" range="-0.785398 0.785398" ref="0" user="1"></joint>
 													<body name="hand" pos="0.0048571 -0.0183163 0.00283128" quat="1.0 0.0 0.0 0.0">
 														<geom name="sdfast_1seg_hand_fr_c_5mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_5mc"></geom>
 														<geom name="sdfast_1seg_hand_fr_c_4mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_4mc"></geom>
@@ -404,6 +408,8 @@
 														<site name="APL-P8" pos="0.02878 -0.00674 -0.0187"></site>
 														<site name="APL-P9" pos="0.03076 -0.01583 -0.01885"></site>
 														<site name="APL-P6" pos="0.0332244 0.00608975 -0.00870125"></site>
+                            <joint name="wrist_hand_r1" type="hinge" pos="0 0 0" axis="0.899136 -0.349053 -0.26404" limited="false" range="-99999.9  99999.9" ref="0"></joint>
+                            <joint name="wrist_hand_r3" type="hinge" pos="0 0 0" axis="0.997119   0.0107 -0.075101" limited="false" range="-99999.9  99999.9" ref="0"></joint>
 														<body name="index0" pos="       0        0        0" euler="0 0 0">
 															<inertial pos="0 0 0" fullinertia="1e-05 1e-05 1e-05 0 0 0" mass="0.0010000000000000002"></inertial>
 															<geom type="mesh" mesh="sdfast_1seg_hand_fr_c_2mc" name="sdfast_1seg_hand_fr_c_2mc"></geom>
@@ -622,6 +628,43 @@
 			<site site="BRD-P2"></site>
 			<site site="BRD-P3"></site>
 		</spatial>
+	    <spatial name="ECRL_tendon" springlength="0.244" damping="0.017">
+		    <site site="ECRL-P1"></site>
+		    <site site="ECRL-P2"></site>
+		    <site site="ECRL-P3"></site>
+		    <site site="ECRL-P4"></site>
+		</spatial>
+		<spatial name="ECRB_tendon" springlength="0.2223" damping="0.017">
+		    <site site="ECRB-P1"></site>
+		    <site site="ECRB-P2"></site>
+		    <site site="ECRB-P3"></site>
+		  	<site site="ECRB-P4"></site>
+		</spatial>
+		<spatial name="ECU_tendon" springlength="0.2285" damping="0.017">
+		    <site site="ECU-P1"></site>
+		  	<site site="ECU-P2"></site>
+		  	<site site="ECU-P3"></site>
+		  	<site site="ECU-P4"></site>
+		  	<site site="ECU-P5"></site>
+		  	<site site="ECU-P6"></site>
+		</spatial>
+		<spatial name="FCR_tendon" springlength="0.244" damping="0.017">
+		    <site site="FCR-P1"></site>
+		  	<site site="FCR-P2"></site>
+		  	<site site="FCR-P3"></site>
+		</spatial>
+		<spatial name="FCU_tendon" springlength="0.265" damping="0.017">
+		    <site site="FCU-P1"></site>
+		  	<site site="FCU-P2"></site>
+		  	<site site="FCU-P3"></site>
+		  	<site site="FCU-P4"></site>
+		</spatial>
+		<spatial name="PL_tendon" springlength="0.2694" damping="0.017">
+		    <site site="PL-P1"></site>
+		  	<site site="PL-P2"></site>
+		  	<site site="PL-P3"></site>
+		  	<site site="PL-P4"></site>
+		</spatial>
 		<spatial name="PT_tendon" springlength="0.098" damping="0.017">
 		    <site site="PT-P1"></site>
 		  	<site site="PT-P2"></site>
@@ -659,6 +702,12 @@
 		<muscle name="BICshort" scale="316.8" tendon="BICshort_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="BRA" scale="1177.37" tendon="BRA_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="BRD" scale="276" tendon="BRD_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ECRL" tendon="ECRL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+		<muscle name="ECRB" tendon="ECRB_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="ECU" tendon="ECU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="FCR" tendon="FCR_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="FCU" tendon="FCU_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
+    	<muscle name="PL" tendon="PL_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="PT" scale="557.2" tendon="PT_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 		<muscle name="PQ" scale="284.7" tendon="PQ_tendon" class="muscle" timeconst="  0.7667 0.145985" ctrllimited="true" ctrlrange="       0        1"></muscle>
 	</actuator>
@@ -674,6 +723,8 @@
 		<joint name="unrothum_r2_con" joint1="unrothum_r2" joint2="shoulder_elv" active="true" polycoef="-2.77556e-17 0.0490002        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
 		<joint name="unrothum_r3_con" joint1="unrothum_r3" joint2="shoulder_elv" active="true" polycoef="1.11022e-16 -0.396002        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
 		<joint name="shoulder1_r2_con" joint1="shoulder1_r2" joint2="elv_angle" active="true" polycoef="       0       -1        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
+    	<joint name="wrist_hand_r1_con" joint1="wrist_hand_r1" joint2="deviation" active="true" polycoef="2.77556e-17  1.35714 -0.818507        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
+    	<joint name="wrist_hand_r3_con" joint1="wrist_hand_r3" joint2="flexion" active="true" polycoef="       0      0.5        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2"></joint>
 		<joint name="r_z_constraint" active="true" joint1="r_z" polycoef="0        0        0        0        0"></joint>
 		<weld name="origin_to_worldbody" body1="thorax" active="false"></weld>
 	</equality>
