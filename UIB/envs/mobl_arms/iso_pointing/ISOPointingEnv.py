@@ -246,9 +246,9 @@ class ProprioceptionAndVisual(ISOPointingEnv):
     observation["visual"] = observation["visual"][:, :, 3, None]
 
     # Time features (how many targets left, time spent inside target)
-    #targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
+    targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
 
     # Append to proprioception since those will be handled with a fully-connected layer
-    #observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([dwell_time, targets_hit])])
+    #observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([targets_hit])])
 
     return observation
