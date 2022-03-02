@@ -49,8 +49,8 @@ class FixedEye(ABC, gym.Env):
     self.render_observations = kwargs.get('render_observations', True)
 
     # Size of ocular image
-    self.height = 80
-    self.width = 120
+    self.ocular_image_height = kwargs.get('ocular_image_height', 80)
+    self.ocular_image_width = kwargs.get('ocular_image_width', 120)
 
     # Set camera stuff, self._viewers needs to be initialised before self.get_observation() is called
     self.viewer = None
@@ -96,7 +96,7 @@ class FixedEye(ABC, gym.Env):
 
     if self.render_observations:
       # Get visual observation and normalize
-      render = self.sim.render(width=self.width, height=self.height, camera_name='oculomotor', depth=True)
+      render = self.sim.render(width=self.ocular_image_width, height=self.ocular_image_height, camera_name='oculomotor', depth=True)
       depth = render[1]
       depth = np.flipud((depth - 0.5) * 2)
       rgb = render[0]
