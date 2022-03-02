@@ -22,11 +22,16 @@ class opensim_file(object):
     # Read filepath and parse it
     with open(filepath) as f:
       text = f.read()
+    self.filepath = filepath
+    self.opensim_xml_raw = text
     self.opensim_xml = xmltodict.parse(text)
     self.osim_version = self.opensim_xml["OpenSimDocument"]["@Version"]
+    self.opensim_xml_model = self.opensim_xml["OpenSimDocument"]["Model"]
     for setname in ["ForceSet", "BodySet", "ConstraintSet", "MarkerSet", "ContactGeometrySet"]:
-      setattr(self, setname, self.opensim_xml["OpenSimDocument"]["Model"][setname])
-    self.BodySet["objects"]["Body"].append(self.opensim_xml["OpenSimDocument"]["Model"]["Ground"])
+        if setname in self.opensim_xml_model:
+          setattr(self, setname, self.opensim_xml_model[setname])
+    if "Ground" in self.opensim_xml_model:
+        self.BodySet["objects"]["Body"].append(self.opensim_xml_model["Ground"])
 
   def __getattr__(self, name):
     for typeset in ["ForceSet", "BodySet", "ConstraintSet", "MarkerSet", "ContactGeometrySet"]:
@@ -109,8 +114,12 @@ def adjust_mujoco_model_pt0(mujoco_xml, osim_file):
     get_mujoco_body(mujoco_xml, "thorax")["@pos"] = array_to_strinterval(np.zeros((3,)))
     get_mujoco_body(mujoco_xml, "thorax")["@quat"] = array_to_strinterval([1, 0, 0, 0])
   except AssertionError:
-    get_mujoco_body(mujoco_xml, "ground")["@pos"] = array_to_strinterval(np.zeros((3,)))
-    get_mujoco_body(mujoco_xml, "ground")["@quat"] = array_to_strinterval([1, 0, 0, 0])
+    try:
+      get_mujoco_body(mujoco_xml, "ground")["@pos"] = array_to_strinterval(np.zeros((3,)))
+      get_mujoco_body(mujoco_xml, "ground")["@quat"] = array_to_strinterval([1, 0, 0, 0])
+    except AssertionError:
+      get_mujoco_body(mujoco_xml, "torso")["@pos"] = array_to_strinterval(np.zeros((3,)))
+      get_mujoco_body(mujoco_xml, "torso")["@quat"] = array_to_strinterval([1, 0, 0, 0])
   ##-> adjust direction of gravity
   if 'option' not in mujoco_xml['mujoco']:
     mujoco_xml['mujoco']['option'] = []
@@ -309,12 +318,22 @@ def get_mujoco_body(mujoco_xml, bodyname):
             text = f.read()
         mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
 
-    main_body = [i for i in mujoco_xml['mujoco']['worldbody']['body'] if i['@name'] == "thorax"]
-    assert len(main_body) == 1, "ERROR: More than one body with name 'thorax' detected!"
-    current_body = main_body[0]
+    if type(mujoco_xml['mujoco']['worldbody']['body']) == list:
+        main_body = [i for i in mujoco_xml['mujoco']['worldbody']['body'] if i['@name'] in ["thorax", "torso"]]
+        assert len(main_body) == 1, "ERROR: More than one body with name 'thorax' detected!"
+        current_body = main_body[0]
+    else:
+        main_body = mujoco_xml['mujoco']['worldbody']['body']
+        assert main_body['@name'] in ["thorax", "torso"], "ERROR: Body with name 'thorax' could not be detected!"
+        current_body = main_body
 
     while ('body' in current_body) and (current_body['@name'] != bodyname):
         current_body = current_body['body']
+        if type(current_body) == list:
+            main_branch_indices = [idx for idx, current_subbody in enumerate(current_body) if ('body' in current_subbody)]
+            assert len(main_branch_indices) == 1, "ERROR: Invalid kinematic chain. There is more than one sub-body which again has sub-bodies."
+            current_body = current_body[main_branch_indices[0]]
+
     assert (current_body['@name'] == bodyname), f"Body {bodyname} was not found!"
 
     return current_body
@@ -334,9 +353,14 @@ def get_mujoco_geom(mujoco_xml, geomname):
             text = f.read()
         mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
 
-    main_body = [i for i in mujoco_xml['mujoco']['worldbody']['body'] if i['@name'] == "thorax"]
-    assert len(main_body) == 1, "ERROR: More than one body with name 'thorax' detected!"
-    current_body = main_body[0]
+    if type(mujoco_xml['mujoco']['worldbody']['body']) == list:
+        main_body = [i for i in mujoco_xml['mujoco']['worldbody']['body'] if i['@name'] in ["thorax", "torso"]]
+        assert len(main_body) == 1, "ERROR: More than one body with name 'thorax' detected!"
+        current_body = main_body[0]
+    else:
+        main_body = mujoco_xml['mujoco']['worldbody']['body']
+        assert main_body['@name'] in ["thorax", "torso"], "ERROR: Body with name 'thorax' could not be detected!"
+        current_body = main_body
     current_body_geoms = current_body['geom'] if (
                 ('geom' in current_body) and (type(current_body['geom']) == list)) else [current_body['geom']] if (
                 ('geom' in current_body) and (type(current_body['geom']) == dict)) else []
@@ -368,9 +392,14 @@ def find_body_of_site(mujoco_xml, sitename):
             text = f.read()
         mujoco_xml = xmltodict.parse(text, dict_constructor=dict, process_namespaces=True, ordered_mixed_children=True)
 
-    main_body = [i for i in mujoco_xml['mujoco']['worldbody']['body'] if i['@name'] == "thorax"]
-    assert len(main_body) == 1, "ERROR: More than one body with name 'thorax' detected!"
-    current_body = main_body[0]
+    if type(mujoco_xml['mujoco']['worldbody']['body']) == list:
+        main_body = [i for i in mujoco_xml['mujoco']['worldbody']['body'] if i['@name'] in ["thorax", "torso"]]
+        assert len(main_body) == 1, "ERROR: More than one body with name 'thorax' detected!"
+        current_body = main_body[0]
+    else:
+        main_body = mujoco_xml['mujoco']['worldbody']['body']
+        assert main_body['@name'] in ["thorax", "torso"], "ERROR: Body with name 'thorax' could not be detected!"
+        current_body = main_body
     current_body_sites = current_body['site'] if (
                 ('site' in current_body) and (type(current_body['site']) == list)) else [current_body['site']] if (
                 ('site' in current_body) and (type(current_body['site']) == dict)) else []
@@ -723,7 +752,7 @@ def compute_time_activation_constants(osim_file_or_path, act_linearization=0.5, 
         raise TypeError(
             "Argument of compute_time_activation_constants() needs to be OpenSim file path or parsed class.")
 
-    if osim_file.Schutte1993Muscle_Deprecated:  #if "Schutte1993Muscle_Deprecated" muscles are used
+    if "Schutte1993Muscle_Deprecated" in osim_file.opensim_xml_raw:  #if "Schutte1993Muscle_Deprecated" muscles are used
         activation1 = list(set(osim_file.activation1.values()))
         assert len(activation1) == 1
         activation1 = float(activation1[0])
@@ -740,7 +769,7 @@ def compute_time_activation_constants(osim_file_or_path, act_linearization=0.5, 
         time_deact = time_scale * (0.5 + 1.5 * act_linearization) / activation2
 
         return time_act, time_deact
-    elif osim_file.Millard2012EquilibriumMuscle or osim_file.Thelen2003Muscle:  #if "Millard2012EquilibriumMuscle" or "Thelen2003Muscle" muscles are used
+    elif "Millard2012EquilibriumMuscle" in osim_file.opensim_xml_raw or "Thelen2003Muscle" in osim_file.opensim_xml_raw:  #if "Millard2012EquilibriumMuscle" or "Thelen2003Muscle" muscles are used
         if osim_file.activation_time_constant:
             activation_time_constant = list(set(osim_file.activation_time_constant.values()))
             assert len(activation_time_constant) == 1

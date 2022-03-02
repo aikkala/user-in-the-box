@@ -24,6 +24,12 @@ if __name__=="__main__":
     # mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_fixedjoints.xml"
     # opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints.osim"
 
+    # ## TEST WITH MIROSLAV'S NEW HAND MODEL:
+    # mujoco_input = "/home/florian/reacher_sg/HandModel/HandModelTSLAdjusted_modified4conversion_converted/HandModelTSLAdjusted_modified4conversion_converted.xml"
+    # opensim_input = "/home/florian/reacher_sg/HandModel/HandModelTSLAdjusted_modified4conversion.osim"
+    # mujoco_intermediate = "/home/florian/reacher_sg/HandModel/HandModelTSLAdjusted_modified4conversion_converted/HandModelTSLAdjusted_modified4conversion_converted_tendonwrapping.xml"
+    # mujoco_output = "/home/florian/reacher_sg/HandModel/HandModelTSLAdjusted_modified4conversion_converted/HandModelTSLAdjusted_modified4conversion_converted_modified.xml"
+
     # Read and parse OpenSim model
     osim_file = opensim_file(opensim_input)
 

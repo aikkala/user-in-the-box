@@ -42,6 +42,7 @@ class MuscleActuated(gym.Env):
 
     # Radius limits for target
     self.target_radius_limit = np.array([0.01, 0.05])
+    self.target_radius = 0.03
 
     # RNG in case we need it
     self.rng = np.random.default_rng()
@@ -59,7 +60,7 @@ class MuscleActuated(gym.Env):
     self.nmotors = np.sum(self.model.actuator_trntype == 0)
 
     # Separate nq for eye and arm
-    self.eye_nq = sum(self.model.jnt_bodyid[self.independent_joints]==self.model._body_name2id["eye"])
+    self.eye_nq = sum(self.model.jnt_bodyid[self.independent_joints]==self.model._body_name2id["eye"]) if "eye" in self.model._body_name2id else np.nan
     self.arm_nq = len(self.independent_joints) - self.eye_nq
 
     # Set action space -- motor actuators are always first
@@ -201,7 +202,11 @@ class MuscleActuated(gym.Env):
     act = (self.sim.data.act.copy() - 0.5)*2
     #act = self.sim.data.act.copy()
     fingertip = "hand_2distph"
-    finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]]
+    try:
+      finger_position = self.sim.data.geom_xpos[self.model._geom_name2id[fingertip]]
+    except KeyError:
+      print(f"ERROR: Could not observe finger position, as finger body is missing from MuJoCo model.")
+      finger_position = np.nan
     return np.concatenate([qpos[2:], qvel[2:], qacc[2:], finger_position-self.target_origin, self.target_position,
                            np.array([self.target_radius]), act])
 
@@ -256,7 +261,10 @@ class MuscleActuated(gym.Env):
     self.sim.data.act[:] = act
 
     # Spawn target
-    self.spawn_target(sample_target=sample_target)
+    try:
+      self.spawn_target(sample_target=sample_target)
+    except KeyError:
+      print("ERROR: Could not spawn target, as target body is missing from MuJoCo model.")
 
     # Do a forward so everything will be set
     self.sim.forward()
