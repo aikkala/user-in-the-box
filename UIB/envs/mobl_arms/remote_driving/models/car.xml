@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<mujoco>
+    <asset>
+        <!-- The referenced .stl files were self-created using OpenSCAD. -->
+        <mesh name="chassis" file="../assets/car/chassis.stl" />
+        <mesh name="steering_rack" file="../assets/car/steering_rack.stl" />
+        <mesh name="steering_gear" file="../assets/car/gear.stl" />
+        <mesh name="suspension_part1" file="../assets/car/suspension_part1.stl" />
+        <mesh name="suspension_part2" file="../assets/car/suspension_part2.stl" />
+    </asset>
+    <worldbody>
+        <body pos="0 0 0.065" name="car">
+            <camera name="car_third_person" fovy="80" pos="0 -0.5 0.4" euler="1 0 0" />
+            <geom type="mesh" mesh="chassis" pos="0 0.2 0" mass="1" rgba="1 0 0 0.4"/>
+            <body name="steering-motor" pos="0 0.14 0.001">
+                <geom type="box" mass="1" size="0.008 0.02 0.006" rgba="0 0 0 1"/>
+                <body name="steering-motor-axle" pos="0 0.02 0">
+                    <geom type="cylinder" mass="1" size="0.0025 0.015" euler="1.57 0 0" rgba="0.4 0.4 0.4 1"/>
+                </body>
+            </body>
+            <body pos="0 -0.12 -0.03" name="axis-back">
+                <geom type="cylinder" mass="1" size="0.015 0.12" euler="1.57 1.57 0" rgba="0.6 0.6 0.6 1"/>
+                <body pos="0.105 0 0" name="wheel1">
+                    <geom type="cylinder" mass="1" size="0.035 0.01" euler="1.57 1.57 0" rgba="0 0 0 1" friction="3 1 0.5"/>
+                </body>
+                <body pos="-0.105 0 0" name="wheel2">
+                    <geom type="cylinder" mass="1" size="0.035 0.01" euler="1.57 1.57 0" rgba="0 0 0 1" friction="3 1 0.5"/>
+                </body>
+                <joint type="hinge" name="axis-back:rot-x" axis="1 0 0" limited="false" damping="0.1" />
+            </body>
+            <body pos="0 0.175 0.001" name="steering_gear" euler="0 0.16 0">
+                <geom type="mesh" mesh="steering_gear" rgba="0.749 0.749 0.749 1" />
+                <joint type="hinge" name="steering_gear:rot-y" axis="0 1 0" limited="false" damping="0.1" />
+            </body>
+            <body pos="0.08 0.135 -0.03" name="wheel3-suspension1">
+                <geom type="mesh" mesh="suspension_part1" rgba="0.749 0.749 0.749 1" />
+                <body pos="0.036 0.01 0" name="wheel3-suspension2">
+                    <!-- Because the other joints are constrained to this joint it is sufficient to set the valid steering range here. -->
+                    <joint type="hinge" name="wheel3-suspension_part1:rot-z" pos="-0.023 -0.005 0" axis="0 0 1" limited="true" range="-0.2 0.2" damping="0.8" />
+                    <geom type="mesh" mesh="suspension_part2" rgba="0.749 0.749 0.749 1" />
+                    <body pos="0.01 -0.005 0.005" name="wheel3">
+                        <geom type="cylinder" mass="1" size="0.035 0.008" euler="1.57 1.57 0" rgba="0 0 0 1" friction="3 1 0.5"/>
+                        <joint type="hinge" name="wheel3:rot-x" axis="1 0 0" limited="false" damping="0.1" />
+                    </body>
+                    <body pos="-0.116 0.03 0.01" name="steering_rack">
+                        <joint type="hinge" name="steering_rack:rot1-z" pos="0.091 -0.005 0" axis="0 0 1" limited="false" damping="0.8" />
+                        <geom type="mesh" mesh="steering_rack" rgba="0.749 0.749 0.749 1" />
+                    </body>
+                </body>
+            </body>
+            <body pos="-0.08 0.135 -0.02" euler="3.14 0 3.14" name="wheel4-suspension1">
+                <geom type="mesh" mesh="suspension_part1" rgba="0.749 0.749 0.749 1" />
+                <body pos="0.036 0.01 0" name="wheel4-suspension2">
+                    <joint type="hinge" name="wheel4-suspension_part1:rot-z" pos="-0.023 -0.005 0" axis="0 0 1" limited="false" damping="0.8" />
+                    <geom type="mesh" mesh="suspension_part2" rgba="0.749 0.749 0.749 1" />
+                    <body pos="0.01 -0.005 0.005" name="wheel4">
+                        <geom type="cylinder" mass="1" size="0.035 0.008" euler="1.57 1.57 0" rgba="0 0 0 1" friction="3 1 0.5"/>
+                        <joint type="hinge" name="wheel4:rot-x" axis="1 0 0" limited="false" damping="0.1" />
+                    </body>
+                </body>
+            </body>
+            <joint damping="10" limited="false" type="free"></joint>
+        </body>
+    </worldbody>
+    <contact>
+        <!-- Prevent individual controller parts from colliding. -->
+        <exclude body1="car" body2="axis-back"></exclude>
+
+        <exclude body1="axis-back" body2="wheel1"></exclude>
+        <exclude body1="axis-back" body2="wheel2"></exclude>
+
+        <exclude body1="steering_rack" body2="wheel4-suspension2"></exclude>
+    </contact>
+    <equality>
+        <joint joint1="wheel3-suspension_part1:rot-z" joint2="wheel4-suspension_part1:rot-z" polycoef="0 -1 0 0 0"></joint>
+        <joint joint1="wheel3-suspension_part1:rot-z" joint2="steering_rack:rot1-z" polycoef="0 -1 0 0 0"></joint>
+    </equality>
+</mujoco>

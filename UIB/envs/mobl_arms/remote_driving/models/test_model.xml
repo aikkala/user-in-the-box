@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<mujoco>
+    <!--include file="scene.xml" /-->
+    <include file="/home/markus/mujoco/user-in-the-box/UIB/envs/mobl_arms/remote_driving/models/scene.xml" />
+
+</mujoco>

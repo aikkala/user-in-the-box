@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<mujoco>
+    <default>
+        <geom rgba="0.8 0.6 0.4 1" />
+    </default>
+    <asset>
+        <material name="matcont_body" rgba="0.749 0.749 0.749 1" reflectance="0" shininess="0" />
+        <material name="matte_rubber" rgba="0 0 0 1" specular="0" />
+
+        <!-- The referenced .stl files were self-created using OpenSCAD. -->
+        <mesh name="controller_body" file="../assets/gamepad/controller_body.stl" />
+        <mesh name="d_pad" file="../assets/gamepad/d_pad.stl" />
+        <mesh name="thumb_stick" file="../assets/gamepad/thumb_stick.stl" />
+        <mesh name="button" file="../assets/gamepad/game_action_button.stl" />
+    </asset>
+    <worldbody>
+        <body name="gamepad" pos="0.1 1.0 .3">
+            <!-- This extra body is needed, because the buttons can not collide with "controller-base". -->
+            <body name="sensor-wrapper" pos="0 0 0.025">
+                <!-- The geometries are needed due to the way the "touch" sensors are working. 
+                They sense any collision within their sites volume. -->
+                <site name="button-1-contact-point" type="sphere" size="0.0015" pos="0.1275 0.01 0.0175" />
+                <geom type="sphere" size="0.001" pos="0.1275 0.01 0.0175" />
+                <site name="button-2-contact-point" type="sphere" size="0.0015" pos="0.14375 -0.0025 0.0175" />
+                <geom type="sphere" size="0.001" pos="0.14375 -0.0025 0.0175" />
+                <site name="button-3-contact-point" type="sphere" size="0.0015" pos="0.14186332 0.022052262 0.0175" />
+                <geom type="sphere" size="0.001" pos="0.14186332 0.022052262 0.0175" />
+                <site name="button-4-contact-point" type="sphere" size="0.0015" pos="0.15811333 0.009552263 0.0175" />
+                <geom type="sphere" size="0.001" pos="0.15811333 0.009552263 0.0175" />
+
+                <site name="d_pad-contact-1" type="sphere" size="0.0015" pos="-0.004 -0.010624999 0.014374999" />
+                <geom type="sphere" size="0.001" pos="-0.004 -0.010624999 0.014374999" />
+                <site name="d_pad-contact-2" type="sphere" size="0.0015" pos="0.013374999 0.00675 0.014374999" />
+                <geom type="sphere" size="0.001" pos="0.013374999 0.00675 0.014374999" />
+                <site name="d_pad-contact-3" type="sphere" size="0.0015" pos="-0.004 0.024125 0.014374999" />
+                <geom type="sphere" size="0.001" pos="-0.004 0.024125 0.014374999" />
+                <site name="d_pad-contact-4" type="sphere" size="0.0015" pos="-0.021375 0.00675 0.014374999" />
+                <geom type="sphere" size="0.001" pos="-0.021375 0.00675 0.014374999" />
+            </body>
+
+            <body name="controller-base" pos="0 0 0.025">
+                <geom type="mesh" mesh="controller_body" rgba="0.749 0.749 0.749 1" />
+            </body>
+            <body name="d-pad" pos="-0.004 0.00675 0.0442">
+                <geom type="mesh" mesh="d_pad" mass="1" rgba="0 0 0 1" />
+                <joint type="hinge" name="d_pad:rot-x" axis="1 0 0" limited="true" range="-5 5" damping="10" springref="0" stiffness="500" />
+                <joint type="hinge" name="d_pad:rot-y" axis="0 1 0" limited="true" range="-5 5" damping="10" springref="0" stiffness="500" />
+            </body>
+            <body name="thumb-stick-1" pos="0.0275 -0.0225 0.039375">
+                <geom type="mesh" mesh="thumb_stick" mass="0.0005" rgba="0 0 0 1" friction="0.84"/>
+                <joint type="hinge" name="thumb-stick-1:rot-x" axis="1 0 0" limited="true" range="-20 20" damping="0.5" springref="0" stiffness="1" />
+                <joint type="hinge" name="thumb-stick-1:rot-y" axis="0 1 0" limited="true" range="-20 20" damping="0.5" springref="0" stiffness="1" />
+            </body>
+            <body name="thumb-stick-2" pos="0.112500004 -0.0225 0.039375">
+                <geom type="mesh" mesh="thumb_stick" mass="0.0005" rgba="0 0 0 1" friction="0.84"/>
+                <joint type="hinge" name="thumb-stick-2:rot-x" axis="1 0 0" limited="true" range="-20 20" damping="0.5" springref="0" stiffness="0.5" />
+                <joint type="hinge" name="thumb-stick-2:rot-y" axis="0 1 0" limited="true" range="-20 20" damping="0.5" springref="0" stiffness="0.5" />
+            </body>
+            <body name="control-buttons">
+                <body name="button-1" pos="0.1275 0.01 0.05">
+                    <geom type="mesh" mesh="button" mass="0.0005" rgba="0 1 0 1" />
+                    <joint axis="0 0 1" name="button-1:slide-z" type="slide" limited="true" range="-0.0045 0" springref="0" stiffness="0.5" damping="0.5" />
+                </body>
+                <body name="button-2" pos="0.14375 -0.0025 0.05">
+                    <geom type="mesh" mesh="button" mass="0.0005" rgba="1 1 0 1" />
+                    <joint axis="0 0 1" name="button-2:slide-z" type="slide" limited="true" range="-0.0045 0" springref="0" stiffness="0.5" damping="0.5" />
+                </body>
+                <body name="button-3" pos="0.14186332 0.022052262 0.05">
+                    <geom type="mesh" mesh="button" mass="0.0005" rgba="0 0 1 1" />
+                    <joint axis="0 0 1" name="button-3:slide-z" type="slide" limited="true" range="-0.0045 0" springref="0" stiffness="0.5" damping="0.5" />
+                </body>
+                <body name="button-4" pos="0.15811333 0.009552263 0.05">
+                    <geom type="mesh" mesh="button" mass="0.0005" rgba="1 0 0 1" />
+                    <joint axis="0 0 1" name="button-4:slide-z" type="slide" limited="true" range="-0.0045 0" springref="0" stiffness="0.5" damping="0.5" />
+                </body>
+            </body>
+        </body>
+    </worldbody>
+    <contact>
+        <!-- Prevent individual controller parts from colliding. -->
+        <exclude body1="button-1" body2="controller-base"></exclude>
+		<exclude body1="button-2" body2="controller-base"></exclude>
+		<exclude body1="button-3" body2="controller-base"></exclude>
+        <exclude body1="button-4" body2="controller-base"></exclude>
+
+        <exclude body1="thumb-stick-1" body2="controller-base"></exclude>
+        <exclude body1="thumb-stick-2" body2="controller-base"></exclude>
+        <exclude body1="d-pad" body2="controller-base"></exclude>
+    </contact>
+    <sensor>
+        <jointpos name="thumb-stick-1-x" joint="thumb-stick-1:rot-x" />
+        <jointpos name="thumb-stick-1-y" joint="thumb-stick-1:rot-y" />
+        <jointpos name="thumb-stick-2-x" joint="thumb-stick-2:rot-x" />
+        <jointpos name="thumb-stick-2-y" joint="thumb-stick-2:rot-y" />
+
+        <touch name="button1-sensor" site="button-1-contact-point" />
+        <touch name="button2-sensor" site="button-2-contact-point" />
+        <touch name="button3-sensor" site="button-3-contact-point" />
+        <touch name="button4-sensor" site="button-4-contact-point" />
+
+        <touch name="dpad-contact1" site="d_pad-contact-1" />
+        <touch name="dpad-contact2" site="d_pad-contact-2" />
+        <touch name="dpad-contact3" site="d_pad-contact-3" />
+        <touch name="dpad-contact4" site="d_pad-contact-4" />
+    </sensor>
+</mujoco>
