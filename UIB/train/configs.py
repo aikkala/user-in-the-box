@@ -16,7 +16,7 @@ import UIB.envs.mobl_arms.choosing.reward_functions as choosing_rewards
 
 
 mobl_arms_pointing_v0 = {
-  "name": "prop-noise-01",
+  "name": "pointing-v0-neural-florian",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-pointing-v0",
@@ -25,11 +25,10 @@ mobl_arms_pointing_v0 = {
   "device": "cpu",
   "env_kwargs": {"target_radius_limit": np.array([0.05, 0.15]),
                  "action_sample_freq": 20,
-                 "proprioception_noise": 0.1,
                  "effort_term": effort_terms.Neural(),
                  "reward_function": pointing_rewards.NegativeExpDistanceWithHitBonus(k=10),
                  "callbacks": []},
-  "policy_type": ActorCriticPolicyTanhActions,
+  "policy_type": "MlpPolicy",
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
                     "log_std_init": 0.0},
@@ -37,9 +36,8 @@ mobl_arms_pointing_v0 = {
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
 
-reward_fn_curriculum = LinearCurriculum("reward_fn_curriculum", start_value=3, end_value=200, end_timestep=50_000_000)
 mobl_arms_pointing_v1 = {
-  "name": "testing-curriculum",
+  "name": "pointing-v1-neural-florian",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-pointing-v1",
@@ -48,10 +46,10 @@ mobl_arms_pointing_v1 = {
   "device": "cuda",
   "env_kwargs": {"target_radius_limit": np.array([0.05, 0.15]),
                  "action_sample_freq": 20,
-                 "effort_term": effort_terms.Composite(),
-                 "reward_function": pointing_rewards.NegativeExpDistanceWithHitBonus(k=reward_fn_curriculum.value),
-                 "callbacks": [reward_fn_curriculum]},
-  "policy_type": MultiInputActorCriticPolicyTanhActions,
+                 "effort_term": effort_terms.Neural(),
+                 "reward_function": pointing_rewards.NegativeExpDistanceWithHitBonus(k=10),
+                 "callbacks": []},
+  "policy_type": "MultiInputPolicy",
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
                     "log_std_init": 0.0,

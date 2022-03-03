@@ -7,14 +7,14 @@ import pathlib
 from abc import ABC, abstractmethod
 import xml.etree.ElementTree as ET
 
-from UIB.utils.functions import project_path
+from UIB.utils.functions import project_path, sigmoid
 from UIB.utils import effort_terms
 
 
 class FixedEye(ABC, gym.Env):
 
   # Model file
-  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles.xml")
+  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_modified.xml")
 
   # Fingertip
   fingertip = "hand_2distph"
@@ -67,7 +67,8 @@ class FixedEye(ABC, gym.Env):
     self.callbacks = {callback.name: callback for callback in kwargs.get('callbacks', [])}
 
   def set_ctrl(self, action):
-    self.sim.data.ctrl[:] = np.clip(self.sim.data.act[:] + action, 0, 1)
+    #self.sim.data.ctrl[:] = np.clip(self.sim.data.act[:] + action, 0, 1)
+    self.sim.data.ctrl[:] = sigmoid(action.copy())
 
   @abstractmethod
   def step(self, action):

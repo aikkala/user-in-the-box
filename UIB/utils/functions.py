@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 import sys
 import select
+import numpy as np
 
 def project_path():
   return pathlib.Path(__file__).parent.parent.absolute()
@@ -18,3 +19,7 @@ def timeout_input(prompt, timeout=30, default=""):
   inputs, outputs, errors = select.select([sys.stdin], [], [], timeout)
   print()
   return sys.stdin.readline().strip() if inputs else default
+
+# Numerically stable sigmoid
+def sigmoid(x):
+  return np.exp(-np.logaddexp(0, -x))
