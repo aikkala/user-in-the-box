@@ -35,7 +35,7 @@ class FixedEye(ABC, gym.Env):
 
     # Get indices of dependent and independent joints
     self.dependent_joints = np.unique(self.model.eq_obj1id[self.model.eq_active.astype(bool)])
-    self.independent_joints = list(set(np.arange(self.model.nq)) - set(self.dependent_joints))
+    self.independent_joints = list(set(np.arange(self.model.njnt)) - set(self.dependent_joints))
 
     # Set action space
     muscles_limits = np.ones((self.model.na,2)) * np.array([-1.0, 1.0])
