@@ -197,7 +197,7 @@ class PointingEnv(FixedEye):
     self.target_radius = self.rng.uniform(*self.target_radius_limit)
 
     # Set target radius
-    self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
+    self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_radius
 
     self.sim.forward()
 
@@ -208,7 +208,7 @@ class PointingEnv(FixedEye):
 
   def set_target_radius(self, radius):
     self.target_radius = radius
-    self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
+    self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_radius
     self.sim.forward()
 
 
