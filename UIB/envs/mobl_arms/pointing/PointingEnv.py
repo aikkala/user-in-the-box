@@ -1,14 +1,45 @@
 import numpy as np
 import mujoco_py
 from gym import spaces
+import xml.etree.ElementTree as ET
+import os
 
 from UIB.envs.mobl_arms.models.FixedEye import FixedEye
 from UIB.envs.mobl_arms.pointing.reward_functions import ExpDistanceWithHitBonus
+from UIB.utils.functions import project_path
+
+
+def add_target(worldbody):
+  target = ET.Element('body', name='target', pos="0.5 0 0.8")
+  target.append(ET.Element('geom', name='target', type="sphere", size="0.025", rgba="0.1 0.8 0.1 1.0"))
+  worldbody.append(target)
+
+def add_target_plane(worldbody):
+  target_plane = ET.Element('body', name='target-plane', pos='0.5 0 0.8')
+  target_plane.append(ET.Element('geom', name='target-plane', type='box', size='0.005 0.3 0.3', rgba='0.1 0.8 0.1 0'))
+  worldbody.append(target_plane)
+
 
 class PointingEnv(FixedEye):
   metadata = {'render.modes': ['human']}
 
   def __init__(self, **kwargs):
+
+    # Modify the xml file first
+    tree = ET.parse(os.path.join(project_path(), f"envs/mobl_arms/models/variants/mobl_arms_muscles_modified.xml"))
+    root = tree.getroot()
+    worldbody = root.find('worldbody')
+
+    # Add target and target plane -- exact coordinates and size don't matter, they are set later
+    add_target(worldbody)
+    add_target_plane(worldbody)
+
+    # Save the modified XML file and replace old one
+    self.xml_file = os.path.join(project_path(), f'envs/mobl_arms/models/variants/pointing_env.xml')
+    with open(self.xml_file, 'w') as file:
+      file.write(ET.tostring(tree.getroot(), encoding='unicode'))
+
+    # Initialise base model
     super().__init__(**kwargs)
 
     # Use early termination if target is not hit in time
@@ -99,8 +130,6 @@ class PointingEnv(FixedEye):
       # Check if time limit has been reached
       self.steps_since_last_hit += 1
       if self.steps_since_last_hit >= self.max_steps_without_hit:
-        #finished = True
-        #info["termination"] = "time_limit_reached"
         # Spawn a new target
         self.steps_since_last_hit = 0
         self.trial_idx += 1
@@ -207,7 +236,6 @@ class ProprioceptionAndVisual(PointingEnv):
     observation["visual"] = observation["visual"][:, :, 3, None]
 
     # Time features (time left to reach target, time spent inside target)
-    #time_left = -1.0 + 2*np.min([1.0, self.steps_since_last_hit/self.max_steps_without_hit])
     targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
     dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwell_threshold])
 
@@ -239,7 +267,6 @@ class Proprioception(PointingEnv):
     observation = super().get_observation()
 
     # Time features (time left to reach target, time spent inside target)
-    #time_left = -1.0 + 2 * np.min([1.0, self.steps_since_last_hit / self.max_steps_without_hit])
     targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
     dwell_time = -1.0 + 2 * np.min([1.0, self.steps_inside_target / self.dwell_threshold])
 
