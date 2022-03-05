@@ -25,7 +25,8 @@ class ISOPointingEnv(FixedEye):
   def __init__(self, user, **kwargs):
 
     # Modify the xml file first
-    tree = ET.parse(os.path.join(project_path(), f"envs/mobl_arms/models/variants/mobl_arms_muscles_scaled{user}.xml"))
+    tree = ET.parse(os.path.join(project_path(),
+                                 f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified_scaled{user}.xml"))
     root = tree.getroot()
     worldbody = root.find('worldbody')
 
@@ -47,9 +48,12 @@ class ISOPointingEnv(FixedEye):
     self.max_steps_without_hit = self.action_sample_freq*4
     self.steps = 0
 
+    # If set to evaluate mode, then we'll only use ISO positions
+    #self.evaluate = kwargs.get('evaluate', False)
+
     # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
     self.trial_idx = 0
-    self.max_trials = kwargs.get('max_trials', 10)
+    self.max_trials = kwargs.get('max_trials', 14)
     self.targets_hit = 0
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
@@ -68,19 +72,20 @@ class ISOPointingEnv(FixedEye):
     self.new_target_distance_threshold = 2*self.target_radius_limit[1]
 
     # Add targets according to ISO 9241-9
-    self.ISO_positions = np.array([[0, 0.10, -0.15],
-                                   [0, 0.13589734964313366, 0.1456412726139078],
-                                   [0, 0.030291524193434755, -0.1328184038479815],
-                                   [0, 0.19946839873611927, 0.11227661222566519],
-                                   [0, -0.023447579884048414, -0.08520971200967342],
-                                   [0, 0.24025243640281224, 0.05319073305638029],
-                                   [0, -0.048906331114708074, -0.018080502038298547],
-                                   [0, 0.24890633111470814, -0.01808050203829822],
-                                   [0, -0.04025243640281234, 0.05319073305637998],
-                                   [0, 0.22344757988404879, -0.08520971200967294],
-                                   [0, 0.0005316012638802159, 0.11227661222566471],
-                                   [0, 0.169708475806566, -0.1328184038479811],
-                                   [0, 0.06410265035686591, 0.1456412726139077]])
+    self.ISO_positions = np.array([[0., -0., -0.15],
+                                   [0., -0.03589735, 0.14564127],
+                                   [0., 0.06970848, -0.1328184],
+                                   [0., -0.0994684, 0.11227661],
+                                   [0., 0.12344758, -0.08520971],
+                                   [0., -0.14025244, 0.05319073],
+                                   [0., 0.14890633, -0.0180805],
+                                   [0., -0.14890633, -0.0180805],
+                                   [0., 0.14025244, 0.05319073],
+                                   [0., -0.12344758, -0.08520971],
+                                   [0., 0.0994684, 0.11227661],
+                                   [0., -0.06970848, -0.1328184],
+                                   [0., 0.03589735, 0.14564127]])
+    self.target_idx = -1
 
     # Do a forward step so stuff like geom and body positions are calculated
     self.sim.forward()
@@ -176,12 +181,15 @@ class ISOPointingEnv(FixedEye):
   def get_state(self):
     state = super().get_state()
     state["target_position"] = self.target_origin.copy()+self.target_position.copy()
+    state["target_position_in_plane"] = self.target_position.copy()
     state["target_radius"] = self.target_radius
     state["target_hit"] = False
     state["inside_target"] = False
     state["target_spawned"] = False
     state["trial_idx"] = self.trial_idx
     state["targets_hit"] = self.targets_hit
+    state["target_idx"] = self.target_idx
+
     return state
 
   def reset(self):
@@ -192,6 +200,7 @@ class ISOPointingEnv(FixedEye):
     #self.steps_inside_target = 0
     self.trial_idx = 0
     self.targets_hit = 0
+    self.target_idx = -1
 
     # Spawn a new location
     self.spawn_target()
@@ -200,21 +209,34 @@ class ISOPointingEnv(FixedEye):
 
   def spawn_target(self):
 
-    # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
-    for _ in range(10):
-      target_y = self.rng.uniform(*self.target_limits_y)
-      target_z = self.rng.uniform(*self.target_limits_z)
-      new_position = np.array([0, target_y, target_z])
-      distance = np.linalg.norm(self.target_position - new_position)
-      if distance > self.new_target_distance_threshold:
-        break
+    if True:
+
+      # Choose next position in the list of ISO positions
+      self.target_idx = (self.target_idx + 1) % len(self.ISO_positions)
+      new_position = self.ISO_positions[self.target_idx]
+
+      # Use a fixed target radius
+      self.target_radius = 0.05
+
+    else:
+
+      # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
+      for _ in range(10):
+        target_y = self.rng.uniform(*self.target_limits_y)
+        target_z = self.rng.uniform(*self.target_limits_z)
+        new_position = np.array([0, target_y, target_z])
+        distance = np.linalg.norm(self.target_position - new_position)
+        if distance > self.new_target_distance_threshold:
+          break
+
+      # Sample target radius
+      self.target_radius = self.rng.uniform(*self.target_radius_limit)
+
+    # Set new position
     self.target_position = new_position
 
     # Set location
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
-
-    # Sample target radius
-    self.target_radius = self.rng.uniform(*self.target_radius_limit)
 
     # Set target radius
     self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_radius
@@ -249,6 +271,6 @@ class ProprioceptionAndVisual(ISOPointingEnv):
     targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
 
     # Append to proprioception since those will be handled with a fully-connected layer
-    #observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([targets_hit])])
+    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([targets_hit])])
 
     return observation
