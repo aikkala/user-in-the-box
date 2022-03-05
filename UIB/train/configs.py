@@ -16,7 +16,7 @@ import UIB.envs.mobl_arms.choosing.reward_functions as choosing_rewards
 
 
 mobl_arms_pointing_v0 = {
-  "name": "pointing-v0-neural-florian",
+  "name": "pointing-v0-florian",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-pointing-v0",
@@ -28,7 +28,7 @@ mobl_arms_pointing_v0 = {
                  "effort_term": effort_terms.Neural(),
                  "reward_function": pointing_rewards.NegativeExpDistanceWithHitBonus(k=10),
                  "callbacks": []},
-  "policy_type": "MlpPolicy",
+  "policy_type": ActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
                     "log_std_init": 0.0},
@@ -37,7 +37,7 @@ mobl_arms_pointing_v0 = {
 }
 
 mobl_arms_pointing_v1 = {
-  "name": "pointing-v1-neural-florian",
+  "name": "pointing-v1-florian",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-pointing-v1",
@@ -49,7 +49,7 @@ mobl_arms_pointing_v1 = {
                  "effort_term": effort_terms.Neural(),
                  "reward_function": pointing_rewards.NegativeExpDistanceWithHitBonus(k=10),
                  "callbacks": []},
-  "policy_type": "MultiInputPolicy",
+  "policy_type": MultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
                     "net_arch": [256, 256],
                     "log_std_init": 0.0,
