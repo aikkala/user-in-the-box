@@ -124,6 +124,9 @@ class FixedEye(ABC, gym.Env):
     self.sim.data.qvel[self.independent_joints] = qvel
     self.sim.data.act[:] = act
 
+    # Some effort terms may be stateful and need to be reset
+    self.effort_term.reset()
+
     # Do a forward so everything will be set
     self.sim.forward()
 
