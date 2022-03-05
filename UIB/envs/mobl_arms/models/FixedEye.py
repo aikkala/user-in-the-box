@@ -67,9 +67,8 @@ class FixedEye(ABC, gym.Env):
     self.callbacks = {callback.name: callback for callback in kwargs.get('callbacks', [])}
 
   def set_ctrl(self, action):
-    #self.sim.data.ctrl[:] = np.clip(self.sim.data.act[:] + action, 0, 1)
-    self.sim.data.ctrl[:] = sigmoid(action.copy())
-
+    self.sim.data.ctrl[:] = np.clip(self.sim.data.act[:] + action, 0, 1)
+    
   @abstractmethod
   def step(self, action):
     pass
