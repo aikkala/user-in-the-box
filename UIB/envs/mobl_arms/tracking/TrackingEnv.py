@@ -2,13 +2,44 @@ import numpy as np
 import mujoco_py
 from gym import spaces
 from collections import deque
+import xml.etree.ElementTree as ET
+import os
 
 from UIB.envs.mobl_arms.models.FixedEye import FixedEye
-from UIB.envs.mobl_arms.tracking.reward_functions import ExpDistanceWithHitBonus
+from UIB.envs.mobl_arms.tracking.reward_functions import NegativeDistance
+from UIB.utils.functions import project_path
+
+
+def add_target(worldbody):
+  target = ET.Element('body', name='target', pos="0.5 0 0.8")
+  target.append(ET.Element('geom', name='target', type="sphere", size="0.025", rgba="0.1 0.8 0.1 1.0"))
+  worldbody.append(target)
+
+def add_target_plane(worldbody):
+  target_plane = ET.Element('body', name='target-plane', pos='0.5 0 0.8')
+  target_plane.append(ET.Element('geom', name='target-plane', type='box', size='0.005 0.3 0.3', rgba='0.1 0.8 0.1 0'))
+  worldbody.append(target_plane)
+
 
 class TrackingEnv(FixedEye):
 
   def __init__(self, **kwargs):
+
+    # Modify the xml file first
+    tree = ET.parse(os.path.join(project_path(), self.xml_file))
+    root = tree.getroot()
+    worldbody = root.find('worldbody')
+
+    # Add target and target plane -- exact coordinates and size don't matter, they are set later
+    add_target(worldbody)
+    add_target_plane(worldbody)
+
+    # Save the modified XML file and replace old one
+    self.xml_file = os.path.join(project_path(), f'envs/mobl_arms/models/variants/tracking_env.xml')
+    with open(self.xml_file, 'w') as file:
+      file.write(ET.tostring(tree.getroot(), encoding='unicode'))
+
+    # Initialise base model
     super().__init__(**kwargs)
 
     # Define episode length
@@ -23,7 +54,7 @@ class TrackingEnv(FixedEye):
 
     # Define a default reward function
     if self.reward_function is None:
-      self.reward_function = ExpDistanceWithHitBonus()
+      self.reward_function = NegativeDistance()
 
     # Define a visual buffer; use a size equivalent to 0.1 seconds
     maxlen = 1 + int(0.1/self.dt)
@@ -31,7 +62,7 @@ class TrackingEnv(FixedEye):
 
     # Target radius
     self.target_radius = kwargs.get('target_radius', 0.05)
-    self.model.geom_size[self.model._geom_name2id["target-sphere"]][0] = self.target_radius
+    self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_radius
 
     # Do a forward step so stuff like geom and body positions are calculated
     self.sim.forward()
@@ -136,7 +167,9 @@ class TrackingEnv(FixedEye):
       sum_amplitude += amplitude
 
     # Normalise to fit limits
-    sine = (sine + sum_amplitude) / (2*sum_amplitude)
+    #sine = (sine + sum_amplitude) / (2*sum_amplitude)
+    sine = sine - np.min(sine)
+    sine = sine / np.max(sine)
     sine = limits[0] + (limits[1] - limits[0])*sine
 
     return sine
