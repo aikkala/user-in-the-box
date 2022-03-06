@@ -47,20 +47,22 @@ class LinearCurriculum(BaseCallback):
   :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
   """
 
-  def __init__(self, name, start_value, end_value, end_timestep, verbose=0):
+  def __init__(self, name, start_value, end_value, end_timestep, start_timestep=0, verbose=0):
     super().__init__(verbose)
     self.name = name
     self.variable = start_value
     self.start_value = start_value
     self.end_value = end_value
+    self.start_timestep = start_timestep
     self.end_timestep = end_timestep
-    self.coeff = (end_value - start_value) / end_timestep
+    self.coeff = (end_value - start_value) / (end_timestep - start_timestep)
 
   def value(self):
     return self.variable
 
   def update(self, num_timesteps):
-    self.variable = self.start_value + self.coeff * num_timesteps
+    if num_timesteps > self.start_timestep:
+      self.variable = self.start_value + self.coeff * (num_timesteps - self.start_timestep)
 
   def _on_training_start(self) -> None:
     pass
