@@ -26,7 +26,7 @@ class PointingEnv(FixedEye):
   def __init__(self, **kwargs):
 
     # Modify the xml file first
-    tree = ET.parse(os.path.join(project_path(), f"envs/mobl_arms/models/variants/mobl_arms_muscles_modified.xml"))
+    tree = ET.parse(self.xml_file)
     root = tree.getroot()
     worldbody = root.find('worldbody')
 
@@ -58,6 +58,7 @@ class PointingEnv(FixedEye):
 
     # Radius limits for target
     self.target_radius_limit = kwargs.get('target_radius_limit', np.array([0.05, 0.15]))
+    self.target_radius = self.target_radius_limit[0]
 
     # Minimum distance to new spawned targets is twice the max target radius limit
     self.new_target_distance_threshold = 2*self.target_radius_limit[1]
@@ -71,7 +72,6 @@ class PointingEnv(FixedEye):
 
     # Define plane where targets will be spawned: 0.5m in front of shoulder, or the "humphant" body. Note that this
     # body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
-    #self.target_origin = np.array([0.5, 0.0, 0.8])
     self.target_origin = self.sim.data.get_body_xpos("humphant") + np.array([0.5, 0, 0])
     self.target_position = self.target_origin.copy()
     self.target_limits_y = np.array([-0.3, 0.3])

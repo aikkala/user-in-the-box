@@ -26,7 +26,7 @@ class ISOPointingEnv(FixedEye):
 
     # Modify the xml file first
     tree = ET.parse(os.path.join(project_path(),
-                                 f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified_scaled{user}.xml"))
+                                 f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_scaled{user}_modified.xml"))
     root = tree.getroot()
     worldbody = root.find('worldbody')
 
@@ -49,16 +49,12 @@ class ISOPointingEnv(FixedEye):
     self.steps = 0
 
     # If set to evaluate mode, then we'll only use ISO positions
-    #self.evaluate = kwargs.get('evaluate', False)
+    self.evaluate = kwargs.get('evaluate', False)
 
     # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
     self.trial_idx = 0
-    self.max_trials = kwargs.get('max_trials', 14)
+    self.max_trials = 14 if self.evaluate else kwargs.get('max_trials', 10)
     self.targets_hit = 0
-
-    # Dwelling based selection -- fingertip needs to be inside target for some time
-    #self.steps_inside_target = 0
-    #self.dwell_threshold = int(0.3*self.action_sample_freq)
 
     # Set limits for target plane
     self.target_limits_y = np.array([-0.3, 0.3])
@@ -131,10 +127,8 @@ class ISOPointingEnv(FixedEye):
 
     # Check if fingertip is inside target
     if dist < self.target_radius:
-      #self.steps_inside_target += 1
       info["inside_target"] = True
     else:
-      #self.steps_inside_target = 0
       info["inside_target"] = False
 
     if info["inside_target"] and finger_velocity < 0.5:
@@ -144,7 +138,6 @@ class ISOPointingEnv(FixedEye):
       self.trial_idx += 1
       self.targets_hit += 1
       self.steps_since_last_hit = 0
-      #self.steps_inside_target = 0
       self.spawn_target()
       info["target_spawned"] = True
 
@@ -197,7 +190,6 @@ class ISOPointingEnv(FixedEye):
     # Reset counters
     self.steps_since_last_hit = 0
     self.steps = 0
-    #self.steps_inside_target = 0
     self.trial_idx = 0
     self.targets_hit = 0
     self.target_idx = -1
@@ -209,7 +201,7 @@ class ISOPointingEnv(FixedEye):
 
   def spawn_target(self):
 
-    if True:
+    if self.evaluate:
 
       # Choose next position in the list of ISO positions
       self.target_idx = (self.target_idx + 1) % len(self.ISO_positions)
