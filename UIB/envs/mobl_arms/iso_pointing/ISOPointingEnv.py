@@ -24,9 +24,14 @@ class ISOPointingEnv(FixedEye):
 
   def __init__(self, user, **kwargs):
 
+    if user == "general":
+      xml_file = os.path.join(project_path(), f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified.xml")
+    else:
+      xml_file = os.path.join(project_path(),
+                                 f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_scaled{user}_modified.xml")
+
     # Modify the xml file first
-    tree = ET.parse(os.path.join(project_path(),
-                                 f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_scaled{user}_modified.xml"))
+    tree = ET.parse(xml_file)
     root = tree.getroot()
     worldbody = root.find('worldbody')
 
@@ -35,10 +40,9 @@ class ISOPointingEnv(FixedEye):
     add_target_plane(worldbody)
 
     # Save the modified XML file and replace old one
-    xml_file = os.path.join(project_path(), f'envs/mobl_arms/models/variants/iso_pointing_env_{user}.xml')
-    with open(xml_file, 'w') as file:
+    self.xml_file = os.path.join(project_path(), f'envs/mobl_arms/models/variants/iso_pointing_env_{user}.xml')
+    with open(self.xml_file, 'w') as file:
       file.write(ET.tostring(tree.getroot(), encoding='unicode'))
-    self.xml_file = xml_file
 
     # Now initialise variants with the modified XML file
     super().__init__(**kwargs)
