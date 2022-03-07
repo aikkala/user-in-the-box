@@ -12,7 +12,7 @@ from UIB.utils import effort_terms
 class FixedEye(ABC, gym.Env):
 
   # Model file
-  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_modified_v2.xml")
+  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified.xml")
 
   # Fingertip
   fingertip = "hand_2distph"
