@@ -23,3 +23,19 @@ def timeout_input(prompt, timeout=30, default=""):
 # Numerically stable sigmoid
 def sigmoid(x):
   return np.exp(-np.logaddexp(0, -x))
+
+
+def img_history(imgs, k=0.9):
+
+  # Make sure intensities are properly normalised
+  N = len(imgs)
+
+  img = np.zeros_like(imgs[0], dtype=np.float)
+  norm = 0
+
+  for i in range(N):
+    coeff = np.exp(-((N-1)-i)*k)
+    img += coeff * imgs[i]
+    norm += coeff
+
+  return img / (255*norm)
