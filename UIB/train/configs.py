@@ -131,3 +131,23 @@ mobl_arms_iso_pointing_v1 = {
   "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
+
+mobl_arms_remote_driving_v1 = {
+  "name": "driving",
+  "model": PPO,
+  "total_timesteps": 100_000_000,
+  "env_name": "UIB:mobl-arms-remote_driving-v1",
+  "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
+  "num_workers": 10,
+  "device": "cuda",
+  "env_kwargs": {"action_sample_freq": 20,
+                 "effort_term": effort_terms.Neural()},
+  "policy_type": MultiInputActorCriticPolicyTanhActions,
+  "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
+                    "net_arch": [256, 256],
+                    "log_std_init": 0.0,
+                    "features_extractor_class": VisualAndProprioceptionExtractor,
+                    "normalize_images": False},
+  "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
+  "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
+}
