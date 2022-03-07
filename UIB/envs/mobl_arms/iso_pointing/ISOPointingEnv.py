@@ -57,7 +57,7 @@ class ISOPointingEnv(FixedEye):
 
     # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
     self.trial_idx = 0
-    self.max_trials = 14 if self.evaluate else kwargs.get('max_trials', 10)
+    self.max_trials = 14 if self.evaluate else kwargs.get('max_trials', 14)
     self.targets_hit = 0
 
     # Set limits for target plane
@@ -65,7 +65,7 @@ class ISOPointingEnv(FixedEye):
     self.target_limits_z = np.array([-0.3, 0.3])
 
     # Target radius
-    self.target_radius_limit = kwargs.get('target_radius_limit', np.array([0.025, 0.15]))
+    self.target_radius_limit = kwargs.get('target_radius_limit', np.array([0.05, 0.15]))
     self.target_radius = self.target_radius_limit[0]
 
     # Minimum distance to new spawned targets is twice the max target radius limit
