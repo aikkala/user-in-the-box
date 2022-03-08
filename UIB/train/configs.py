@@ -59,9 +59,10 @@ mobl_arms_pointing_v1 = {
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
 
-target_speed_curriculum = LinearCurriculum("target_speed_curriculum", start_value=0.1, end_value=1, end_timestep=20_000_000)
+target_speed_curriculum = LinearCurriculum("target_speed_curriculum", start_value=0, end_value=1,
+                                           end_timestep=50_000_000, start_timestep=30_000_000)
 mobl_arms_tracking_v1 = {
-  "name": "tracking-NegativeDistance",
+  "name": "tracking-v1",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-tracking-v1",
@@ -73,7 +74,7 @@ mobl_arms_tracking_v1 = {
                  "effort_term": effort_terms.Neural(),
                  "reward_function": tracking_rewards.NegativeDistance(),
                  "freq_curriculum": target_speed_curriculum.value,
-                 "episode_length_seconds": 4,
+                 "episode_length_seconds": 10,
                  "callbacks": [target_speed_curriculum]},
   "policy_type": MultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,

@@ -167,9 +167,7 @@ class TrackingEnv(FixedEye):
       sum_amplitude += amplitude
 
     # Normalise to fit limits
-    #sine = (sine + sum_amplitude) / (2*sum_amplitude)
-    sine = sine - np.min(sine)
-    sine = sine / np.max(sine)
+    sine = (sine + sum_amplitude) / (2*sum_amplitude)
     sine = limits[0] + (limits[1] - limits[0])*sine
 
     return sine
