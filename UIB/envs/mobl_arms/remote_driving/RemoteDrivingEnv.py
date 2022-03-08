@@ -160,7 +160,7 @@ class RemoteDrivingEnv(FixedEye):
     self.set_ctrl(action)
 
     finished = False
-    info = {"termination": False}
+    info = {"termination": False, "extra_time_given": False}
     try:
       # Update car dynamics
       if apply_car_dynamics:
@@ -190,8 +190,14 @@ class RemoteDrivingEnv(FixedEye):
 
     # Check if hand is kept at joystick
     if self.dist_fingertip_to_joystick <= 0:
-      if not self.fingertip_at_joystick:  #provide extra time whenever joystick is touched first
-        self.max_episode_steps_with_extratime = self.steps + self.max_episode_steps_extratime
+      if not self.fingertip_at_joystick:
+        # # Provide extra time that is reset whenever joystick is touched:
+        # self.max_episode_steps_with_extratime = self.steps + self.max_episode_steps_extratime
+
+        # # Provide (constant) extra time if joystick is touched at least once within regular time:
+        self.max_episode_steps_with_extratime = self.max_episode_steps + self.max_episode_steps_extratime
+        info["extra_time_given"] = True
+
       self.fingertip_at_joystick = True
     else:
       self.fingertip_at_joystick = False
@@ -213,7 +219,8 @@ class RemoteDrivingEnv(FixedEye):
       info["target_hit"] = False
 
     # Check if time limit has been reached
-    if ((self.steps >= self.max_episode_steps) and not info["fingertip_at_joystick"]) or (self.steps >= self.max_episode_steps_with_extratime):
+    #if ((self.steps >= self.max_episode_steps) and not info["fingertip_at_joystick"]) or (self.steps >= self.max_episode_steps_with_extratime):
+    if self.steps >= self.max_episode_steps_with_extratime:
       finished = True
       info["termination"] = "time_limit_reached"
 
