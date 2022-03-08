@@ -4,6 +4,60 @@ import torchvision.models as models
 import torch
 import numpy as np
 
+from UIB.archs.vit import ViT
+
+class VisionTransformer(nn.Module):
+
+  def __init__(self):
+    super().__init__()
+    self.current_estimate = None
+    self.alpha = 0.1
+    self.vit = ViT(image_size=(80,120), patch_size=(5,5), channels=2, num_outputs=3, dim=64, depth=1, heads=3,
+                   mlp_dim=128, pool="mean")
+
+  def calculate_loss(self, input):
+
+    # Do predictions, use only images for
+    imgs = []
+    targets = []
+    for idx, (img, prop, tgt) in enumerate(input):
+      imgs.append(torch.as_tensor(img[::10]))
+      targets.append(torch.as_tensor(tgt[::10]))
+
+    imgs = torch.cat(imgs)
+    targets = torch.cat(targets)
+
+    predicted = self.vit(imgs)
+    print()
+    print(predicted[0])
+    print(targets[0])
+
+    # Estimate loss
+    loss_fn = nn.HuberLoss()
+    loss = loss_fn(predicted, targets)
+
+    return loss, predicted, targets
+
+  def forward(self, x):
+    return self.vit(x)
+
+  def initialise(self):
+    self.current_estimate = None
+
+  def estimate(self, img, prop):
+
+    with torch.no_grad():
+
+      # Get the output
+      estimate = self.vit(torch.as_tensor(img.copy()).unsqueeze(0).float())
+
+    if self.current_estimate is None:
+      self.current_estimate = estimate.numpy().copy()
+    else:
+      self.current_estimate = (1-self.alpha)*self.current_estimate + self.alpha*estimate.numpy()
+
+    return self.current_estimate.copy()
+
 
 class SimpleSequentialCNN(nn.Module):
 
@@ -129,24 +183,29 @@ class SimpleCNN(nn.Module):
     self.nchannels = 2
 
     self.cnn_base = nn.Sequential(
-      nn.Conv2d(in_channels=self.nchannels, out_channels=8, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
-      nn.BatchNorm2d(8),
+      nn.Conv2d(in_channels=self.nchannels, out_channels=16, kernel_size=(3, 3), stride=(1, 1), padding="same"),
+      #nn.BatchNorm2d(16),
       nn.LeakyReLU(),
-      nn.Conv2d(in_channels=8, out_channels=16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
-      nn.BatchNorm2d(16),
-      nn.LeakyReLU(),
-      #nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      nn.MaxPool2d(2),
+      nn.Conv2d(in_channels=16, out_channels=32, kernel_size=(3, 3), stride=(1, 1), padding="same"),
       #nn.BatchNorm2d(32),
-      #nn.LeakyReLU(),
-      #nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      nn.LeakyReLU(),
+      nn.MaxPool2d(2),
+      nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), stride=(1, 1), padding="same"),
       #nn.BatchNorm2d(64),
-      #nn.LeakyReLU(),
-      #nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      nn.LeakyReLU(),
+      nn.MaxPool2d(2),
+      nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3, 3), stride=(1, 1), padding="same"),
       #nn.BatchNorm2d(128),
-      #nn.LeakyReLU(),
-      #nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1)),
+      nn.LeakyReLU(),
+      nn.MaxPool2d(2),
+      nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), stride=(1, 1), padding="same"),
       #nn.BatchNorm2d(256),
-      #nn.LeakyReLU(),
+      nn.LeakyReLU(),
+      nn.MaxPool2d(2),
+      nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(3, 3), stride=(1, 1), padding="same"),
+      #nn.BatchNorm2d(512),
+      nn.LeakyReLU(),
       nn.Flatten()
     )
 
@@ -228,24 +287,45 @@ class VGG11(nn.Module):
     base, adaptive_filter = list(vgg.children())[0:2]
 
     # Switch the first CNN to 1 channel version
+    self.nchannels = 2
     all_but_first_cnn = base[1:]
-    first_cnn = nn.Conv2d(in_channels=1, out_channels=64, kernel_size=(3,3), stride=(1,1), padding=(1,1))
+    first_cnn = nn.Conv2d(in_channels=self.nchannels, out_channels=64, kernel_size=(3,3), stride=(1,1), padding=(1,1))
 
     # Create the new base
     new_base = nn.Sequential(first_cnn, *all_but_first_cnn, adaptive_filter)
 
     # Figure out output size
-    out = new_base(torch.zeros(1, 1, height, width))
+    out = new_base(torch.zeros(1, self.nchannels, height, width))
 
     # Construct a model for predicting target coordinates and radius (i.e. 4 outputs)
     self.net = nn.Sequential(*new_base, nn.Flatten(),
-                             nn.Linear(in_features=np.prod(out.shape[1:]), out_features=4))
+                             nn.Linear(in_features=np.prod(out.shape[1:]), out_features=3))
 
   def forward(self, input):
-    estimate = self.net(input)
-    # estimate for radius needs to be positive
-    radius = F.softplus(estimate[:, 3])
-    return torch.cat([estimate[:, :3], radius.unsqueeze(1)], dim=1)
+
+    # Parse input
+    estimate = []
+    targets = []
+    for idx, (img, prop, tgt) in enumerate(input):
+      estimate.append(self.net(torch.as_tensor(img[::10])))
+      targets.append(torch.as_tensor(tgt[::10]))
+
+    return torch.cat(estimate), torch.cat(targets)
+
+  def calculate_loss(self, seqs):
+
+    # Do predictions
+    predicted, targets_reshaped = self.forward(seqs)
+    print()
+    print(predicted[0])
+    print(targets_reshaped[0])
+
+    # Estimate loss
+    loss_fn = nn.HuberLoss()
+    loss = loss_fn(predicted, targets_reshaped)
+    #loss = torch.mean(torch.sum(torch.abs(predicted - targets_reshaped), dim=1))
+
+    return loss, predicted, targets_reshaped
 
 
 class VGG11Transfer(nn.Module):
