@@ -53,7 +53,8 @@ if __name__=="__main__":
   # print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}')
 
   # Initialise environment
-  env_kwargs = {"target_radius_limit": np.array([0.01, 0.05]), "action_sample_freq": 100, "render_observations": True}
+  env_kwargs = {"direction": "horizontal", "target_radius_limit": np.array([0.01, 0.05]),
+                "action_sample_freq": 100, "render_observations": True}
   #env_kwargs = {}
   env = gym.make(env_name, **env_kwargs)
 
@@ -83,7 +84,7 @@ if __name__=="__main__":
     # # env.sim.data.qfrc_applied[env.model._joint_name2id["steering_gear:rot-y"]] = throttle
     # env.sim.data.qfrc_applied[env.model._joint_name2id[env.engine_front_joint]] = throttle
     # apply_car_dynamics = False
-    # ## ALTERNATIVE: directly apply torque to slide joint:
+    # # ## ALTERNATIVE: directly apply torque to slide joint:
     # # env.sim.data.qfrc_applied[env.model._joint_name2id["car"]] = -throttle
 
     # Take a step
@@ -97,6 +98,14 @@ if __name__=="__main__":
     #input(env.sim.data.qfrc_constraint[env.model._joint_name2id[env.joystick_joint]])
     #input((env.sim.data.get_body_xpos("car"), env.sim.data.get_body_xpos("target")))
     reward += r
+
+    # # TESTING - Visualize a few task conditions:
+    # if env.steps % 20 == 0:
+    #   # Spawn a new car location
+    #   env.spawn_car()
+    #
+    #   # Spawn a new target location (depending on current car location)
+    #   env.spawn_target()
 
     if args.record:
       # Visualise muscle activation

@@ -31,7 +31,7 @@ class RemoteDrivingEnv(FixedEye):
   # Target
   target = "target"
 
-  def __init__(self, **kwargs):
+  def __init__(self, direction="vertical", **kwargs):
 
     # Modify the xml file first
     tree = ET.parse(self.xml_file)
@@ -66,6 +66,16 @@ class RemoteDrivingEnv(FixedEye):
     contact = root.find("contact")
     include_hand_joystick_contact = ET.Element('pair', geom1="thumb-stick-1", geom2="hand_2distph", margin="100", gap="100")
     contact.append(include_hand_joystick_contact)
+
+    # If direction=="horizontal", change position and orientation of car and target scene
+    if direction == "horizontal":
+      worldbody = root.find('worldbody')
+      car = worldbody.find(f"body[@name='{self.car_body}']")
+      car.attrib["pos"] = "2 3 0.065"  #2 meters in front, 3 meters to the left (default position, corresponding to qpos=0 for car joint)
+      car.attrib["euler"] = "0 0 -3.14"
+    else:
+      assert direction == "vertical", f"ERROR: Direction '{direction}' is not valid!"
+    self.direction = direction
 
     # Save the modified XML file and replace old one
     xml_file = os.path.join(project_path(), 'envs/mobl_arms/models/variants/remote_driving_env.xml')
@@ -127,16 +137,22 @@ class RemoteDrivingEnv(FixedEye):
     # Define plane where targets will be spawned: 0.5m in front of shoulder, or the "humphant" body. Note that this
     # body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
     #self.target_origin = np.array([0.5, 0.0, 0.8])
-    self.target_origin = self.sim.data.get_body_xpos("eye") * np.array([1, 1, 0]) + np.array([4, 0, 0])
-    self.target_position = 1000 * self.target_origin.copy()
-    self.target_limits_x = np.array([-2, 2])
-    #self.target_limits_y = np.array([-5, 5])
+    if self.direction == "vertical":
+      self.target_origin = self.sim.data.get_body_xpos("eye") * np.array([1, 1, 0]) + np.array([4, 0, 0])
+      self.target_position = 1000 * self.target_origin.copy()
+      self.target_limits = np.array([-2, 2])  #x-direction
+    elif self.direction == "horizontal":
+      self.target_origin = self.sim.data.get_body_xpos("eye") * np.array([1, 1, 0]) + np.array([2, 0, 0])
+      self.target_position = 1000 * self.target_origin.copy()
+      self.target_limits = np.array([-2, 2])  #-y-direction
+    else:
+      raise NotImplementedError
 
     # Update plane location
     self.target_plane_geom_idx = self.model._geom_name2id["target-plane"]
     self.target_plane_body_idx = self.model._body_name2id["target-plane"]
-    self.model.geom_size[self.target_plane_geom_idx] = np.array([(self.target_limits_x[1] - self.target_limits_x[0])/2,
-                                                                0.15, #(self.target_limits_y[1] - self.target_limits_y[0])/2
+    self.model.geom_size[self.target_plane_geom_idx] = np.array([(self.target_limits[1] - self.target_limits[0])/2 if self.direction == "vertical" else 0.15,
+                                                                (self.target_limits[1] - self.target_limits[0])/2 if self.direction == "horizontal" else 0.15,
                                                                 0.005,
                                                                 ])
     self.model.body_pos[self.target_plane_body_idx] = self.target_origin
@@ -212,7 +228,7 @@ class RemoteDrivingEnv(FixedEye):
       info["inside_target"] = False
 
     # Check if target is inside target area with (close to) zero velocity
-    if info["inside_target"] and np.abs(self.sim.data.get_body_xvelp("car")[0]) <= self.car_velocity_threshold:  #and self.steps_inside_target >= self.dwell_threshold:
+    if info["inside_target"] and np.abs(self.sim.data.get_body_xvelp("car")[0 if self.direction == "vertical" else 1]) <= self.car_velocity_threshold:  #and self.steps_inside_target >= self.dwell_threshold:
       finished = True
       info["target_hit"] = True
     else:
@@ -254,10 +270,8 @@ class RemoteDrivingEnv(FixedEye):
 
     # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
     for _ in range(10):
-      target_x = self.rng.uniform(*self.target_limits_x)
-      #target_y = self.rng.uniform(*self.target_limits_y)
-      #new_position = np.array([target_x, target_y, 0])
-      new_position = np.array([target_x, 0, 0])
+      target_rel = self.rng.uniform(*self.target_limits)
+      new_position = np.array([target_rel, 0, 0]) if self.direction == "vertical" else np.array([0, -target_rel, 0])  #negative sign required, since y goes to left but car looks to the right
       distance = np.linalg.norm(self.car_position - (new_position + self.target_origin))
       if distance > self.new_target_distance_threshold:
         break
