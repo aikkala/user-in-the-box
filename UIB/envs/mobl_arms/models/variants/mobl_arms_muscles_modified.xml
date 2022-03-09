@@ -132,14 +132,14 @@
                             <joint name="unrothum_r2" pos="0 0 0" axis="0.157095 0.947269 -0.279291" limited="false" range="-99999.9 99999.9" />
                             <body name="humphant" pos="0 0 0">
                                 <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1" />
-                                <joint name="elv_angle" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.57079633 2.26892803" user="1" />
+                                <joint name="elv_angle" pos="0 0 0" axis="0.0048 0.999089 0.0424" range=" -0.8  1.8" user="1" />
                                 <body name="humphant1" pos="0 0 0">
                                     <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1" />
-                                    <joint name="shoulder_elv" pos="0 0 0" axis="-0.998261 0.0023 0.058898" range="0 3.14159265" user="1" />
+                                    <joint name="shoulder_elv" pos="0 0 0" axis="-0.998261 0.0023 0.058898" range="0  2.14" user="1" />
                                     <joint name="shoulder1_r2" pos="0 0 0" axis="0.0048 0.999089 0.0424" limited="false" range="-99999.9 99999.9" />
                                     <body name="humerus" pos="0 0 0">
                                         <inertial pos="0.018064 -0.140141 -0.012746" quat="0.407851 0.343714 -0.567755 0.627034" mass="1.99757" diaginertia="0.0128576 0.0121576 0.00239265" />
-                                        <joint name="shoulder_rot" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.57079633 0.34906585" user="1" />
+                                        <joint name="shoulder_rot" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.57 1.57" user="1" />
                                         <geom name="humerus" type="mesh" mesh="humerus" />
                                         <site name="DELT1-P1" pos="0.00896 -0.11883 0.00585" />
                                         <site name="DELT1-P2" pos="0.01623 -0.11033 0.00412" />
