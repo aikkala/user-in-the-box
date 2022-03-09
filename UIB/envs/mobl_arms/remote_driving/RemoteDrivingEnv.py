@@ -128,15 +128,15 @@ class RemoteDrivingEnv(FixedEye):
     self.new_target_distance_threshold = 2*np.max(self.target_halfsize_limit)
 
     # Define the reward function used to keep the hand at the joystick
-    self.reward_function_joystick = NegativeExpDistance(shift=-1, scale=1)
+    self.reward_function_joystick = kwargs.get('reward_function_joystick', NegativeExpDistance(shift=-1, scale=1))
 
     # Define the reward function used for the task controlled via joystick
-    self.reward_function_target = NegativeExpDistance(shift=-1, scale=0.1)
+    self.reward_function_target = kwargs.get('reward_function_target', NegativeExpDistance(shift=-1, scale=0.1))
 
     # Define bonus reward terms
     min_total_reward = self.max_episode_steps_extratime * (self.reward_function_joystick.get_min() + self.reward_function_target.get_min())
-    self.reward_function_joystick_bonus = RewardBonus(bonus=-min_total_reward, onetime=True)
-    self.reward_function_target_bonus = RewardBonus(bonus=8, onetime=False)
+    self.reward_function_joystick_bonus = kwargs.get('reward_function_joystick_bonus', RewardBonus(bonus=-min_total_reward, onetime=True))
+    self.reward_function_target_bonus = kwargs.get('reward_function_target_bonus', RewardBonus(bonus=8, onetime=False))
 
     # Do a forward step so stuff like geom and body positions are calculated
     self.sim.forward()

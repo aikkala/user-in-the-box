@@ -9,7 +9,8 @@ class BaseFunction(ABC):
   @abstractmethod
   def __repr__(self):
     pass
-
+  def reset(self):
+    pass
 
 class NegativeExpDistance(BaseFunction):
 
@@ -49,3 +50,12 @@ class RewardBonus(BaseFunction):
 
   def __repr__(self):
     return "RewardBonus"
+
+
+class NoBonus(BaseFunction):
+
+  def __init__(self, **kwargs):
+    pass
+
+  def get(self, get_bonus):
+    return 0
