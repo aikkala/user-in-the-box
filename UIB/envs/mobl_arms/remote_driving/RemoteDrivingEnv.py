@@ -97,6 +97,10 @@ class RemoteDrivingEnv(FixedEye):
     self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*episode_length_seconds)
     self.steps = 0
 
+    # Define a visual buffer; use a size equivalent to 0.1 seconds
+    maxlen = 1 + int(0.1/self.dt)
+    self.visual_buffer = deque(maxlen=maxlen)
+
     # Episodes can be extended if joystick is touched
     episode_length_seconds_extratime = kwargs.get('episode_length_seconds_extratime', 6)
     self.max_episode_steps_extratime = kwargs.get('max_episode_steps_extratime', self.action_sample_freq*episode_length_seconds_extratime)
@@ -162,6 +166,10 @@ class RemoteDrivingEnv(FixedEye):
 
     # Initialize car position (might be overwritten by reset())
     self.car_position = self.sim.data.get_body_xpos(self.car_body).copy()
+
+    # Reset camera position and angle
+    self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-1, -3, 0.9])
+    self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([ -0.6593137, -0.6591959, 0.2552777, 0.256124 ])
 
   def update_car_dynamics(self):
     """
@@ -383,11 +391,18 @@ class ProprioceptionAndVisual(RemoteDrivingEnv):
     observation = super().get_observation()  #TODO: exclude fingertip from observation space?
     #TODO: include fingertip force measured via some sensor in observation space?
 
-    # Time features (time spent inside target)
-    #dwell_time = -1.0 + 2*np.min([1.0, self.steps_inside_target/self.dwell_threshold])
+    # Use only R channel
+    r = observation["visual"][:, :, 0, None]
 
-    # Append to proprioception since those will be handled with a fully-connected layer
-    #observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([dwell_time])])
+    if len(self.visual_buffer) > 0:
+      self.visual_buffer.pop()
+
+    while len(self.visual_buffer) < self.visual_buffer.maxlen:
+      self.visual_buffer.appendleft(r)
+
+    # Use stacked images
+    observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[-1],
+                                            self.visual_buffer[-1] - self.visual_buffer[0]], axis=2)
 
     return observation
 
