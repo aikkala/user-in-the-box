@@ -125,7 +125,7 @@ class RemoteDrivingEnv(FixedEye):
 
     # Define the reward function used to keep the hand at the joystick
     self.reward_function_joystick = NegativeExpDistance(shift=-1, scale=1)
-    self.reward_function_joystick_bonus = RewardBonus(bonus=0.8, onetime=True)
+    self.reward_function_joystick_bonus = RewardBonus(bonus=132, onetime=True)
 
     # Define the reward function used for the task controlled via joystick
     self.reward_function_target = NegativeExpDistance(shift=-1, scale=0.1)
