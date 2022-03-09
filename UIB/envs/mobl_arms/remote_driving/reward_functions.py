@@ -21,6 +21,9 @@ class NegativeExpDistance(BaseFunction):
   def get(self, env, dist):
     return (np.exp(-dist*self.k) + self.shift)*self.scale
 
+  def get_min(self):
+    return self.shift*self.scale
+
   def __repr__(self):
     return "NegativeExpDistance"
 
