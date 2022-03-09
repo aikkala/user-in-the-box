@@ -59,3 +59,6 @@ class NoBonus(BaseFunction):
 
   def get(self, get_bonus):
     return 0
+
+  def __repr__(self):
+    return "NoBonus"
