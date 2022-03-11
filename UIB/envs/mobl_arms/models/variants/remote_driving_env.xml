@@ -444,9 +444,6 @@
         </body>
 
         <camera name="scene_complete" pos="-2 -2 2" mode="targetbody" target="ground_body" />
-        <camera name="controller_front" pos="0 0.2 0.5" euler="-1 0 3.14" />
-        <camera name="controller_top" pos="0 -0.3 0.5" />
-        <camera name="controller_back" pos="0 -0.8 0.5" euler="1 0 0" />
         
         <body pos="2 3 0.065" name="car" euler="0 0 -3.14">
             <camera name="car_third_person" fovy="80" pos="0 -0.5 0.4" euler="1 0 0" />
@@ -522,7 +519,10 @@
 			
         </body>
         
-         <body name="gamepad" pos="0.25 -0.1 0.5" euler="0 0 -1.57">
+         <body name="gamepad" pos="0.3 -0.15 0.5" euler="0 0 -1.57">
+			<camera name="controller_front" pos="0 0.2 0.5" euler="-1 0 3.14" />
+			<camera name="controller_top" pos="0 0 0.5" />
+			<camera name="controller_back" pos="0 0 0.5" euler="1 0 0" />
             
             <body name="sensor-wrapper" pos="0 0 0.025">
                 
@@ -553,11 +553,12 @@
                 <joint type="hinge" name="d_pad:rot-x" axis="1 0 0" limited="true" range="-5 5" damping="10" springref="0" stiffness="500" />
                 <joint type="hinge" name="d_pad:rot-y" axis="0 1 0" limited="true" range="-5 5" damping="10" springref="0" stiffness="500" />
             </body>
+			<geom name="thumb-stick-1-virtual" pos="0.0275 -0.0225 0.059375" type="sphere" size="0.01" mass="0.0005" rgba="1 0 0 0" contype="0" conaffinity="0" />
             <body name="thumb-stick-1" pos="0.0275 -0.0225 0.039375">
                 <geom name="thumb-stick-1" type="mesh" mesh="thumb_stick" mass="0.0005" rgba="0 0 0 1" friction="0.84" />
                 <joint type="hinge" name="thumb-stick-1:rot-x" axis="1 0 0" limited="true" range="-0.349 0.349" damping="0.5" springref="0" stiffness="1" />
                 
-            </body>
+            <site name="thumb-stick-1" size="0.025" rgba="0.5 0.5 0.5 0.0" /></body>
             <body name="thumb-stick-2" pos="0.112500004 -0.0225 0.039375">
                 <geom name="thumb-stick-2" type="mesh" mesh="thumb_stick" mass="0.0005" rgba="0 0 0 1" friction="0.84" />
                 <joint type="hinge" name="thumb-stick-2:rot-x" axis="1 0 0" limited="true" range="-0.349 0.349" damping="0.5" springref="0" stiffness="0.5" />
@@ -844,7 +845,8 @@
     <joint name="shoulder1_r2_con" joint1="shoulder1_r2" joint2="elv_angle" active="true" polycoef="       0       -1        0        0        0" solimp="0.9999 0.9999 0.001 0.5 2" />
     <joint name="r_z_constraint" active="true" joint1="r_z" polycoef="0        0        0        0        0" />
     <weld name="origin_to_worldbody" body1="thorax" active="false" />
-  </equality>
+  <distance name="fingertip_to_joystick" geom1="hand_2distph" geom2="thumb-stick-1-virtual" active="false" />
+	</equality>
   
 <contact>
         
@@ -905,4 +907,4 @@
     
     
 
-</mujoco>
+<sensor><touch name="thumb-stick-1-sensor" site="thumb-stick-1" /></sensor></mujoco>
