@@ -38,9 +38,6 @@ class RemoteDrivingEnv(FixedEye):
     root = tree.getroot()
 
     worldbody = root.find('worldbody')
-    worldbody.remove(worldbody.find("body[@name='target']"))
-    worldbody.remove(worldbody.find("body[@name='target-estimate']"))
-    worldbody.remove(worldbody.find("body[@name='target-plane']"))
 
     worldbody.remove(worldbody.find("geom[@name='floor']"))
     thoraxbody = worldbody.find("body[@name='thorax']")
@@ -66,6 +63,14 @@ class RemoteDrivingEnv(FixedEye):
     contact = root.find("contact")
     include_hand_joystick_contact = ET.Element('pair', geom1="thumb-stick-1", geom2="hand_2distph", margin="100", gap="100")
     contact.append(include_hand_joystick_contact)
+
+    # Add a touch sensor
+    thumb_stick_1 = worldbody.find("body[@name='gamepad']/body[@name='thumb-stick-1']")
+    thumb_stick_1.append(ET.Element('site', name=f'thumb-stick-1', size="0.025", rgba="0.5 0.5 0.5 0.0"))
+    if root.find('sensor') is None:
+      root.append(ET.Element('sensor'))
+    root.find('sensor').append(ET.Element('touch', name=f"thumb-stick-1-sensor", site=f"thumb-stick-1"))
+
 
     # If direction=="horizontal", change position and orientation of car and target scene
     if direction == "horizontal":
@@ -168,8 +173,12 @@ class RemoteDrivingEnv(FixedEye):
     self.car_position = self.sim.data.get_body_xpos(self.car_body).copy()
 
     # Reset camera position and angle
-    self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-1, -3, 0.9])
-    self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([ -0.6593137, -0.6591959, 0.2552777, 0.256124 ])
+    if direction == "vertical":
+      self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-1, -3, 0.9])
+      self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([ -0.6593137, -0.6591959, 0.2552777, 0.256124 ])
+    else:
+      self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-2, 0, 2.5])
+      self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = self.sim.model.body_quat[self.sim.model._body_name2id["eye"]].copy()
 
   def update_car_dynamics(self):
     """
@@ -340,6 +349,7 @@ class RemoteDrivingEnv(FixedEye):
     self.steps_inside_target = 0
     self.trial_idx = 0
     self.targets_hit = 0
+    self.max_episode_steps_with_extratime = self.max_episode_steps
 
     # Reset bonus reward functions
     self.reward_function_joystick_bonus.reset()
