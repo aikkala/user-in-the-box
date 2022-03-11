@@ -17,7 +17,10 @@ class FixedEye(ABC, gym.Env):
   # Fingertip
   fingertip = "hand_2distph"
 
-  def __init__(self, **kwargs):
+  def __init__(self, shoulder_variant="original", **kwargs):
+
+    # Set shoulder model variant
+    self.shoulder_variant = shoulder_variant
 
     # Set action sampling
     self.action_sample_freq = kwargs.get('action_sample_freq', 10)
@@ -34,6 +37,17 @@ class FixedEye(ABC, gym.Env):
     # Get indices of dependent and independent joints
     self.dependent_joints = np.unique(self.model.eq_obj1id[self.model.eq_active.astype(bool)])
     self.independent_joints = list(set(np.arange(self.model.njnt)) - set(self.dependent_joints))
+
+    # Get equality constraint ID of shoulder1_r2
+    if self.shoulder_variant.startswith("patch"):
+      eq_ID_shoulder1_r2 = ([idx for idx, i in enumerate(self.sim.model.eq_data) if
+                            self.sim.model.eq_type[idx] == 2 and (id_1 := self.sim.model.eq_obj1id[idx]) > 0 and (
+                            id_2 := self.sim.model.eq_obj2id[idx]) and {self.sim.model.joint_id2name(id_1),
+                                                                       self.sim.model.joint_id2name(id_2)} == {
+                            "shoulder1_r2",
+                            "elv_angle"}])
+      assert len(eq_ID_shoulder1_r2) == 1
+      self.eq_ID_shoulder1_r2 = eq_ID_shoulder1_r2[0]
 
     # Set action space
     muscles_limits = np.ones((self.model.na,2)) * np.array([-1.0, 1.0])
@@ -66,7 +80,15 @@ class FixedEye(ABC, gym.Env):
 
   def set_ctrl(self, action):
     self.sim.data.ctrl[:] = np.clip(self.sim.data.act[:] + action, 0, 1)
-    
+
+    if self.shoulder_variant.startswith("patch"):
+      #self.sim.data.qpos[self.sim.model.joint_name2id('shoulder1_r2')] = -((np.pi - 2*self.sim.data.qpos[self.sim.model.joint_name2id('shoulder_elv')])/np.pi) * self.sim.data.qpos[self.sim.model.joint_name2id('elv_angle')]
+      self.sim.model.eq_data[self.eq_ID_shoulder1_r2, 1] = -((np.pi - 2 * self.sim.data.qpos[self.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
+
+      if self.shoulder_variant == "patch-v2":
+        self.sim.model.jnt_range[self.sim.model.joint_name2id('shoulder_rot'), :] = np.array(
+          [-np.pi / 2, np.pi / 9]) - 2 * np.min((self.sim.data.qpos[self.sim.model.joint_name2id('shoulder_elv')], np.pi - self.sim.data.qpos[self.sim.model.joint_name2id('shoulder_elv')])) / np.pi * self.sim.data.qpos[self.sim.model.joint_name2id('elv_angle')]
+
   @abstractmethod
   def step(self, action):
     pass
