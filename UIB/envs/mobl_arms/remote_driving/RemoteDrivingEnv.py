@@ -414,6 +414,10 @@ class ProprioceptionAndVisual(RemoteDrivingEnv):
     observation["visual"] = np.concatenate([self.visual_buffer[0], self.visual_buffer[-1],
                                             self.visual_buffer[-1] - self.visual_buffer[0]], axis=2)
 
+    # Add force sensor reading to "proprioceptive" features
+    force = self.sim.data.sensordata[self.model._sensor_name2id["thumb-stick-1-sensor"]] / 100
+    observation['proprioception'] = np.concatenate([observation['proprioception'], np.array([force])])
+
     return observation
 
 class hashabledict(dict):
