@@ -123,7 +123,7 @@ class RemoteDrivingEnv(FixedEye):
     # self.dwell_threshold = 0 * int(0.3*self.action_sample_freq)
 
     # Terminal velocity -- car needs to stay inside target area (i.e., velocity in x-direction needs to fall below some threshold)
-    self.car_velocity_threshold = 0.1
+    self.car_velocity_threshold = kwargs.get('car_velocity_threshold', 0.1)
 
     # Halfsize limits for target
     self.target_halfsize_limit = kwargs.get('target_halfsize_limit', np.array([0.15, 0.5]))
