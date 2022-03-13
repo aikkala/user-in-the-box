@@ -60,6 +60,10 @@ class ISOPointingEnv(FixedEye):
     self.max_trials = 14 if self.evaluate else kwargs.get('max_trials', 14)
     self.targets_hit = 0
 
+    # Dwelling based selection -- fingertip needs to be inside target for some time
+    self.steps_inside_target = 0
+    self.dwell_threshold = int(0.5*self.action_sample_freq)
+
     # Set limits for target plane
     self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
@@ -124,24 +128,27 @@ class ISOPointingEnv(FixedEye):
     finger_position = self.sim.data.get_geom_xpos(self.fingertip)
 
     # Get finger velocity
-    finger_velocity = np.linalg.norm(self.sim.data.get_geom_xvelp(self.fingertip))
+    #finger_velocity = np.linalg.norm(self.sim.data.get_geom_xvelp(self.fingertip))
 
     # Distance to target
     dist = np.linalg.norm(self.target_position - (finger_position - self.target_origin))
 
     # Check if fingertip is inside target
     if dist < self.target_radius:
+      self.steps_inside_target += 1
       info["inside_target"] = True
     else:
+      self.steps_inside_target = 0
       info["inside_target"] = False
 
-    if info["inside_target"] and finger_velocity < 0.5:
+    if info["inside_target"] and self.steps_inside_target >= self.dwell_threshold:
 
       # Update counters
       info["target_hit"] = True
       self.trial_idx += 1
       self.targets_hit += 1
       self.steps_since_last_hit = 0
+      self.steps_inside_target = 0
       self.spawn_target()
       info["target_spawned"] = True
 
@@ -194,6 +201,7 @@ class ISOPointingEnv(FixedEye):
     # Reset counters
     self.steps_since_last_hit = 0
     self.steps = 0
+    self.steps_inside_target = 0
     self.trial_idx = 0
     self.targets_hit = 0
     self.target_idx = -1
@@ -265,8 +273,9 @@ class ProprioceptionAndVisual(ISOPointingEnv):
 
     # Time features (how many targets left, time spent inside target)
     targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
+    dwell_time = -1.0 + 2 * np.min([1.0, self.steps_inside_target / self.dwell_threshold])
 
     # Append to proprioception since those will be handled with a fully-connected layer
-    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([targets_hit])])
+    observation["proprioception"] = np.concatenate([observation["proprioception"], np.array([dwell_time, targets_hit])])
 
     return observation
