@@ -18,10 +18,6 @@ class ButtonPressEnv(FixedEye):
     root = tree.getroot()
     worldbody = root.find('worldbody')
 
-    worldbody.remove(worldbody.find("body[@name='target']"))
-    worldbody.remove(worldbody.find("body[@name='target-estimate']"))
-    worldbody.remove(worldbody.find("body[@name='target-plane']"))
-
     # Add a screen
     screen = ET.Element('body', name='screen-body', pos="0.8 0 1.2", euler="0 1.57 0")
     screen.append(ET.Element('geom', name='screen', type="box", size="0.2 0.2 0.005"))
