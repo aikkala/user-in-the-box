@@ -60,9 +60,9 @@ mobl_arms_pointing_v1 = {
 }
 
 target_speed_curriculum = LinearCurriculum("target_speed_curriculum", start_value=0, end_value=1,
-                                           end_timestep=50_000_000, start_timestep=30_000_000)
+                                           end_timestep=60_000_000, start_timestep=40_000_000)
 mobl_arms_tracking_v1 = {
-  "name": "tracking-v1",
+  "name": "tracking-v1-patch-v1",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-tracking-v1",
