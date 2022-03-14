@@ -1,16 +1,15 @@
 import numpy as np
 import mujoco_py
 from gym import spaces
-from collections import deque
 import xml.etree.ElementTree as ET
 import os
 
 from UIB.envs.mobl_arms.models.FixedEye import FixedEye
-from UIB.envs.mobl_arms.choosing.reward_functions import NegativeExpDistanceWithHitBonus
+from UIB.envs.mobl_arms.button_press.reward_functions import NegativeExpDistanceWithHitBonus
 from UIB.utils.functions import project_path
 
 
-class ChoosingEnv(FixedEye):
+class ButtonPressEnv(FixedEye):
 
   def __init__(self, **kwargs):
 
@@ -178,7 +177,7 @@ class ChoosingEnv(FixedEye):
     return super().reset()
 
 
-class ProprioceptionAndVisual(ChoosingEnv):
+class ProprioceptionAndVisual(ButtonPressEnv):
 
   def __init__(self, **kwargs):
     super().__init__(**kwargs)
