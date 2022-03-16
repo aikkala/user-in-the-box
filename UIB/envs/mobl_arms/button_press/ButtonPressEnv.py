@@ -101,7 +101,7 @@ class ButtonPressEnv(FixedEye):
     # Check if the correct button has been pressed with suitable force
     force = self.sim.data.sensordata[self.current_button["idx"]]
 
-    if 100 > force > 50:
+    if 50 > force > 25:
       info["target_hit"] = True
       self.trial_idx += 1
       self.targets_hit += 1
