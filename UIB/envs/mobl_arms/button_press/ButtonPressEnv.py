@@ -65,9 +65,9 @@ class ButtonPressEnv(FixedEye):
 
     # Add button
     button = ET.Element('body', name=f'button{idx}-body', pos=np.array2string(position)[1:-1], euler=euler)
-    button.append(ET.Element('geom', name=f'button{idx}', type="box", size="0.05 0.05 0.01",
+    button.append(ET.Element('geom', name=f'button{idx}', type="box", size="0.025 0.025 0.01",
                              rgba=np.array2string(color)[1:-1]))
-    button.append(ET.Element('site', name=f'button{idx}-site', pos="0 0 0.01", type="box", size="0.045 0.045 0.01",
+    button.append(ET.Element('site', name=f'button{idx}-site', pos="0 0 0.01", type="box", size="0.02 0.02 0.01",
                              rgba="0.5 0.5 0.5 0.0"))
     worldbody.append(button)
 
@@ -101,7 +101,7 @@ class ButtonPressEnv(FixedEye):
     # Check if the correct button has been pressed with suitable force
     force = self.sim.data.sensordata[self.current_button["idx"]]
 
-    if 100 > force > 50:
+    if 50 > force > 25:
       info["target_hit"] = True
       self.trial_idx += 1
       self.targets_hit += 1
