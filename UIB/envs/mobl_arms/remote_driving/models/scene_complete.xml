@@ -33,7 +33,8 @@
         </body>
 
         <camera name="scene_complete" pos="-2 -2 2" mode="targetbody" target="ground_body"/>
-        
+        <camera name="gamepad" pos="-0.1 0 0.6" mode="targetbody" target="gamepad"/>
+
         <body pos="1 0 0.065" name="car" euler="0 0 -1.57">
             <camera name="car_third_person" fovy="80" pos="0 -0.5 0.4" euler="1 0 0" />
             <geom type="mesh" mesh="chassis" pos="0 0.2 0" mass="1" rgba="1 0 0 0.4"/>
@@ -143,8 +144,9 @@
                 <joint type="hinge" name="d_pad:rot-x" axis="1 0 0" limited="true" range="-5 5" damping="10" springref="0" stiffness="500" />
                 <joint type="hinge" name="d_pad:rot-y" axis="0 1 0" limited="true" range="-5 5" damping="10" springref="0" stiffness="500" />
             </body>
-			<geom name="thumb-stick-1-virtual" pos="0.0275 -0.0225 0.059375" type="sphere" size="0.01" mass="0.0005" rgba="1 0 0 0" contype="0" conaffinity="0"/>
+			<!-- <geom name="thumb-stick-1-virtual" pos="0.0275 -0.0225 0.089375" type="sphere" size="0.005" mass="0.0005" rgba="1 0 0 0" contype="0" conaffinity="0"/> -->
             <body name="thumb-stick-1" pos="0.0275 -0.0225 0.039375">
+				<geom name="thumb-stick-1-virtual" pos="0 0 0.08" type="cylinder" size="0.0125 0.001" mass="0.0005" rgba="1 0 0 0" contype="0" conaffinity="0"/>
                 <geom name="thumb-stick-1" type="mesh" mesh="thumb_stick" mass="0.0005" rgba="0 0 0 1" friction="0.84"/>
                 <joint type="hinge" name="thumb-stick-1:rot-x" axis="1 0 0" limited="true" range="-0.349 0.349" damping="0.5" springref="0" stiffness="1" />
                 <!-- <joint type="hinge" name="thumb-stick-1:rot-y" axis="0 1 0" limited="true" range="-20 20" damping="0.5" springref="0" stiffness="1" /> -->

@@ -18,7 +18,7 @@ def grab_pip_image(env, show_reward=False, stage_reward=None, acc_reward=None, s
 
   # Grab images
   width, height = env.metadata["imagesize"]
-  img = np.flipud(env.sim.render(height=height, width=width, camera_name='for_testing'))
+  img = np.flipud(env.sim.render(height=height, width=width, camera_name='scene_complete'))
   ocular_img = np.flipud(env.sim.render(height=height//4, width=width//4, camera_name='oculomotor'))
 
   # Embed ocular image into free image
@@ -85,7 +85,7 @@ if __name__=="__main__":
   # Initialise environment
   env_kwargs = {"direction": "horizontal", "target_radius_limit": np.array([0.01, 0.05]),
                 "action_sample_freq": 100, "render_observations": True,
-                "shoulder_variant": "patch-v1"}
+                "shoulder_variant": "patch-v1", "gamepad_scale_factor": 3}
   #env_kwargs = {}
   if "pointing" in env_name:
     env_kwargs["max_trials"] = 1
@@ -205,15 +205,20 @@ if __name__=="__main__":
     action = np.zeros((env.sim.model.na, ))
     #action = np.random.uniform(0, 1, size=env.sim.model.na)
 
-    # ## Car driving task - enforce joystick contact:
-    # step_idx += 1
-    # if step_idx >= 10:
-    #   fingertip_to_joystick_constraint = [idx for idx in range(env.sim.model.neq) if env.sim.model.eq_type[idx] == 4 and {env.sim.model.geom_id2name(env.sim.model.eq_obj1id[idx]), env.sim.model.geom_id2name(env.sim.model.eq_obj2id[idx])} == {"hand_2distph", "thumb-stick-1-virtual"}]
-    #   assert len(fingertip_to_joystick_constraint) == 1
-    #   env.sim.model.eq_active[fingertip_to_joystick_constraint[0]] = True
-    #   print((step_idx, info["fingertip_at_joystick"], env.dist_fingertip_to_joystick))
-    # if step_idx == 500:
-    #   env.sim.data.qpos[env.sim.model.joint_name2id("shoulder_elv")] = np.pi/2
+    ## Car driving task - enforce joystick contact:
+    step_idx += 1
+
+    if step_idx >= 10:
+      env.sim.model.geom_rgba[env.sim.model.geom_name2id("hand_2distph")] = [0, 1, 0, 1]
+
+      fingertip_to_joystick_constraint = [idx for idx in range(env.sim.model.neq) if env.sim.model.eq_type[idx] == 4 and {env.sim.model.geom_id2name(env.sim.model.eq_obj1id[idx]), env.sim.model.geom_id2name(env.sim.model.eq_obj2id[idx])} == {"hand_2distph", "thumb-stick-1-virtual"}]
+      assert len(fingertip_to_joystick_constraint) == 1
+      env.sim.model.eq_active[fingertip_to_joystick_constraint[0]] = True
+      print((step_idx, info["fingertip_at_joystick"], env.dist_fingertip_to_joystick))
+    if step_idx == 200:
+      break
+    if step_idx == 500:
+      env.sim.data.qpos[env.sim.model.joint_name2id("shoulder_elv")] = np.pi/2
 
     # # RUN FORWARD SIM. WITH STORED ACTION SEQ. - execute action
     # if step_idx == len(stored_action):

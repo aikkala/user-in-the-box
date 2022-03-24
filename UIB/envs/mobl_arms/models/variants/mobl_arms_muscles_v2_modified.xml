@@ -50,13 +50,18 @@
         <mesh name="hand_thumbprox" file="Geometry/hand_thumbprox.stl" />
         <mesh name="hand_thumbdist" file="Geometry/hand_thumbdist.stl" />
         <mesh name="hand_1mc" file="Geometry/hand_1mc.stl" />
+		
+        <!-- <mesh name="basic_eye" scale="0.1 0.1 0.1" file="assets/basic_eye/basic_eye.stl" />	 -->
+        <!-- <texture type="skybox" name="blue_eye" file="assets/basic_eye/blue_eye_texture.png" /> -->
+		<!-- <material name="blue_eye_texture" texture="blue_eye"/>		 -->
     </asset>
     <worldbody>
         <geom name="floor" size="10 10 0.125" type="plane" material="MatPlane" />
         <camera name="for_testing" pos="0 0 0" />
         <body name="eye" pos="0 0 1.2" quat="0.583833 0.399104 -0.399421 -0.583368">
             <inertial pos="0 0 0" mass="0.0654498" diaginertia="0.001 0.001 0.001" />
-            <geom name="eye-ball" size="0.025" />
+            <geom name="eye-ball" type="sphere" size="0.025" />
+            <!-- <geom name="eye-ball" type="mesh" mesh="basic_eye" material="blue_eye_texture" size="0.025" /> -->
             <camera name="oculomotor" pos="0 0 0" fovy="90" />
         </body>
         <body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0">

@@ -8,13 +8,14 @@ import os
 from UIB.envs.mobl_arms.models.FixedEye import FixedEye
 from UIB.envs.mobl_arms.remote_driving.reward_functions import NegativeExpDistance, RewardBonus
 from UIB.utils.functions import project_path
+from UIB.utils.utils import strinterval_to_nparray, array_to_strinterval
 
 
 class RemoteDrivingEnv(FixedEye):
   metadata = {'render.modes': ['human']}
 
   # Model file
-  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles.xml")
+  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified.xml")
 
   # Joystick
   gamepad_body = "gamepad"
@@ -81,6 +82,50 @@ class RemoteDrivingEnv(FixedEye):
     else:
       assert direction == "vertical", f"ERROR: Direction '{direction}' is not valid!"
     self.direction = direction
+
+    # Scale Gamepad
+    self.gamepad_scale_factor = kwargs.get('gamepad_scale_factor', 1)
+
+    if self.gamepad_scale_factor != 1:
+      scaling_array = self.gamepad_scale_factor * np.array([1, 1, 0]) + np.array([0, 0, 1])
+
+      worldbody = root.find('worldbody')
+      asset = root.find('asset')
+
+      gamepad = worldbody.find(f"body[@name='gamepad']")
+      # for geom in gamepad.findall(f"geom"):
+      #   if "pos" in geom.attrib:
+      #     geom.attrib["pos"] = array_to_strinterval(strinterval_to_nparray(geom.attrib["pos"]) * scaling_array)
+      #   geom.set("size", array_to_strinterval(
+      #     strinterval_to_nparray(geom.attrib["size"] if "size" in geom.attrib else "0 0 0") * scaling_array))
+      #   if "mesh" in geom.attrib:
+      #     mesh = asset.find(f"mesh[@name=\'{geom.attrib['mesh']}\']")
+      #     mesh.set("scale", array_to_strinterval(scaling_array))
+
+      for gamepad_subbody_name in ["sensor-wrapper", "controller-base", "d-pad", "thumb-stick-1", "thumb-stick-2", "control-buttons"]:
+        gamepad_subbody = gamepad.find(f"body[@name='{gamepad_subbody_name}']")
+        if "pos" in gamepad_subbody.attrib:
+          gamepad_subbody.attrib["pos"] = array_to_strinterval(strinterval_to_nparray(gamepad_subbody.attrib["pos"]) * scaling_array + (np.array([0, 0, 0*0.05]) if gamepad_subbody_name == "thumb-stick-1" else 0))
+        for geom in gamepad_subbody.findall(f"geom"):
+          if "pos" in geom.attrib:
+            geom.attrib["pos"] = array_to_strinterval(strinterval_to_nparray(geom.attrib["pos"]) * scaling_array)
+          geom.set("size", array_to_strinterval(strinterval_to_nparray(geom.attrib["size"] if "size" in geom.attrib else "0 0 0") * (scaling_array[[0, 2]] if geom.attrib["type"] == "cylinder" else scaling_array)))
+          if "mesh" in geom.attrib:
+            mesh = asset.find(f"mesh[@name=\'{geom.attrib['mesh']}\']")
+            mesh.set("scale", array_to_strinterval(scaling_array))
+
+      controlbuttons = gamepad.find(f"body[@name='control-buttons']")
+      for controlbuttons_subbody_name in [f"button-{i}" for i in range(1,5)]:
+        controlbuttons_subbody = controlbuttons.find(f"body[@name='{controlbuttons_subbody_name}']")
+        if "pos" in controlbuttons_subbody.attrib:
+          controlbuttons_subbody.attrib["pos"] = array_to_strinterval(strinterval_to_nparray(controlbuttons_subbody.attrib["pos"]) * scaling_array)
+          for geom in controlbuttons_subbody.findall(f"geom"):
+            if "pos" in geom.attrib:
+              geom.attrib["pos"] = array_to_strinterval(strinterval_to_nparray(geom.attrib["pos"]) * scaling_array)
+            geom.set("size", array_to_strinterval(strinterval_to_nparray(geom.attrib["size"] if "size" in geom.attrib else "0 0 0") * scaling_array))
+            if "mesh" in geom.attrib:
+              mesh = asset.find(f"mesh[@name=\'{geom.attrib['mesh']}\']")
+              mesh.set("scale", array_to_strinterval(scaling_array))
 
     # Save the modified XML file and replace old one
     xml_file = os.path.join(project_path(), 'envs/mobl_arms/models/variants/remote_driving_env.xml')
