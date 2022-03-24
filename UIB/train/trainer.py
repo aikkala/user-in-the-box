@@ -16,7 +16,7 @@ def natural_sort(l):
 if __name__=="__main__":
 
   # Load a config
-  config = mobl_arms_tracking_v1
+  config = mobl_arms_remote_driving_v1
 
   # Get name for this run from config
   name = config.get("name", None)

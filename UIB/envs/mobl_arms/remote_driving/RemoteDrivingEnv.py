@@ -268,7 +268,7 @@ class RemoteDrivingEnv(FixedEye):
 
     # Reward to incentivize moving the car inside the target area and stopping there
     reward += self.reward_function_target.get(self, self.dist_car_to_bound)
-    reward += self.reward_function_target_bonus.get(info["inside_target"])
+    reward += self.reward_function_target_bonus.get(info["target_hit"])
 
     # Add an effort cost to reward
     reward -= self.effort_term.get(self)
