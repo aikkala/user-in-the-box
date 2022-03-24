@@ -31,7 +31,7 @@ def grab_pip_image(env, show_reward=False, stage_reward=None, acc_reward=None, s
     assert stage_reward is not None
     assert acc_reward is not None
     img = np.array(add_text_to_image(Image.fromarray(img),
-                        f"{stage_reward:.2g} / {acc_reward:.2g}",
+                        f"{stage_reward:.2g} / {acc_reward:.2}",
                         pos=(10, 10), color=(99, 207, 163), fontsize=48))
 
   # Display joint angles
@@ -85,7 +85,7 @@ if __name__=="__main__":
   # Initialise environment
   env_kwargs = {"direction": "horizontal", "target_radius_limit": np.array([0.01, 0.05]),
                 "action_sample_freq": 100, "render_observations": True,
-                "shoulder_variant": "patch-v2"}
+                "shoulder_variant": "patch-v1"}
   #env_kwargs = {}
   if "pointing" in env_name:
     env_kwargs["max_trials"] = 1
@@ -108,11 +108,12 @@ if __name__=="__main__":
   # joint_to_test = env.sim.model.joint_name2id("shoulder_rot")
   # nsteps_to_test = 100
   #
-  # env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')] = 1.57  # 1.06  # 0.74
-  # env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = 1.57  # 1.06  # 0.74
+  # env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')] = 0  # 1.06  # 0.74
+  # env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = np.pi/6  # 1.06  # 0.74
   # env.sim.data.qpos[env.sim.model.joint_name2id('elbow_flexion')] = 1.57  # 1.06  # 0.74
-  # env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :] = np.array(
-  #   [-np.pi / 2, np.pi / 9]) - 2 * np.min((env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')], np.pi - env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])) / np.pi * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+  # ## patch-v2:
+  # # env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :] = np.array(
+  # #   [-np.pi / 2, np.pi / 9]) - 2 * np.min((env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')], np.pi - env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])) / np.pi * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
   #
   # eq_shoulder1_r2 = ([idx for idx, i in enumerate(env.sim.model.eq_data) if
   #                     env.sim.model.eq_type[idx] == 2 and (id_1 := env.sim.model.eq_obj1id[idx]) > 0 and (
@@ -143,6 +144,7 @@ if __name__=="__main__":
   #   # EXPLICITLY ENFORCE EQUALITY CONSTRAINT:
   #   ##env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
   #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -((np.pi - 2*env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])/np.pi) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+  #   #env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -np.cos(env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
   #   #input((env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]+env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')]))
   #
   #   # # UPDATE EQUALITY CONSTRAINT (needs to be (manually) satisfied in initial state!):
