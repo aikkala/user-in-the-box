@@ -153,7 +153,8 @@ mobl_arms_remote_driving_v1 = {
                  # "reward_function_target": driving_rewards.NegativeExpDistance(shift=-1, scale=0.1),
                  # "reward_function_joystick_bonus": driving_rewards.RewardBonus(bonus=0.8, onetime=True),
                  # "reward_function_target_bonus": driving_rewards.RewardBonus(bonus=8, onetime=False)
-                 "shoulder_variant": "patch-v1"
+                 "shoulder_variant": "patch-v1",
+                 "gamepad_scale_factor": 3
                  },
   "policy_type": MultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,

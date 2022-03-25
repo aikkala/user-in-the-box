@@ -29,15 +29,15 @@ def grab_pip_image(env):
 
   # Grab images
   img = np.flipud(env.sim.render(height=height, width=width, camera_name='for_testing'))
-  ocular_img = np.flipud(env.sim.render(height=env.height, width=env.width, camera_name='oculomotor'))
+  ocular_img = np.flipud(env.sim.render(height=env.ocular_image_height, width=env.ocular_image_width, camera_name='oculomotor'))
 
   # Disable target plane
   env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.0
 
   # Resample
   resample_factor = 3
-  resample_height = env.height*resample_factor
-  resample_width = env.width*resample_factor
+  resample_height = env.ocular_image_height*resample_factor
+  resample_width = env.ocular_image_width*resample_factor
   resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
   for channel in range(3):
     resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
