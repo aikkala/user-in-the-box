@@ -34,10 +34,14 @@
 
         <camera name="scene_complete" pos="-2 -2 2" mode="targetbody" target="ground_body"/>
         <camera name="gamepad" pos="-0.1 0 0.6" mode="targetbody" target="gamepad"/>
+        <camera name="gamepad_backview" pos="-0.3 -0.3 1.5" mode="targetbody" target="gamepad"/>
+        <camera name="alsoaniceview" pos="-0.5 0 0.5" euler="1.57 -1.57 0" />
+
 
         <body pos="1 0 0.065" name="car" euler="0 0 -1.57">
             <camera name="car_third_person" fovy="80" pos="0 -0.5 0.4" euler="1 0 0" />
             <geom type="mesh" mesh="chassis" pos="0 0.2 0" mass="1" rgba="1 0 0 0.4"/>
+			
             <!-- <body name="steering-motor" pos="0 0.14 0.001"> -->
                 <!-- <geom type="box" mass="1" size="0.008 0.02 0.006" rgba="0 0 0 1"/> -->
                 <!-- <body name="steering-motor-axle" pos="0 0.02 0"> -->
@@ -175,6 +179,10 @@
                 </body>
             </body>
         </body>
+		
+	<body name="carsceneview" pos="0.25 -0.3 1" euler="0 -1.57 -1.57">
+		<camera name="carview" euler="-0.5 0 0" mode="fixed"/>
+	</body>
     </worldbody>
 
 	<equality>
