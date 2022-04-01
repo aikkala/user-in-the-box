@@ -49,7 +49,7 @@ class TrackingEnv(FixedEye):
 
     # Define some limits for target movement speed
     self.min_frequency = 0.0
-    self.max_frequency = 0.5
+    self.max_frequency = kwargs.get('max_frequency', 0.5)
     self.freq_curriculum = kwargs.get('freq_curriculum', lambda : 1.0)
 
     # Define a default reward function
@@ -131,6 +131,15 @@ class TrackingEnv(FixedEye):
 
     return self.get_observation(), reward, finished, info
 
+  def get_state(self):
+    state = super().get_state()
+    state["target_position"] = self.target_origin.copy()+self.target_position.copy()
+    state["target_radius"] = self.target_radius
+    state["target_hit"] = False
+    state["inside_target"] = False
+    state["target_spawned"] = False
+    return state
+
   def reset(self):
 
     # Reset counters
@@ -160,8 +169,9 @@ class TrackingEnv(FixedEye):
     t = np.arange(self.max_episode_steps+1) * self.dt
     sine = np.zeros((t.size,))
     sum_amplitude = 0
-    for _ in range(num_components):
-      amplitude = self.rng.uniform(min_amplitude, max_amplitude)
+    for i in range(num_components):
+      #amplitude = self.rng.uniform(min_amplitude, max_amplitude)
+      amplitude = ((i+1)/(num_components))*max_amplitude
       sine +=  amplitude *\
               np.sin(self.rng.uniform(self.min_frequency, max_frequency)*2*np.pi*t + self.rng.uniform(0, 2*np.pi))
       sum_amplitude += amplitude
