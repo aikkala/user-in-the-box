@@ -18,34 +18,41 @@ def natural_sort(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def grab_pip_image(env):
+def grab_pip_image(env, ocular_img_type="inset"):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
 
   # Define image size
   width, height = env.metadata["imagesize"]
 
   # Visualise target plane
-  env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.1
+  if hasattr(env, "target_plane_geom_idx"):
+    env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.1 #0 #.25 #0.1
 
   # Grab images
-  img = np.flipud(env.sim.render(height=height, width=width, camera_name='for_testing'))
+  img = np.flipud(env.sim.render(height=height, width=width, camera_name='backview' if 'driving' in env.spec.id else 'for_testing'))  #for_testing #front #rightview #oculomotor #backview
   ocular_img = np.flipud(env.sim.render(height=env.ocular_image_height, width=env.ocular_image_width, camera_name='oculomotor'))
 
   # Disable target plane
-  env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.0
+  if hasattr(env, "target_plane_geom_idx"):
+    env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.0
 
-  # Resample
-  resample_factor = 3
-  resample_height = env.ocular_image_height*resample_factor
-  resample_width = env.ocular_image_width*resample_factor
-  resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
-  for channel in range(3):
-    resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+  if ocular_img_type == "inset":
+    # Resample
+    resample_factor = 3
+    resample_height = env.ocular_image_height*resample_factor
+    resample_width = env.ocular_image_width*resample_factor
+    resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
+    for channel in range(3):
+      resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 
-  # Embed ocular image into free image
-  i = height - resample_height
-  j = width - resample_width
-  img[i:, j:] = resampled_img
+    # Embed ocular image into free image
+    i = height - resample_height
+    j = width - resample_width
+    img[i:, j:] = resampled_img
+  elif ocular_img_type == "full":
+    # Show only ocular image
+    img = ocular_img
+    env.metadata["imagesize"] = (env.ocular_image_width, env.ocular_image_height)
 
   return img
 
@@ -98,7 +105,10 @@ if __name__=="__main__":
 
   # Override kwargs
   env_kwargs["action_sample_freq"] = 20
-  env_kwargs["freq_curriculum"] = lambda : 0.5
+  env_kwargs["freq_curriculum"] = lambda : 1  #increase target speed by replacing 0.5 by 1
+  env_kwargs["max_frequency"] = 0.5
+  if "iso" in env_name:  #TODO: create new param to select between random and ISO targets
+    env_kwargs["evaluate"] = True
 
   print(f"env_kwargs are: {env_kwargs}")
 
@@ -151,7 +161,8 @@ if __name__=="__main__":
 
       if args.record and not done:
         # Visualise muscle activation
-        env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl * 0.7
+        if not ("driving" in env_name or "button" in env_name):  #TODO: add env attribute for visual input type
+          env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl * 0.7
         imgs.append(grab_pip_image(env))
 
     #print(f"Episode {episode_idx}: targets hit {env.targets_hit}, length {env.steps*env.dt} seconds ({env.steps} steps), reward {reward}. ")
