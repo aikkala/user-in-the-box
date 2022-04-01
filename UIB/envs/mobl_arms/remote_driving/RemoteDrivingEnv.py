@@ -217,6 +217,9 @@ class RemoteDrivingEnv(FixedEye):
     # Initialize car position (might be overwritten by reset())
     self.car_position = self.sim.data.get_body_xpos(self.car_body).copy()
 
+    # Set gamepad position
+    self.sim.model.body_pos[self.sim.model._body_name2id[self.gamepad_body]] = np.array([0.6, -0.2, 0.7])
+
     # Reset camera position and angle
     if direction == "vertical":
       self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-1, -3, 0.9])
@@ -364,6 +367,12 @@ class RemoteDrivingEnv(FixedEye):
     self.target_halfsize = halfsize
     #self.model.geom_size[self.model._geom_name2id["target"]][:2] = self.target_halfsize
     self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_halfsize
+    self.sim.forward()
+
+  def set_car_position(self, position):
+    # INFO: Better use spawn_car() instead, which adjusts car qpos appropriately.
+    self.car_position = position.copy()
+    self.model.body_pos[self.model._body_name2id[self.car_body]] = self.car_position
     self.sim.forward()
 
   def get_state(self):
