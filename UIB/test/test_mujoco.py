@@ -6,25 +6,30 @@ import argparse
 import UIB
 from PIL import Image, ImageFont, ImageDraw
 import matplotlib
-
+import pickle
 
 def natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def grab_pip_image(env, show_reward=False, stage_reward=None, acc_reward=None, show_qpos=True):
+def grab_pip_image(env, ocular_inset=True, show_reward=False, stage_reward=None, acc_reward=None, show_qpos=True):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
+
+  # OPTIONAL: Visualise target plane
+  if hasattr(env, "target_plane_geom_idx"):
+    env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.1
 
   # Grab images
   width, height = env.metadata["imagesize"]
-  img = np.flipud(env.sim.render(height=height, width=width, camera_name='scene_complete'))
+  img = np.flipud(env.sim.render(height=height, width=width, camera_name='carview')) #for_testing #front #rightview #oculomotor
   ocular_img = np.flipud(env.sim.render(height=height//4, width=width//4, camera_name='oculomotor'))
 
   # Embed ocular image into free image
-  i = height - height//4
-  j = width - width//4
-  img[i:, j:] = ocular_img
+  if ocular_inset:
+    i = height - height//4
+    j = width - width//4
+    img[i:, j:] = ocular_img
 
   # Display current and accumulated reward
   if show_reward:
@@ -84,8 +89,10 @@ if __name__=="__main__":
 
   # Initialise environment
   env_kwargs = {"direction": "horizontal", "target_radius_limit": np.array([0.01, 0.05]),
-                "action_sample_freq": 100, "render_observations": True,
-                "shoulder_variant": "patch-v1", "gamepad_scale_factor": 3}
+                "action_sample_freq": 20, "render_observations": True,
+                "shoulder_variant": "patch-v2", "gamepad_scale_factor": 1,
+                "user": "U1"}
+
   #env_kwargs = {}
   if "pointing" in env_name:
     env_kwargs["max_trials"] = 1
@@ -197,28 +204,98 @@ if __name__=="__main__":
 
   step_idx = 0
 
+  # ##############################################################
+  # # Replay episode from log
+  episode_id = 'episode_05'
+  with open("/home/florian/user-in-the-box/output/UIB:mobl-arms-remote-driving-v1/driving-model-v2-patch-v1-newest-location-no-termination/state_log.pickle",
+          'rb') as f:
+      state_log = pickle.load(f)
+  with open(
+          "/home/florian/user-in-the-box/output/UIB:mobl-arms-remote-driving-v1/driving-model-v2-patch-v1-newest-location-no-termination/action_log.pickle",
+          'rb') as f:
+      action_log = pickle.load(f)
+  qpos_replay = np.squeeze(state_log[episode_id]['qpos'])
+  qvel_replay = np.squeeze(state_log[episode_id]['qvel'])
+  ctrl_replay = np.squeeze(action_log[episode_id]['ctrl'])
+  car_pos_replay = np.squeeze(state_log[episode_id]['car_xpos'])
+  target_pos_replay = np.squeeze(state_log[episode_id]['target_position'])
+
+  assert len(ctrl_replay) == len(qpos_replay) - 1
+
+  eq_shoulder1_r2 = ([idx for idx, i in enumerate(env.sim.model.eq_data) if
+                      env.sim.model.eq_type[idx] == 2 and (id_1 := env.sim.model.eq_obj1id[idx]) > 0 and (
+                        id_2 := env.sim.model.eq_obj2id[idx]) and {env.sim.model.joint_id2name(id_1),
+                                                                   env.sim.model.joint_id2name(id_2)} == {
+                        "shoulder1_r2",
+                        "elv_angle"}])
+  assert len(eq_shoulder1_r2) == 1
+  env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
+
+  # Reset car joint, since position of body car is updated directly below
+  env.sim.data.qpos[env.sim.model.joint_name2id('car')] = 0
+
+  for qpos_current, qvel_current, ctrl_current, car_pos_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, car_pos_replay, target_pos_replay):
+    # Set joint angles
+    env.sim.data.qpos[env.independent_joints] = qpos_current
+    env.sim.data.qvel[env.independent_joints] = qvel_current
+
+    # Set car and target position
+    ## env.sim.data.qpos[env.sim.model._joint_name2id[env.car_joint]] = 2.75
+    ## env.set_target_position(np.array([0, -0.5, 0]))
+    env.set_target_position(target_pos_current - env.target_origin)
+    env.set_car_position(car_pos_current)
+    #input((env.sim.data.body_xpos[env.sim.model.body_name2id("target")], env.target_origin, env.target_position, env.model.body_pos[env.model._body_name2id["target"]], target_pos_current))
+
+    # EXPLICITLY ENFORCE EQUALITY CONSTRAINT:
+    ##env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+    env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -((np.pi - 2*env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])/np.pi) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+    #env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -np.cos(env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+    #input((env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]+env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')]))
+
+    # # UPDATE EQUALITY CONSTRAINT (needs to be (manually) satisfied in initial state!):
+    env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
+    # #env.sim.model.eq_solimp[eq_shoulder1_r2[0], :3] = [0.9999, 0.9999, 100]
+    # #input((env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]))
+
+    env.sim.forward()
+    assert all(env.sim.data.qpos[env.independent_joints] == qpos_current)
+    assert all(env.sim.data.qvel[env.independent_joints] == qvel_current)
+    if args.record:
+      # Visualise muscle activation
+      env.model.tendon_rgba[:, 0] = 0.3 + ctrl_current[:] * 0.7
+      imgs.append(grab_pip_image(env, ocular_inset=False, show_qpos=False))
+  if args.record:
+    # Write the video
+    env.write_video(imgs, args.out_file)
+    print(f'A recording has been saved to file {args.out_file}')
+  raise SystemExit(0)
+  ##############################################################
+
+
   # Loop until episode ends
   while not done:
+    step_idx += 1
 
     # Define actions
     #action, _states = model.predict(obs, deterministic=False)
     action = np.zeros((env.sim.model.na, ))
     #action = np.random.uniform(0, 1, size=env.sim.model.na)
 
-    ## Car driving task - enforce joystick contact:
-    step_idx += 1
+    # ## Car driving task - enforce joystick contact:
+    # if step_idx >= 10:
+    #   env.sim.model.geom_rgba[env.sim.model.geom_name2id("hand_2distph")] = [0, 1, 0, 1]
+    #
+    #   fingertip_to_joystick_constraint = [idx for idx in range(env.sim.model.neq) if env.sim.model.eq_type[idx] == 4 and {env.sim.model.geom_id2name(env.sim.model.eq_obj1id[idx]), env.sim.model.geom_id2name(env.sim.model.eq_obj2id[idx])} == {"hand_2distph", "thumb-stick-1-virtual"}]
+    #   assert len(fingertip_to_joystick_constraint) == 1
+    #   env.sim.model.eq_active[fingertip_to_joystick_constraint[0]] = True
+    #   print((step_idx, info["fingertip_at_joystick"], env.dist_fingertip_to_joystick))
+    # if step_idx == 200:
+    #   break
+    # if step_idx == 500:
+    #   env.sim.data.qpos[env.sim.model.joint_name2id("shoulder_elv")] = np.pi/2
 
-    if step_idx >= 10:
-      env.sim.model.geom_rgba[env.sim.model.geom_name2id("hand_2distph")] = [0, 1, 0, 1]
-
-      fingertip_to_joystick_constraint = [idx for idx in range(env.sim.model.neq) if env.sim.model.eq_type[idx] == 4 and {env.sim.model.geom_id2name(env.sim.model.eq_obj1id[idx]), env.sim.model.geom_id2name(env.sim.model.eq_obj2id[idx])} == {"hand_2distph", "thumb-stick-1-virtual"}]
-      assert len(fingertip_to_joystick_constraint) == 1
-      env.sim.model.eq_active[fingertip_to_joystick_constraint[0]] = True
-      print((step_idx, info["fingertip_at_joystick"], env.dist_fingertip_to_joystick))
-    if step_idx == 200:
-      break
-    if step_idx == 500:
-      env.sim.data.qpos[env.sim.model.joint_name2id("shoulder_elv")] = np.pi/2
+    # if step_idx == 10:
+    #   break
 
     # # RUN FORWARD SIM. WITH STORED ACTION SEQ. - execute action
     # if step_idx == len(stored_action):
@@ -250,6 +327,8 @@ if __name__=="__main__":
     #input(env.sim.data.qfrc_constraint[env.model._joint_name2id[env.joystick_joint]])
     #input((env.sim.data.get_body_xpos("car"), env.sim.data.get_body_xpos("target")))
     reward += r
+
+    # input((action, env.sim.data.ctrl[:], env.sim.data.act[:]))
 
     # # TESTING - Visualize a few task conditions:
     # if env.steps % 20 == 0:
