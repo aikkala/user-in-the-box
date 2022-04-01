@@ -166,35 +166,35 @@ mobl_arms_remote_driving_v1 = {
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
 
-mobl_arms_remote_driving_v2 = {
-  "name": "driving-updated-patch-v2",
-  "model": PPO,
-  "total_timesteps": 200_000_000,
-  "env_name": "UIB:mobl-arms-remote-driving-v1",
-  "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
-  "num_workers": 10,
-  "device": "cuda",
-  "env_kwargs": {"direction": "horizontal",
-                 "action_sample_freq": 20,
-                 "effort_term": effort_terms.Neural(),
-                 "episode_length_seconds_extratime": 6,
-                 "episode_length_seconds": 4,
-                 # "car_velocity_threshold": 0.0,
-                 # "reward_function_joystick": driving_rewards.NegativeExpDistance(shift=-1, scale=1),
-                 # "reward_function_target": driving_rewards.NegativeExpDistance(shift=-1, scale=0.1),
-                 # "reward_function_joystick_bonus": driving_rewards.RewardBonus(bonus=0.8, onetime=True),
-                 # "reward_function_target_bonus": driving_rewards.RewardBonus(bonus=8, onetime=False)
-                 "shoulder_variant": "patch-v2"
-                 },
-  "policy_type": MultiInputActorCriticPolicyTanhActions,
-  "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
-                    "net_arch": [256, 256],
-                    "log_std_init": 0.0,
-                    "features_extractor_class": VisualAndProprioceptionExtractor,
-                    "normalize_images": False},
-  "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
-  "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
-}
+# mobl_arms_remote_driving_v2 = {
+#   "name": "driving-updated-patch-v2",
+#   "model": PPO,
+#   "total_timesteps": 200_000_000,
+#   "env_name": "UIB:mobl-arms-remote-driving-v2",
+#   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
+#   "num_workers": 10,
+#   "device": "cuda",
+#   "env_kwargs": {"direction": "horizontal",
+#                  "action_sample_freq": 20,
+#                  "effort_term": effort_terms.Neural(),
+#                  "episode_length_seconds_extratime": 6,
+#                  "episode_length_seconds": 4,
+#                  # "car_velocity_threshold": 0.0,
+#                  # "reward_function_joystick": driving_rewards.NegativeExpDistance(shift=-1, scale=1),
+#                  # "reward_function_target": driving_rewards.NegativeExpDistance(shift=-1, scale=0.1),
+#                  # "reward_function_joystick_bonus": driving_rewards.RewardBonus(bonus=0.8, onetime=True),
+#                  # "reward_function_target_bonus": driving_rewards.RewardBonus(bonus=8, onetime=False)
+#                  "shoulder_variant": "patch-v2"
+#                  },
+#   "policy_type": MultiInputActorCriticPolicyTanhActions,
+#   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
+#                     "net_arch": [256, 256],
+#                     "log_std_init": 0.0,
+#                     "features_extractor_class": VisualAndProprioceptionExtractor,
+#                     "normalize_images": False},
+#   "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
+#   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
+# }
 
 #### Below are the configs used to train the models for the UIST paper ####
 

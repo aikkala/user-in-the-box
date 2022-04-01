@@ -6,4 +6,5 @@ register(id='mobl-arms-iso-pointing-v1', entry_point='UIB.envs.mobl_arms.iso_poi
 register(id='mobl-arms-tracking-v1', entry_point='UIB.envs.mobl_arms.tracking.TrackingEnv:ProprioceptionAndVisual')
 register(id='mobl-arms-button-press-v1', entry_point='UIB.envs.mobl_arms.button_press.ButtonPressEnv:ProprioceptionAndVisual')
 register(id='mobl-arms-remote-driving-v1', entry_point='UIB.envs.mobl_arms.remote_driving.RemoteDrivingEnv:ProprioceptionAndVisual')
+#register(id='mobl-arms-remote-driving-v2', entry_point='UIB.envs.mobl_arms.remote_driving.RemoteDrivingEnv:ProprioceptionAndVisual')
 
