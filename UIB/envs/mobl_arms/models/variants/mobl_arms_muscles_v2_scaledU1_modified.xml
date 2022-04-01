@@ -8,7 +8,7 @@
     <default class="main">
         <joint limited="true" stiffness="2" armature="0.1" damping="0.5" />
         <geom margin="0.001" rgba="0.8 0.6 0.4 1" />
-        <site size="0.001 0.005 0.005" />
+        <site size="0.001 0.005 0.005"/>
         <tendon rgba="0.95 0.3 0.3 1" />
         <default class="muscle">
             <general ctrllimited="true" ctrlrange="0 1" dyntype="muscle" gaintype="muscle" biastype="muscle" dynprm="0.01 0.04 0 0 0 0 0 0 0 0" gainprm="0.75 1.05 -1 2000 0.5 1.6 1.5 1.3 1.2 0" biasprm="0.75 1.05 -1 2000 0.5 1.6 1.5 1.3 1.2 0" />
@@ -50,15 +50,39 @@
         <mesh name="hand_thumbprox" file="Geometry/hand_thumbprox.stl" scale="1.21671 1.21671 1.21671" />
         <mesh name="hand_thumbdist" file="Geometry/hand_thumbdist.stl" scale="1.21671 1.21671 1.21671" />
         <mesh name="hand_1mc" file="Geometry/hand_1mc.stl" scale="1.21671 1.21671 1.21671" />
+		
+        <mesh name="basic_eye" scale="0.05 0.05 0.05" file="assets/basic_eye/basic_eye_2.stl" />	
+        <texture type="cube" gridsize="3 4" gridlayout=".U..LFRB.D.." name="blue_eye" file="assets/basic_eye/blue_eye_texture_circle.png" />
+		<material name="blue_eye" texture="blue_eye" texuniform="true"/>
     </asset>
     <worldbody>
         <geom name="floor" size="10 10 0.125" type="plane" material="MatPlane" />
         <camera name="for_testing" pos="0 0 0" />
+		<camera name="rightview" pos="0.35 -1 1" euler="1.57 0 0" />
+		<camera name="backview" pos="-1.5 0 0.8" euler="1.57 -1.57 0" />
+
+		<!-- <body name="rightview" pos="0 -0.2 1" euler="0 -1.57 -1.57"> -->
+			<!-- <camera name="rightview" euler="0 0.25 0" mode="fixed"/> -->
+		<!-- </body> -->
+		<!-- <body name="carsceneview" pos="-0.9 -0.3 2" euler="0 -1.57 -1.57"> -->
+			<!-- <camera name="carsceneview" euler="-0.6 0 0" mode="fixed"/> -->
+		<!-- </body> -->
+		<!-- <body name="cameratest" pos="2 0 1"  euler="0 1.57 1.57"> -->
+            <!-- <camera name="front" mode="track"/> -->
+        <!-- </body> -->
+		<camera name="front" pos="2 0 1" euler="0 1.57 1.57" mode="track"/>
+		
         <body name="eye" pos="0 0 1.2" quat="0.583833 0.399104 -0.399421 -0.583368">
             <inertial pos="0 0 0" mass="0.0654498" diaginertia="0.001 0.001 0.001" />
-            <geom name="eye-ball" size="0.025" />
+            <!-- <geom name="eye-ball" type="sphere" size="0.025" /> -->
+            <geom name="eye-ball" type="mesh" mesh="basic_eye" euler="0.69 1.43 0" material="blue_eye" size="0.025" />
             <camera name="oculomotor" pos="0 0 0" fovy="90" />
+				
+			<!-- <geom name="Xdir" type="box" pos="0.1 0 0" size="0.2 0.01 0.01" rgba="1 0 0 1" contype="0" conaffinity="0"/> -->
+			<!-- <geom name="Ydir" type="box" pos="0 0.1 0" size="0.01 0.2 0.01" rgba="0 1 0 1" contype="0" conaffinity="0"/> -->
+			<!-- <geom name="Zdir" type="box" pos="0 0 0.1" size="0.01 0.01 0.2" rgba="0 0 1 1" contype="0" conaffinity="0"/> -->
         </body>
+		
         <body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0">
             <inertial pos="-0.0208321 -0.133359 3.76717e-05" quat="0.982593 0.000537744 0.000250295 0.185769" mass="9.81771" diaginertia="0.107734 0.0806274 0.06434" />
             <joint name="r_z" pos="0 0 0" axis="0 0 1" stiffness="0" range="-6.28319 6.28319" armature="0" damping="0" />
