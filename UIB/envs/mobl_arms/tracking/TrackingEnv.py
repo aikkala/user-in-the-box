@@ -189,6 +189,10 @@ class TrackingEnv(FixedEye):
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
     self.sim.forward()
 
+  def set_target_position(self, position):
+    self.target_position = position.copy()
+    self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
+    self.sim.forward()
 
 class ProprioceptionAndVisual(TrackingEnv):
 

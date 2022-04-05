@@ -12,7 +12,8 @@ from UIB.utils import effort_terms
 class FixedEye(ABC, gym.Env):
 
   # Model file
-  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified.xml")
+  #xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified.xml")
+  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified_bright.xml")
 
   # Fingertip
   fingertip = "hand_2distph"
@@ -143,6 +144,9 @@ class FixedEye(ABC, gym.Env):
     self.sim.data.qvel.fill(0)
     self.sim.data.qvel[self.independent_joints] = qvel
     self.sim.data.act[:] = act
+
+    # # Start with T-Pose
+    # self.sim.data.qpos[self.sim.model.joint_name2id("shoulder_elv")] = 1.57
 
     # Some effort terms may be stateful and need to be reset
     self.effort_term.reset()

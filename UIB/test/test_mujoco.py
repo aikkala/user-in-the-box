@@ -13,23 +13,27 @@ def natural_sort(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def grab_pip_image(env, ocular_inset=True, show_reward=False, stage_reward=None, acc_reward=None, show_qpos=True):
+def grab_pip_image(env, ocular_img_type="none", show_reward=False, stage_reward=None, acc_reward=None, show_qpos=False):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
 
   # OPTIONAL: Visualise target plane
   if hasattr(env, "target_plane_geom_idx"):
-    env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.1
+    env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0#.1
 
   # Grab images
   width, height = env.metadata["imagesize"]
-  img = np.flipud(env.sim.render(height=height, width=width, camera_name='carview')) #for_testing #front #rightview #oculomotor
-  ocular_img = np.flipud(env.sim.render(height=height//4, width=width//4, camera_name='oculomotor'))
+  img = np.flipud(env.sim.render(height=height, width=width, camera_name='backview' if 'driving' in env.spec.id else 'front')) #for_testing #front #rightview #oculomotor
+  ocular_img = np.flipud(env.sim.render(height=env.ocular_image_height, width=env.ocular_image_width, camera_name='oculomotor'))
 
   # Embed ocular image into free image
-  if ocular_inset:
+  if ocular_img_type == "inset":
     i = height - height//4
     j = width - width//4
     img[i:, j:] = ocular_img
+  elif ocular_img_type == "full":
+    # Show only ocular image
+    img = ocular_img
+    env.metadata["imagesize"] = (env.ocular_image_width, env.ocular_image_height)
 
   # Display current and accumulated reward
   if show_reward:
@@ -90,8 +94,9 @@ if __name__=="__main__":
   # Initialise environment
   env_kwargs = {"direction": "horizontal", "target_radius_limit": np.array([0.01, 0.05]),
                 "action_sample_freq": 20, "render_observations": True,
-                "shoulder_variant": "patch-v2", "gamepad_scale_factor": 1,
-                "user": "U1"}
+                "shoulder_variant": "patch-v1", "gamepad_scale_factor": 1,
+                #"user": "U1"
+                }
 
   #env_kwargs = {}
   if "pointing" in env_name:
@@ -206,18 +211,26 @@ if __name__=="__main__":
 
   # ##############################################################
   # # Replay episode from log
-  episode_id = 'episode_05'
-  with open("/home/florian/user-in-the-box/output/UIB:mobl-arms-remote-driving-v1/driving-model-v2-patch-v1-newest-location-no-termination/state_log.pickle",
-          'rb') as f:
-      state_log = pickle.load(f)
+  episode_id = 'episode_00'
+  # with open("/home/florian/user-in-the-box/output/UIB:mobl-arms-button-press-v1/button-press-v1-patch-v1-smaller-buttons/state_log.pickle",
+  #         'rb') as f:
+  #     state_log = pickle.load(f)
+  # with open(
+  #         "/home/florian/user-in-the-box/output/UIB:mobl-arms-button-press-v1/button-press-v1-patch-v1-smaller-buttons/action_log.pickle",
+  #         'rb') as f:
+  #     action_log = pickle.load(f)
   with open(
-          "/home/florian/user-in-the-box/output/UIB:mobl-arms-remote-driving-v1/driving-model-v2-patch-v1-newest-location-no-termination/action_log.pickle",
+          "/home/florian/user-in-the-box/output/UIB:mobl-arms-tracking-v1/tracking-v1-patch-v1/state_log_0.5.pickle",
           'rb') as f:
-      action_log = pickle.load(f)
+    state_log = pickle.load(f)
+  with open(
+          "/home/florian/user-in-the-box/output/UIB:mobl-arms-tracking-v1/tracking-v1-patch-v1/action_log_0.5.pickle",
+          'rb') as f:
+    action_log = pickle.load(f)
   qpos_replay = np.squeeze(state_log[episode_id]['qpos'])
   qvel_replay = np.squeeze(state_log[episode_id]['qvel'])
   ctrl_replay = np.squeeze(action_log[episode_id]['ctrl'])
-  car_pos_replay = np.squeeze(state_log[episode_id]['car_xpos'])
+  #car_pos_replay = np.squeeze(state_log[episode_id]['car_xpos'])
   target_pos_replay = np.squeeze(state_log[episode_id]['target_position'])
 
   assert len(ctrl_replay) == len(qpos_replay) - 1
@@ -231,20 +244,22 @@ if __name__=="__main__":
   assert len(eq_shoulder1_r2) == 1
   env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
 
-  # Reset car joint, since position of body car is updated directly below
-  env.sim.data.qpos[env.sim.model.joint_name2id('car')] = 0
+  # # Reset car joint, since position of body car is updated directly below
+  # env.sim.data.qpos[env.sim.model.joint_name2id('car')] = 0
 
-  for qpos_current, qvel_current, ctrl_current, car_pos_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, car_pos_replay, target_pos_replay):
+  #for qpos_current, qvel_current, ctrl_current, car_pos_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, car_pos_replay, target_pos_replay):
+  #for qpos_current, qvel_current, ctrl_current in zip(qpos_replay, qvel_replay, ctrl_replay):
+  for qpos_current, qvel_current, ctrl_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, target_pos_replay):
     # Set joint angles
     env.sim.data.qpos[env.independent_joints] = qpos_current
     env.sim.data.qvel[env.independent_joints] = qvel_current
 
-    # Set car and target position
-    ## env.sim.data.qpos[env.sim.model._joint_name2id[env.car_joint]] = 2.75
-    ## env.set_target_position(np.array([0, -0.5, 0]))
+    # # Set car and target position
+    # ## env.sim.data.qpos[env.sim.model._joint_name2id[env.car_joint]] = 2.75
+    # ## env.set_target_position(np.array([0, -0.5, 0]))
     env.set_target_position(target_pos_current - env.target_origin)
-    env.set_car_position(car_pos_current)
-    #input((env.sim.data.body_xpos[env.sim.model.body_name2id("target")], env.target_origin, env.target_position, env.model.body_pos[env.model._body_name2id["target"]], target_pos_current))
+    # env.set_car_position(car_pos_current)
+    # #input((env.sim.data.body_xpos[env.sim.model.body_name2id("target")], env.target_origin, env.target_position, env.model.body_pos[env.model._body_name2id["target"]], target_pos_current))
 
     # EXPLICITLY ENFORCE EQUALITY CONSTRAINT:
     ##env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
@@ -263,7 +278,7 @@ if __name__=="__main__":
     if args.record:
       # Visualise muscle activation
       env.model.tendon_rgba[:, 0] = 0.3 + ctrl_current[:] * 0.7
-      imgs.append(grab_pip_image(env, ocular_inset=False, show_qpos=False))
+      imgs.append(grab_pip_image(env, ocular_img_type="none", show_qpos=False))
   if args.record:
     # Write the video
     env.write_video(imgs, args.out_file)
