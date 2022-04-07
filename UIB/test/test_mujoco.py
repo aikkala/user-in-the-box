@@ -95,7 +95,7 @@ if __name__=="__main__":
   env_kwargs = {"direction": "horizontal", "target_radius_limit": np.array([0.01, 0.05]),
                 "action_sample_freq": 20, "render_observations": True,
                 "shoulder_variant": "patch-v1", "gamepad_scale_factor": 1,
-                #"user": "U1"
+                "user": "U1"
                 }
 
   #env_kwargs = {}
@@ -115,76 +115,76 @@ if __name__=="__main__":
   if args.record:
     imgs.append(grab_pip_image(env))
 
-  # ##############################################################
-  # # TESTING - Joint ranges
-  # joint_to_test = env.sim.model.joint_name2id("shoulder_rot")
-  # nsteps_to_test = 100
-  #
-  # env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')] = 0  # 1.06  # 0.74
-  # env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = np.pi/6  # 1.06  # 0.74
-  # env.sim.data.qpos[env.sim.model.joint_name2id('elbow_flexion')] = 1.57  # 1.06  # 0.74
-  # ## patch-v2:
-  # # env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :] = np.array(
-  # #   [-np.pi / 2, np.pi / 9]) - 2 * np.min((env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')], np.pi - env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])) / np.pi * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
-  #
-  # eq_shoulder1_r2 = ([idx for idx, i in enumerate(env.sim.model.eq_data) if
-  #                     env.sim.model.eq_type[idx] == 2 and (id_1 := env.sim.model.eq_obj1id[idx]) > 0 and (
-  #                       id_2 := env.sim.model.eq_obj2id[idx]) and {env.sim.model.joint_id2name(id_1),
-  #                                                                  env.sim.model.joint_id2name(id_2)} == {
-  #                       "shoulder1_r2",
-  #                       "elv_angle"}])
-  # assert len(eq_shoulder1_r2) == 1
-  # env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
-  #
-  # # ensure constraints
-  # ## adjust virtual joints according to active constraints:
-  # for (virtual_joint_id, physical_joint_id, poly_coefs) in zip(
-  #         env.sim.model.eq_obj1id[
-  #           (env.sim.model.eq_type == 2) & (env.sim.model.eq_active == 1)],
-  #         env.sim.model.eq_obj2id[
-  #           (env.sim.model.eq_type == 2) & (env.sim.model.eq_active == 1)],
-  #         env.sim.model.eq_data[(env.sim.model.eq_type == 2) &
-  #                                    (env.sim.model.eq_active == 1), 4::-1]):
-  #   env.sim.data.qpos[virtual_joint_id] = np.polyval(poly_coefs, env.sim.data.qpos[physical_joint_id])
-  #
-  # range_to_test = np.linspace(env.sim.model.jnt_range[joint_to_test, 0],
-  #                             env.sim.model.jnt_range[joint_to_test, 1], nsteps_to_test)
-  # print('RANGE: {}'.format(env.sim.model.jnt_range[joint_to_test, :]))
-  # for i in range(nsteps_to_test):
-  #   env.sim.data.qpos[joint_to_test] = range_to_test[i]
-  #
-  #   # EXPLICITLY ENFORCE EQUALITY CONSTRAINT:
-  #   ##env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
-  #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -((np.pi - 2*env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])/np.pi) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
-  #   #env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -np.cos(env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
-  #   #input((env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]+env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')]))
-  #
-  #   # # UPDATE EQUALITY CONSTRAINT (needs to be (manually) satisfied in initial state!):
-  #   env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
-  #   # #env.sim.model.eq_solimp[eq_shoulder1_r2[0], :3] = [0.9999, 0.9999, 100]
-  #   # #input((env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]))
-  #
-  #   # if joint_to_test == env.sim.model.joint_name2id(
-  #   #         'elv_angle'):  # include joint equality constraint between "elv_angle" and "shoulder1_r2" and positive angle of "shoulder_elv"
-  #   #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = 3.14 #1.06  # 0.74
-  #   #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')] = -1.5  # 0.74
-  #   #   env.sim.data.qpos[env.sim.model.joint_name2id('elbow_flexion')] = 1.57  # 0.74
-  #   #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -range_to_test[
-  #   #     i]  # i.e., "qpos[eval_env.sim.model.joint_name2id('shoulder1_r2')] = -qpos[eval_env.sim.model.joint_name2id('elv_angle')]"!!!
-  #   # elif joint_to_test == env.sim.model.joint_name2id('shoulder_rot'):
-  #   #   env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')] = 2.3  # 0.74
-  #   #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = 1.57  # 0.74
-  #   env.sim.forward()
-  #   if args.record:
-  #     # Visualise muscle activation
-  #     env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl[:] * 0.7
-  #     imgs.append(grab_pip_image(env))
-  # if args.record:
-  #   # Write the video
-  #   env.write_video(imgs, args.out_file)
-  #   print(f'A recording has been saved to file {args.out_file}')
-  # raise SystemExit(0)
-  # ##############################################################
+  ##############################################################
+  # TESTING - Joint ranges
+  joint_to_test = env.sim.model.joint_name2id("shoulder_rot")
+  nsteps_to_test = 100
+
+  env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')] = np.pi/2  # 1.06  # 0.74
+  env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = np.pi/2  # 1.06  # 0.74
+  env.sim.data.qpos[env.sim.model.joint_name2id('elbow_flexion')] = np.pi/2  # 1.06  # 0.74
+  ## patch-v2:
+  # env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :] = np.array(
+  #   [-np.pi / 2, np.pi / 9]) - 2 * np.min((env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')], np.pi - env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])) / np.pi * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+
+  eq_shoulder1_r2 = ([idx for idx, i in enumerate(env.sim.model.eq_data) if
+                      env.sim.model.eq_type[idx] == 2 and (id_1 := env.sim.model.eq_obj1id[idx]) > 0 and (
+                        id_2 := env.sim.model.eq_obj2id[idx]) and {env.sim.model.joint_id2name(id_1),
+                                                                   env.sim.model.joint_id2name(id_2)} == {
+                        "shoulder1_r2",
+                        "elv_angle"}])
+  assert len(eq_shoulder1_r2) == 1
+  env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
+
+  # ensure constraints
+  ## adjust virtual joints according to active constraints:
+  for (virtual_joint_id, physical_joint_id, poly_coefs) in zip(
+          env.sim.model.eq_obj1id[
+            (env.sim.model.eq_type == 2) & (env.sim.model.eq_active == 1)],
+          env.sim.model.eq_obj2id[
+            (env.sim.model.eq_type == 2) & (env.sim.model.eq_active == 1)],
+          env.sim.model.eq_data[(env.sim.model.eq_type == 2) &
+                                     (env.sim.model.eq_active == 1), 4::-1]):
+    env.sim.data.qpos[virtual_joint_id] = np.polyval(poly_coefs, env.sim.data.qpos[physical_joint_id])
+
+  range_to_test = np.linspace(env.sim.model.jnt_range[joint_to_test, 0],
+                              env.sim.model.jnt_range[joint_to_test, 1], nsteps_to_test)
+  print('RANGE: {}'.format(env.sim.model.jnt_range[joint_to_test, :]))
+  for i in range(nsteps_to_test):
+    env.sim.data.qpos[joint_to_test] = range_to_test[i]
+
+    # EXPLICITLY ENFORCE EQUALITY CONSTRAINT:
+    ## env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+    env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -((np.pi - 2*env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])/np.pi) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+    #env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -np.cos(env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+    #input((env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]+env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')]))
+
+    # # UPDATE EQUALITY CONSTRAINT (needs to be (manually) satisfied in initial state!):
+    env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
+    # #env.sim.model.eq_solimp[eq_shoulder1_r2[0], :3] = [0.9999, 0.9999, 100]
+    # #input((env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]))
+
+    # if joint_to_test == env.sim.model.joint_name2id(
+    #         'elv_angle'):  # include joint equality constraint between "elv_angle" and "shoulder1_r2" and positive angle of "shoulder_elv"
+    #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = 3.14 #1.06  # 0.74
+    #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')] = -1.5  # 0.74
+    #   env.sim.data.qpos[env.sim.model.joint_name2id('elbow_flexion')] = 1.57  # 0.74
+    #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -range_to_test[
+    #     i]  # i.e., "qpos[eval_env.sim.model.joint_name2id('shoulder1_r2')] = -qpos[eval_env.sim.model.joint_name2id('elv_angle')]"!!!
+    # elif joint_to_test == env.sim.model.joint_name2id('shoulder_rot'):
+    #   env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')] = 2.3  # 0.74
+    #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')] = 1.57  # 0.74
+    env.sim.forward()
+    if args.record:
+      # Visualise muscle activation
+      env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl[:] * 0.7
+      imgs.append(grab_pip_image(env))
+  if args.record:
+    # Write the video
+    env.write_video(imgs, args.out_file)
+    print(f'A recording has been saved to file {args.out_file}')
+  raise SystemExit(0)
+  ##############################################################
 
   # # ensure constraints
   # ## adjust virtual joints according to active constraints:
@@ -209,82 +209,82 @@ if __name__=="__main__":
 
   step_idx = 0
 
-  # ##############################################################
-  # # Replay episode from log
-  episode_id = 'episode_00'
-  # with open("/home/florian/user-in-the-box/output/UIB:mobl-arms-button-press-v1/button-press-v1-patch-v1-smaller-buttons/state_log.pickle",
-  #         'rb') as f:
-  #     state_log = pickle.load(f)
+  # # ##############################################################
+  # # # Replay episode from log
+  # episode_id = 'episode_0'
+  # # with open("/home/florian/user-in-the-box/output/UIB:mobl-arms-button-press-v1/button-press-v1-patch-v1-smaller-buttons/state_log.pickle",
+  # #         'rb') as f:
+  # #     state_log = pickle.load(f)
+  # # with open(
+  # #         "/home/florian/user-in-the-box/output/UIB:mobl-arms-button-press-v1/button-press-v1-patch-v1-smaller-buttons/action_log.pickle",
+  # #         'rb') as f:
+  # #     action_log = pickle.load(f)
   # with open(
-  #         "/home/florian/user-in-the-box/output/UIB:mobl-arms-button-press-v1/button-press-v1-patch-v1-smaller-buttons/action_log.pickle",
+  #         "/home/florian/user-in-the-box/output/UIB:mobl-arms-iso-pointing-v1/iso-pointing-U1-patch-v1-dwell-random/state_log.pickle",
   #         'rb') as f:
-  #     action_log = pickle.load(f)
-  with open(
-          "/home/florian/user-in-the-box/output/UIB:mobl-arms-tracking-v1/tracking-v1-patch-v1/state_log_0.5.pickle",
-          'rb') as f:
-    state_log = pickle.load(f)
-  with open(
-          "/home/florian/user-in-the-box/output/UIB:mobl-arms-tracking-v1/tracking-v1-patch-v1/action_log_0.5.pickle",
-          'rb') as f:
-    action_log = pickle.load(f)
-  qpos_replay = np.squeeze(state_log[episode_id]['qpos'])
-  qvel_replay = np.squeeze(state_log[episode_id]['qvel'])
-  ctrl_replay = np.squeeze(action_log[episode_id]['ctrl'])
-  #car_pos_replay = np.squeeze(state_log[episode_id]['car_xpos'])
-  target_pos_replay = np.squeeze(state_log[episode_id]['target_position'])
-
-  assert len(ctrl_replay) == len(qpos_replay) - 1
-
-  eq_shoulder1_r2 = ([idx for idx, i in enumerate(env.sim.model.eq_data) if
-                      env.sim.model.eq_type[idx] == 2 and (id_1 := env.sim.model.eq_obj1id[idx]) > 0 and (
-                        id_2 := env.sim.model.eq_obj2id[idx]) and {env.sim.model.joint_id2name(id_1),
-                                                                   env.sim.model.joint_id2name(id_2)} == {
-                        "shoulder1_r2",
-                        "elv_angle"}])
-  assert len(eq_shoulder1_r2) == 1
-  env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
-
-  # # Reset car joint, since position of body car is updated directly below
-  # env.sim.data.qpos[env.sim.model.joint_name2id('car')] = 0
-
-  #for qpos_current, qvel_current, ctrl_current, car_pos_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, car_pos_replay, target_pos_replay):
-  #for qpos_current, qvel_current, ctrl_current in zip(qpos_replay, qvel_replay, ctrl_replay):
-  for qpos_current, qvel_current, ctrl_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, target_pos_replay):
-    # Set joint angles
-    env.sim.data.qpos[env.independent_joints] = qpos_current
-    env.sim.data.qvel[env.independent_joints] = qvel_current
-
-    # # Set car and target position
-    # ## env.sim.data.qpos[env.sim.model._joint_name2id[env.car_joint]] = 2.75
-    # ## env.set_target_position(np.array([0, -0.5, 0]))
-    env.set_target_position(target_pos_current - env.target_origin)
-    # env.set_car_position(car_pos_current)
-    # #input((env.sim.data.body_xpos[env.sim.model.body_name2id("target")], env.target_origin, env.target_position, env.model.body_pos[env.model._body_name2id["target"]], target_pos_current))
-
-    # EXPLICITLY ENFORCE EQUALITY CONSTRAINT:
-    ##env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
-    env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -((np.pi - 2*env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])/np.pi) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
-    #env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -np.cos(env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
-    #input((env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]+env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')]))
-
-    # # UPDATE EQUALITY CONSTRAINT (needs to be (manually) satisfied in initial state!):
-    env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
-    # #env.sim.model.eq_solimp[eq_shoulder1_r2[0], :3] = [0.9999, 0.9999, 100]
-    # #input((env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]))
-
-    env.sim.forward()
-    assert all(env.sim.data.qpos[env.independent_joints] == qpos_current)
-    assert all(env.sim.data.qvel[env.independent_joints] == qvel_current)
-    if args.record:
-      # Visualise muscle activation
-      env.model.tendon_rgba[:, 0] = 0.3 + ctrl_current[:] * 0.7
-      imgs.append(grab_pip_image(env, ocular_img_type="none", show_qpos=False))
-  if args.record:
-    # Write the video
-    env.write_video(imgs, args.out_file)
-    print(f'A recording has been saved to file {args.out_file}')
-  raise SystemExit(0)
-  ##############################################################
+  #   state_log = pickle.load(f)
+  # with open(
+  #         "/home/florian/user-in-the-box/output/UIB:mobl-arms-iso-pointing-v1/iso-pointing-U1-patch-v1-dwell-random/action_log.pickle",
+  #         'rb') as f:
+  #   action_log = pickle.load(f)
+  # qpos_replay = np.squeeze(state_log[episode_id]['qpos'])
+  # qvel_replay = np.squeeze(state_log[episode_id]['qvel'])
+  # ctrl_replay = np.squeeze(action_log[episode_id]['ctrl'])
+  # #car_pos_replay = np.squeeze(state_log[episode_id]['car_xpos'])
+  # target_pos_replay = np.squeeze(state_log[episode_id]['target_position'])
+  #
+  # assert len(ctrl_replay) == len(qpos_replay) - 1
+  #
+  # eq_shoulder1_r2 = ([idx for idx, i in enumerate(env.sim.model.eq_data) if
+  #                     env.sim.model.eq_type[idx] == 2 and (id_1 := env.sim.model.eq_obj1id[idx]) > 0 and (
+  #                       id_2 := env.sim.model.eq_obj2id[idx]) and {env.sim.model.joint_id2name(id_1),
+  #                                                                  env.sim.model.joint_id2name(id_2)} == {
+  #                       "shoulder1_r2",
+  #                       "elv_angle"}])
+  # assert len(eq_shoulder1_r2) == 1
+  # env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
+  #
+  # # # Reset car joint, since position of body car is updated directly below
+  # # env.sim.data.qpos[env.sim.model.joint_name2id('car')] = 0
+  #
+  # #for qpos_current, qvel_current, ctrl_current, car_pos_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, car_pos_replay, target_pos_replay):
+  # #for qpos_current, qvel_current, ctrl_current in zip(qpos_replay, qvel_replay, ctrl_replay):
+  # for qpos_current, qvel_current, ctrl_current, target_pos_current in zip(qpos_replay, qvel_replay, ctrl_replay, target_pos_replay):
+  #   # Set joint angles
+  #   env.sim.data.qpos[env.independent_joints] = qpos_current
+  #   env.sim.data.qvel[env.independent_joints] = qvel_current
+  #
+  #   # # Set car and target position
+  #   # ## env.sim.data.qpos[env.sim.model._joint_name2id[env.car_joint]] = 2.75
+  #   # ## env.set_target_position(np.array([0, -0.5, 0]))
+  #   env.set_target_position(target_pos_current - env.target_origin)
+  #   # env.set_car_position(car_pos_current)
+  #   # #input((env.sim.data.body_xpos[env.sim.model.body_name2id("target")], env.target_origin, env.target_position, env.model.body_pos[env.model._body_name2id["target"]], target_pos_current))
+  #
+  #   # EXPLICITLY ENFORCE EQUALITY CONSTRAINT:
+  #   ##env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+  #   env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -((np.pi - 2*env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')])/np.pi) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+  #   #env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')] = -np.cos(env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) * env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')]
+  #   #input((env.sim.model.jnt_range[env.sim.model.joint_name2id('shoulder_rot'), :], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]+env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_rot')]))
+  #
+  #   # # UPDATE EQUALITY CONSTRAINT (needs to be (manually) satisfied in initial state!):
+  #   env.sim.model.eq_data[eq_shoulder1_r2[0], 1] = -((np.pi - 2 * env.sim.data.qpos[env.sim.model.joint_name2id('shoulder_elv')]) / np.pi)
+  #   # #env.sim.model.eq_solimp[eq_shoulder1_r2[0], :3] = [0.9999, 0.9999, 100]
+  #   # #input((env.sim.data.qpos[env.sim.model.joint_name2id('elv_angle')], env.sim.data.qpos[env.sim.model.joint_name2id('shoulder1_r2')]))
+  #
+  #   env.sim.forward()
+  #   assert all(env.sim.data.qpos[env.independent_joints] == qpos_current)
+  #   assert all(env.sim.data.qvel[env.independent_joints] == qvel_current)
+  #   if args.record:
+  #     # Visualise muscle activation
+  #     env.model.tendon_rgba[:, 0] = 0.3 + ctrl_current[:] * 0.7
+  #     imgs.append(grab_pip_image(env, ocular_img_type="none", show_qpos=False))
+  # if args.record:
+  #   # Write the video
+  #   env.write_video(imgs, args.out_file)
+  #   print(f'A recording has been saved to file {args.out_file}')
+  # raise SystemExit(0)
+  # ##############################################################
 
 
   # Loop until episode ends
