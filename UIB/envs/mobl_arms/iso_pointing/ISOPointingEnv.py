@@ -25,10 +25,10 @@ class ISOPointingEnv(FixedEye):
   def __init__(self, user, **kwargs):
 
     if user == "general":
-      xml_file = os.path.join(project_path(), f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified.xml")
+      xml_file = os.path.join(project_path(), f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified_bright.xml")
     else:
       xml_file = os.path.join(project_path(),
-                                 f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_scaled{user}_modified.xml")
+                                 f"envs/mobl_arms/models/variants/mobl_arms_muscles_v2_scaled{user}_modified_bright.xml")
 
     # Modify the xml file first
     tree = ET.parse(xml_file)
@@ -245,6 +245,11 @@ class ISOPointingEnv(FixedEye):
     # Set target radius
     self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_radius
 
+    self.sim.forward()
+
+  def set_target_position(self, position):
+    self.target_position = position.copy()
+    self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
     self.sim.forward()
 
 
