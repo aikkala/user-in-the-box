@@ -9,6 +9,8 @@ import scipy.ndimage
 import pickle
 from pathlib import Path
 
+from scipy.spatial.transform import Rotation
+
 from UIB.utils.logger import StateLogger, ActionLogger
 from UIB.utils.functions import output_path
 
@@ -18,8 +20,14 @@ def natural_sort(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def grab_pip_image(env, ocular_img_type="inset"):
+def grab_pip_image(env, ocular_img_type="inset", dynamic_camera=False):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
+
+  # Define camera to use for agent perception
+  eye_camera_name = 'oculomotor'
+
+  # Define camera to use for visualization
+  main_camera_name = ('dynamicview' if dynamic_camera else 'backview') if 'driving' in env.spec.id else 'for_testing'  #for_testing #front #rightview #oculomotor #backview
 
   # Define image size
   width, height = env.metadata["imagesize"]
@@ -28,9 +36,24 @@ def grab_pip_image(env, ocular_img_type="inset"):
   if hasattr(env, "target_plane_geom_idx"):
     env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.1 #0 #.25 #0.1
 
+  # Dynamic camera mode
+  if dynamic_camera:
+    if not hasattr(env, "camera_angle"):
+      env.camera_angle = -np.pi/2
+      env.camera_angle_step = 0
+      env.camera_pos = np.array([0, 1.75, 0])
+      env.camera_angle_vertical = -np.pi/2
+    env.camera_angle -= (0.02) - 0.02*(min((1, env.camera_angle_step/400)))  #last term: dynamic speed change
+    env.camera_angle_vertical += 0.005 if 200 <= env.camera_angle_step < 300 else 0  #dynamically adjust vertical camera angle
+    env.camera_pos[1] -= 0.004 if 100 <= env.camera_angle_step < 300 else 0  #dynamically adjust camera position relative to torso
+    env.camera_pos[2] -= 0.001 if 200 <= env.camera_angle_step < 300 else 0  #dynamically adjust camera position relative to torso
+    env.camera_angle_step += 1
+    env.sim.model.body_quat[env.sim.model._body_name2id[main_camera_name]][:] = Rotation.from_euler("xyz", (1.57, env.camera_angle_vertical, env.camera_angle)).as_quat()[[3, 0, 1, 2]]
+    env.sim.model.cam_pos[env.sim.model._camera_name2id[main_camera_name]][:] = env.camera_pos
+
   # Grab images
-  img = np.flipud(env.sim.render(height=height, width=width, camera_name='backview' if 'driving' in env.spec.id else 'for_testing'))  #for_testing #front #rightview #oculomotor #backview
-  ocular_img = np.flipud(env.sim.render(height=env.ocular_image_height, width=env.ocular_image_width, camera_name='oculomotor'))
+  img = np.flipud(env.sim.render(height=height, width=width, camera_name=main_camera_name))
+  ocular_img = np.flipud(env.sim.render(height=env.ocular_image_height, width=env.ocular_image_width, camera_name=eye_camera_name))
 
   # Disable target plane
   if hasattr(env, "target_plane_geom_idx"):

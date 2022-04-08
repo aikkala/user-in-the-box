@@ -62,9 +62,9 @@
 		<camera name="backview" pos="-1.5 0 0.8" euler="1.57 -1.57 0" />
 		<camera name="buttonfrontview" pos="-0.3 -0.15 1" euler="1.57 -1.57 0" />
 
-		<!-- <body name="rightview" pos="0 -0.2 1" euler="0 -1.57 -1.57"> -->
-			<!-- <camera name="rightview" euler="0 0.25 0" mode="fixed"/> -->
-		<!-- </body> -->
+		<body name="dynamicview" pos="0 0 1" euler="1.57 1.57 0">
+			<camera name="dynamicview" pos="0 1.5 0" target="thorax" mode="targetbody"/>
+		</body>
 		<!-- <body name="carsceneview" pos="-0.9 -0.3 2" euler="0 -1.57 -1.57"> -->
 			<!-- <camera name="carsceneview" euler="-0.6 0 0" mode="fixed"/> -->
 		<!-- </body> -->
