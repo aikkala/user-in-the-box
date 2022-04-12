@@ -57,6 +57,9 @@ class FixedEye(ABC, gym.Env):
     self.reward_function = kwargs.get('reward_function', None)
     self.effort_term = kwargs.get('effort_term', effort_terms.Zero())
 
+    # Collect some episode statistics
+    self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
+
     # Observations from eye shouldn't be rendered when they are not needed
     self.render_observations = kwargs.get('render_observations', True)
 
@@ -70,7 +73,7 @@ class FixedEye(ABC, gym.Env):
     self.metadata = {
       'render.modes': ['human', 'rgb_array', 'depth_array'],
       'video.frames_per_second': int(np.round(1.0 / (self.model.opt.timestep * self.frame_skip))),
-      "imagesize": (1280, 800)
+      "imagesize": (1600, 1280)#(1280, 800)
     }
     self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([1.5, -1.5, 0.9])
     self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array([0.6582, 0.6577, 0.2590, 0.2588])
@@ -147,10 +150,19 @@ class FixedEye(ABC, gym.Env):
     # Some effort terms may be stateful and need to be reset
     self.effort_term.reset()
 
+    # Reset episode statistics
+    self._episode_statistics = dict.fromkeys(self._episode_statistics, 0)
+
     # Do a forward so everything will be set
     self.sim.forward()
 
     return self.get_observation()
+
+  def get_episode_statistics_str(self):
+    return ', '.join(['{}: {}'.format(k,v) for k,v in self.get_episode_statistics().items()])
+
+  def get_episode_statistics(self):
+    return self._episode_statistics
 
   def callback(self, callback_name, num_timesteps):
     self.callbacks[callback_name].update(num_timesteps)

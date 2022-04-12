@@ -85,6 +85,9 @@ class TrackingEnv(FixedEye):
     # Generate trajectory
     self.sin_y, self.sin_z = self.generate_trajectory()
 
+    self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-0.8, -0.6, 1.5])
+    self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array(
+      [0.718027, 0.4371043, -0.31987, -0.4371043])
 
   def step(self, action):
 

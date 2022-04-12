@@ -64,6 +64,9 @@ class ISOPointingEnv(FixedEye):
     self.steps_inside_target = 0
     self.dwell_threshold = int(0.5*self.action_sample_freq)
 
+    # Add some metrics to episode statistics
+    self._episode_statistics = {**self._episode_statistics, **{"targets hit": 0}}
+
     # Set limits for target plane
     self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
@@ -110,6 +113,10 @@ class ISOPointingEnv(FixedEye):
     # Define a default reward function
     if self.reward_function is None:
       self.reward_function = ExpDistanceWithHitBonus()
+
+    #self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-0.8, -0.6, 1.5])
+    #self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array(
+    #  [0.718027, 0.4371043, -0.31987, -0.4371043])
 
   def step(self, action):
 
@@ -180,7 +187,16 @@ class ISOPointingEnv(FixedEye):
     # Add an effort cost to reward
     reward -= self.effort_term.get(self)
 
+    # Update statistics
+    self._episode_statistics["reward"] += reward
+
     return self.get_observation(), reward, finished, info
+
+  def get_episode_statistics(self):
+    self._episode_statistics["length (steps)"] = self.steps
+    self._episode_statistics["length (seconds)"] = self.steps * self.dt
+    self._episode_statistics["targets hit"] = self.targets_hit
+    return self._episode_statistics.copy()
 
   def get_state(self):
     state = super().get_state()
@@ -245,6 +261,16 @@ class ISOPointingEnv(FixedEye):
     # Set target radius
     self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_radius
 
+    self.sim.forward()
+
+  def set_target_position(self, position):
+    self.target_position = position.copy()
+    self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position
+    self.sim.forward()
+
+  def set_target_radius(self, radius):
+    self.target_radius = radius
+    self.model.geom_size[self.model._geom_name2id["target"]][0] = self.target_radius
     self.sim.forward()
 
 

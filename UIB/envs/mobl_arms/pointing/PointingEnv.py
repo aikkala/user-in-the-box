@@ -63,6 +63,9 @@ class PointingEnv(FixedEye):
     # Minimum distance to new spawned targets is twice the max target radius limit
     self.new_target_distance_threshold = 2*self.target_radius_limit[1]
 
+    # Add some metrics to episode statistics
+    self._episode_statistics = {**self._episode_statistics, **{"targets_hit": 0}}
+
     # Define a default reward function
     if self.reward_function is None:
       self.reward_function = ExpDistanceWithHitBonus()
@@ -84,6 +87,14 @@ class PointingEnv(FixedEye):
                                                             (self.target_limits_y[1] - self.target_limits_y[0])/2,
                                                             (self.target_limits_z[1] - self.target_limits_z[0])/2])
     self.model.body_pos[self.target_plane_body_idx] = self.target_origin
+
+    # Set camera angle
+    self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([1.1, -0.9, 0.95])
+    self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array(
+      [0.6582, 0.6577, 0.2590, 0.2588])
+    #self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-0.8, -0.6, 1.5])
+    #self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array(
+    #  [0.718027, 0.4371043, -0.31987, -0.4371043])
 
   def step(self, action):
 
@@ -151,7 +162,16 @@ class PointingEnv(FixedEye):
     # Add an effort cost to reward
     reward -= self.effort_term.get(self)
 
+    # Update statistics
+    self._episode_statistics["reward"] += reward
+
     return self.get_observation(), reward, finished, info
+
+  def get_episode_statistics(self):
+    self._episode_statistics["length (steps)"] = self.steps
+    self._episode_statistics["length (seconds)"] = self.steps * self.dt
+    self._episode_statistics["targets hit"] = self.targets_hit
+    return self._episode_statistics.copy()
 
   def get_state(self):
     state = super().get_state()
@@ -164,7 +184,7 @@ class PointingEnv(FixedEye):
     state["targets_hit"] = self.targets_hit
     return state
 
-  def reset(self):
+  def reset(self, **kwargs):
 
     # Reset counters
     self.steps_since_last_hit = 0
@@ -174,21 +194,24 @@ class PointingEnv(FixedEye):
     self.targets_hit = 0
 
     # Spawn a new location
-    self.spawn_target()
+    self.spawn_target(**kwargs)
 
     return super().reset()
 
-  def spawn_target(self):
+  def spawn_target(self, **kwargs):
 
-    # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
-    for _ in range(10):
-      target_y = self.rng.uniform(*self.target_limits_y)
-      target_z = self.rng.uniform(*self.target_limits_z)
-      new_position = np.array([0, target_y, target_z])
-      distance = np.linalg.norm(self.target_position - new_position)
-      if distance > self.new_target_distance_threshold:
-        break
-    self.target_position = new_position
+    if "target_position" in kwargs:
+      self.target_position = kwargs["target_position"]
+    else:
+      # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
+      for _ in range(10):
+        target_y = self.rng.uniform(*self.target_limits_y)
+        target_z = self.rng.uniform(*self.target_limits_z)
+        new_position = np.array([0, target_y, target_z])
+        distance = np.linalg.norm(self.target_position - new_position)
+        if distance > self.new_target_distance_threshold:
+          break
+      self.target_position = new_position
 
     # Set location
     self.model.body_pos[self.model._body_name2id["target"]] = self.target_origin + self.target_position

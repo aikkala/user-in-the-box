@@ -14,7 +14,7 @@ class RemoteDrivingEnv(FixedEye):
   metadata = {'render.modes': ['human']}
 
   # Model file
-  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles.xml")
+  #xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles.xml")
 
   # Joystick
   gamepad_body = "gamepad"
@@ -268,10 +268,13 @@ class RemoteDrivingEnv(FixedEye):
 
     # Reward to incentivize moving the car inside the target area and stopping there
     reward += self.reward_function_target.get(self, self.dist_car_to_bound)
-    reward += self.reward_function_target_bonus.get(info["inside_target"])
+    reward += self.reward_function_target_bonus.get(info["target_hit"])
 
     # Add an effort cost to reward
     reward -= self.effort_term.get(self)
+
+    # Update statistics
+    self._episode_statistics["reward"] += reward
 
     return self.get_observation(), reward, finished, info
 

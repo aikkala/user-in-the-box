@@ -57,9 +57,17 @@ class ButtonPressEnv(FixedEye):
     self.max_trials = kwargs.get('max_trials', 10)
     self.targets_hit = 0
 
+    # Add some metrics to episode statistics
+    self._episode_statistics = {**self._episode_statistics, **{"targets hit": 0}}
+
     # Define a default reward function
     if self.reward_function is None:
       self.reward_function = NegativeExpDistanceWithHitBonus()
+
+    # Set camera angle
+    #self.sim.model.cam_pos[self.sim.model._camera_name2id['for_testing']] = np.array([-0.8, -0.5, 1.5])
+    #self.sim.model.cam_quat[self.sim.model._camera_name2id['for_testing']] = np.array(
+    #  [0.718027, 0.4371043, -0.31987, -0.4371043])
 
   def add_button(self, root, worldbody, idx, position, euler, color):
 
@@ -144,6 +152,12 @@ class ButtonPressEnv(FixedEye):
     reward -= self.effort_term.get(self)
 
     return self.get_observation(), reward, finished, info
+
+  def get_episode_statistics(self):
+    self._episode_statistics["length (steps)"] = self.steps
+    self._episode_statistics["length (seconds)"] = self.steps * self.dt
+    self._episode_statistics["targets hit"] = self.targets_hit
+    return self._episode_statistics.copy()
 
   def choose_button(self):
 
