@@ -136,19 +136,20 @@ mobl_arms_iso_pointing_v1 = {
 }
 
 mobl_arms_remote_driving_v1 = {
-  "name": "driving-updated-no-early-termination",
+  "name": "driving-model-v2-patch-v1-newest-location-no-termination",
   "model": PPO,
-  "total_timesteps": 100_000_000,
+  "total_timesteps": 200_000_000,
   "env_name": "UIB:mobl-arms-remote-driving-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
   "env_kwargs": {"direction": "horizontal",
+                 "shoulder_variant": "patch-v1",
                  "action_sample_freq": 20,
+                 "car_velocity_threshold": 0.0,
                  "effort_term": effort_terms.Neural(),
                  "episode_length_seconds_extratime": 0,
                  "episode_length_seconds": 10,
-                 "car_velocity_threshold": 0.0,
                  "reward_function_joystick": driving_rewards.NegativeExpDistance(shift=-1, scale=1),
                  "reward_function_target": driving_rewards.NegativeExpDistance(shift=-1, scale=0.1),
                  "reward_function_joystick_bonus": driving_rewards.RewardBonus(bonus=0.8, onetime=True),
@@ -160,10 +161,35 @@ mobl_arms_remote_driving_v1 = {
                     "log_std_init": 0.0,
                     "features_extractor_class": VisualAndProprioceptionExtractor,
                     "normalize_images": False},
-  "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
+  "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.9),
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
 
+
+mobl_arms_slider_remote_driving_v1 = {
+  "name": "driving-slider-relative-reward",
+  "model": PPO,
+  "total_timesteps": 200_000_000,
+  "env_name": "UIB:mobl-arms-slider-remote-driving-v1",
+  "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
+  "num_workers": 10,
+  "device": "cuda",
+  "env_kwargs": {"shoulder_variant": "patch-v1",
+                 "action_sample_freq": 20,
+                 #"reward_function_slider": driving_rewards.NegativeDistance(),
+                 #"reward_function_target": driving_rewards.NegativeExpDistance(k=1, shift=-1, scale=0),
+                 #"reward_function_target_bonus": driving_rewards.RewardBonus(bonus=40),
+                 "effort_term": effort_terms.Neural(),
+  },
+  "policy_type": MultiInputActorCriticPolicyTanhActions,
+  "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
+                    "net_arch": [256, 256],
+                    "log_std_init": 0.0,
+                    "features_extractor_class": VisualAndProprioceptionExtractor,
+                    "normalize_images": False},
+  "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.9),
+  "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
+}
 
 
 #### Below are the configs used to train the models for the UIST paper ####
@@ -193,17 +219,17 @@ mobl_arms_pointing_uist = {
 }
 
 mobl_arms_iso_pointing_uist = {
-  "name": "iso-pointing-general-patch-v1-dwell",
+  "name": "iso-pointing-U1-patch-v1-dwell-random",
   "model": PPO,
   "total_timesteps": 100_000_000,
   "env_name": "UIB:mobl-arms-iso-pointing-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
-  "env_kwargs": {"user": "general",
-                 "evaluate": True,
+  "env_kwargs": {"user": "U1",
+                 "evaluate": False,
                  "shoulder_variant": "patch-v1",
-                 "target_radius_limit": np.array([0.05, 0.05]),
+                 "target_radius_limit": np.array([0.05, 0.15]),
                  "action_sample_freq": 20,
                  "effort_term": effort_terms.Neural(),
                  "reward_function": iso_pointing_rewards.NegativeExpDistanceWithHitBonus(k=10),
@@ -265,5 +291,35 @@ mobl_arms_button_press_uist = {
                     "features_extractor_class": VisualAndProprioceptionExtractor,
                     "normalize_images": False},
   "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
+  "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
+}
+
+mobl_arms_remote_driving_uist = {
+  "name": "driving-no-early-termination-no-bonus-inside-target",
+  "model": PPO,
+  "total_timesteps": 200_000_000,
+  "env_name": "UIB:mobl-arms-remote-driving-v1",
+  "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
+  "num_workers": 10,
+  "device": "cuda",
+  "env_kwargs": {"direction": "horizontal",
+                 "action_sample_freq": 20,
+                 "shoulder_variant": "patch-v1",
+                 "effort_term": effort_terms.Neural(),
+                 "episode_length_seconds_extratime": 0,
+                 "episode_length_seconds": 10,
+                 "car_velocity_threshold": 0.0,
+                 "reward_function_joystick": driving_rewards.NegativeExpDistance(k=3, shift=-1, scale=1),
+                 "reward_function_target": driving_rewards.NegativeExpDistance(k=3, shift=-1, scale=0.1),
+                 "reward_function_joystick_bonus": driving_rewards.NoBonus(),
+                 "reward_function_target_bonus": driving_rewards.RewardBonus(bonus=8)
+  },
+  "policy_type": MultiInputActorCriticPolicyTanhActions,
+  "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
+                    "net_arch": [256, 256],
+                    "log_std_init": 0.0,
+                    "features_extractor_class": VisualAndProprioceptionExtractor,
+                    "normalize_images": False},
+  "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.9),
   "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
 }
