@@ -8,6 +8,9 @@ import argparse
 import scipy.ndimage
 import pickle
 from pathlib import Path
+from collections import defaultdict
+import matplotlib.pyplot as pp
+from mujoco_py.modder import TextureModder
 
 from UIB.utils.logger import StateLogger, ActionLogger
 from UIB.utils.functions import output_path
@@ -18,26 +21,31 @@ def natural_sort(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def grab_pip_image(env):
+def grab_pip_image(env, modder):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
+
+  set_publication_mode(env, modder, True, skybox=True)
 
   # Define image size
   width, height = env.metadata["imagesize"]
 
-  # Visualise target plane
-  env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.1
+  if hasattr(env, 'target_plane_geom_idx'):
+    # Visualise target plane
+    env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.2
 
   # Grab images
   img = np.flipud(env.sim.render(height=height, width=width, camera_name='for_testing'))
-  ocular_img = np.flipud(env.sim.render(height=env.height, width=env.width, camera_name='oculomotor'))
+  ocular_img = np.flipud(env.sim.render(height=env.ocular_image_height, width=env.ocular_image_width,
+                                        camera_name='oculomotor'))
 
-  # Disable target plane
-  env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.0
+  if hasattr(env, 'target_plane_geom_idx'):
+    # Disable target plane
+    env.model.geom_rgba[env.target_plane_geom_idx][-1] = 0.0
 
   # Resample
   resample_factor = 3
-  resample_height = env.height*resample_factor
-  resample_width = env.width*resample_factor
+  resample_height = env.ocular_image_height*resample_factor
+  resample_width = env.ocular_image_width*resample_factor
   resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
   for channel in range(3):
     resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
@@ -47,7 +55,55 @@ def grab_pip_image(env):
   j = width - resample_width
   img[i:, j:] = resampled_img
 
+  set_publication_mode(env, modder, False, skybox=True)
+
   return img
+
+def set_publication_mode(env, modder, value, skybox=True):
+
+  # Do nothing for remote driving env
+  if env.spec._env_name == "mobl-arms-remote-driving":
+    return
+
+  if value:
+
+    # Visualise muscle activation
+    env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl * 0.7
+
+    # Change floor color
+    #env.model.geom_rgba[env.model._geom_name2id["floor"]][3] = 0
+    env.model.geom_rgba[env.model._geom_name2id["floor"]] = [1, 1, 1, 0.2]
+    env.model.geom_matid[env.model._geom_name2id["floor"]] = 1
+
+    if skybox:
+      # Set skybox to light blue
+      skybox = modder.get_texture('skybox')
+      rgb = np.zeros((skybox.height, skybox.width, 3))
+      rgb[:, :] = np.array([204, 230, 255])
+      modder.set_rgb('skybox', rgb)
+
+    # Activate additional light
+    #env.model.light_active[env.model._light_name2id["additional"]] = 1
+
+  if not value:
+
+    # Set back to default tendon color, might affect policy
+    env.model.tendon_rgba[:, 0] = 0.95
+
+    if skybox:
+      # Set skybox back to black
+      modder = TextureModder(env.sim)
+      skybox = modder.get_texture('skybox')
+      arr = np.zeros((skybox.height, skybox.width, 3))*0
+      modder.set_rgb('skybox', arr)
+
+    # Change floor color back
+    #env.model.geom_rgba[env.model._geom_name2id["floor"]][3] = 1
+    env.model.geom_matid[env.model._geom_name2id["floor"]] = 0
+    env.model.geom_rgba[env.model._geom_name2id["floor"]] = [0.8, 0.6, 0.4, 1.0]
+
+    # Disable additional light
+    #env.model.light_active[env.model._light_name2id["additional"]] = 0
 
 if __name__=="__main__":
 
@@ -97,8 +153,14 @@ if __name__=="__main__":
   env_kwargs = config["env_kwargs"]
 
   # Override kwargs
-  env_kwargs["action_sample_freq"] = 20
-  env_kwargs["freq_curriculum"] = lambda : 0.5
+  env_kwargs["action_sample_freq"] = 100
+  env_kwargs["freq_curriculum"] = lambda : 1.0
+  env_kwargs["evaluate"] = True
+  env_kwargs["target_radius_limit"] = np.array([0.05, 0.1])
+  #env_kwargs["target_halfsize_limit"] = np.array([0.3, 0.3])
+
+  # Use deterministic actions?
+  deterministic = False
 
   print(f"env_kwargs are: {env_kwargs}")
 
@@ -114,9 +176,7 @@ if __name__=="__main__":
     action_logger = ActionLogger(args.num_episodes)
 
   # Visualise evaluations
-  episode_lengths = []
-  targets_hit = []
-  rewards = []
+  statistics = defaultdict(list)
   imgs = []
   for episode_idx in range(args.num_episodes):
 
@@ -130,17 +190,20 @@ if __name__=="__main__":
       state_logger.log(episode_idx, state)
 
     if args.record:
-      imgs.append(grab_pip_image(env))
+      modder = TextureModder(env.sim)
+      #set_publication_mode(env, modder, True, skybox=True)
+      imgs.append(grab_pip_image(env, modder))
 
     # Loop until episode ends
     while not done:
 
       # Get actions from policy
-      action, _states = model.predict(obs, deterministic=True)
+      action, _states = model.predict(obs, deterministic=deterministic)
 
       # Take a step
       obs, r, done, info = env.step(action)
       reward += r
+      print(env.steps)
 
       if args.logging:
         action_logger.log(episode_idx, {"step": state["step"], "timestep": state["timestep"], "action": action.copy(),
@@ -150,18 +213,16 @@ if __name__=="__main__":
         state_logger.log(episode_idx, state)
 
       if args.record and not done:
-        # Visualise muscle activation
-        env.model.tendon_rgba[:, 0] = 0.3 + env.sim.data.ctrl * 0.7
-        imgs.append(grab_pip_image(env))
+        imgs.append(grab_pip_image(env, modder))
 
-    #print(f"Episode {episode_idx}: targets hit {env.targets_hit}, length {env.steps*env.dt} seconds ({env.steps} steps), reward {reward}. ")
-    print(f"Episode {episode_idx}: length {env.steps * env.dt} seconds ({env.steps} steps), reward {reward}. ")
-    episode_lengths.append(env.steps)
-    rewards.append(reward)
-    #targets_hit.append(env.targets_hit)
+    print(f"Episode {episode_idx}: {env.get_episode_statistics_str()}")
 
-  print(f'Averages over {args.num_episodes} episodes: '#targets hit {np.mean(targets_hit)}, '
-        f'length {np.mean(episode_lengths)*env.dt} seconds ({np.mean(episode_lengths)} steps), reward {np.mean(rewards)}')
+    episode_statistics = env.get_episode_statistics()
+    for key in episode_statistics:
+      statistics[key].append(episode_statistics[key])
+
+  print(f'Averages over {args.num_episodes} episodes (std in parenthesis):',
+        ', '.join(['{}: {:.2f} ({:.2f})'.format(k, np.mean(v), np.std(v)) for k, v in statistics.items()]))
 
   if args.logging:
     # Output log
