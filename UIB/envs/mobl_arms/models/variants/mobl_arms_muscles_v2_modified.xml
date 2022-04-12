@@ -8,15 +8,18 @@
     <default class="main">
         <joint limited="true" stiffness="2" armature="0.1" damping="0.5" />
         <geom margin="0.001" rgba="0.8 0.6 0.4 1" />
-        <site size="0.001 0.005 0.005" />
+        <site size="0.001 0.005 0.005" rgba="0.5 0.5 0.5 0.0" />
         <tendon rgba="0.95 0.3 0.3 1" />
         <default class="muscle">
             <general ctrllimited="true" ctrlrange="0 1" dyntype="muscle" gaintype="muscle" biastype="muscle" dynprm="0.01 0.04 0 0 0 0 0 0 0 0" gainprm="0.75 1.05 -1 2000 0.5 1.6 1.5 1.3 1.2 0" biasprm="0.75 1.05 -1 2000 0.5 1.6 1.5 1.3 1.2 0" />
         </default>
     </default>
     <asset>
+        <texture name="sky" type="skybox" builtin="gradient" rgb1="0 0 0" rgb2="0 0 0" width="256" height="256" />
         <texture type="2d" name="texplane" builtin="checker" rgb1="0.2 0.3 0.4" rgb2="0.1 0.15 0.2" width="100" height="100" />
         <material name="MatPlane" texture="texplane" texuniform="true" />
+        <texture type="2d" name="texplane-publication" builtin="flat" rgb1="0.58823529 0.56862745 0.50588235" rgb2="1 1 1" width="100" height="100" />
+        <material name="MatPlanePublication" texture="texplane-publication" texuniform="true" />
         <mesh name="thorax" file="Geometry/thorax.stl" />
         <mesh name="clavicle" file="Geometry/clavicle.stl" />
         <mesh name="scapula" file="Geometry/scapula.stl" />
@@ -50,13 +53,17 @@
         <mesh name="hand_thumbprox" file="Geometry/hand_thumbprox.stl" />
         <mesh name="hand_thumbdist" file="Geometry/hand_thumbdist.stl" />
         <mesh name="hand_1mc" file="Geometry/hand_1mc.stl" />
+        <mesh name="basic_eye" scale="0.05 0.05 0.05" file="assets/basic_eye/basic_eye_2.stl" />	
+        <texture type="cube" gridsize="3 4" gridlayout=".U..LFRB.D.." name="blue_eye" file="assets/basic_eye/blue_eye_texture_circle.png" />
+     		<material name="blue_eye" texture="blue_eye" texuniform="true"/>
     </asset>
     <worldbody>
         <geom name="floor" size="10 10 0.125" type="plane" material="MatPlane" />
-        <camera name="for_testing" pos="0 0 0" />
+        <camera name="for_testing" pos="-0.8 -0.6 1.5" euler="0.7 -1.0 -0.7"/>
         <body name="eye" pos="0 0 1.2" quat="0.583833 0.399104 -0.399421 -0.583368">
             <inertial pos="0 0 0" mass="0.0654498" diaginertia="0.001 0.001 0.001" />
-            <geom name="eye-ball" size="0.025" />
+            <!--geom name="eye-ball" size="0.025" /-->
+            <geom name="eye-ball" type="mesh" mesh="basic_eye" euler="0.69 1.43 0" material="blue_eye" size="0.025" />
             <camera name="oculomotor" pos="0 0 0" fovy="90" />
         </body>
         <body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0">
@@ -76,7 +83,8 @@
             <site name="LAT2-P5" pos="-0.07186 -0.18818 0.00815" />
             <site name="LAT3-P4" pos="-0.11157 -0.19387 0.05532" />
             <site name="LAT3-P5" pos="-0.07117 -0.24858 0.00907" />
-            <light pos="0 0 4" dir="0 0 -1" mode="trackcom" />
+            <light pos="0 0 4" dir="0 0 -1" mode="trackcom" name="default" />
+            <light pos="4 0.8 0" dir="-1 0 0" mode="trackcom" name="additional" active="false"/>
             <body name="clavicle" pos="0.006325 0.00693 0.025465">
                 <inertial pos="-0.011096 0.0063723 0.054168" quat="0.906292 0.0334036 0.164622 -0.387838" mass="0.156" diaginertia="0.001 0.001 0.001" />
                 <joint name="sternoclavicular_r2" pos="0 0 0" axis="0.0153 0.989299 -0.1451" limited="false" range="-99999.9 99999.9" />
