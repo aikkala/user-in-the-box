@@ -11,6 +11,8 @@ class BaseFunction(ABC):
     pass
   def reset(self):
     pass
+  def get_min(self):
+    return 0
 
 class NegativeExpDistance(BaseFunction):
 
@@ -27,6 +29,17 @@ class NegativeExpDistance(BaseFunction):
 
   def __repr__(self):
     return "NegativeExpDistance"
+
+class NegativeDistance(BaseFunction):
+
+  def __init__(self, scale=1):
+    self.scale = scale
+
+  def get(self, env, dist):
+    return -dist*self.scale
+
+  def __repr__(self):
+    return "NegativeDistance"
 
 
 class RewardBonus(BaseFunction):
