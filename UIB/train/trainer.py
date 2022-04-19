@@ -7,11 +7,30 @@ from UIB.train.configs import *
 import wandb
 from wandb.integration.sb3 import WandbCallback
 
+from UIB.bm_models import MoblArmsIndex
+from UIB.perception.proprioception import BasicWithEndEffectorPosition
+from UIB.perception.vision import FixedEye
+from UIB.tasks import RemoteDriving
+from UIB.simulator import Simulator
+from UIB.rl.sb3.feature_extractor import FeatureExtractor
+from UIB.perception.base import Perception
+
+from UIB.rl.sb3.PPO import PPO
 
 if __name__=="__main__":
 
   # Load a config
-  config = mobl_arms_tracking_v1
+  config = pointing
+
+  # Save outputs to UIB/outputs if run folder is not defined
+  if "run_folder" not in config:
+    config["run_folder"] = os.path.join(output_path(), config["name"])
+
+  # Build the simulator
+  Simulator.build(config)
+
+  # Initialise
+  simulator = Simulator(config["run_folder"])
 
   # Get name for this run from config
   name = config.get("name", None)
@@ -23,21 +42,12 @@ if __name__=="__main__":
     config["name"] = name
 
   # Initialise wandb
-  run = wandb.init(project="uib", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
+  run = wandb.init(mode="enabled", project="uib", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
 
-  # Define output directories
-  run_folder = os.path.join(output_path(), config["env_name"], run.name)
-  os.makedirs(run_folder, exist_ok=True)
+  # Initialise RL model
+  model = config["rl"]["algorithm"](simulator, config["rl"], config["run_folder"])
 
-  # Initialise model
-  model = config["model"](config, run_folder=run_folder)
-
-  # Save config (except those that can't be pickled)
-  config["lr"] = None
-  with open(os.path.join(run_folder, 'config.pickle'), 'wb') as file:
-    pickle.dump(config, file)
-
-  # Haven't figured out how to periodically save models in wandb; this is currently done inside the model class
+  # Haven't figured out how to periodically save rl in wandb; this is currently done inside the model class
   # TODO this doesn't seem to work; do the files need to be in wandb.run.dir?
   #wandb.save(os.path.join(model_folder, run.name, 'checkpoints', "model_*_steps.zip"),
   #           base_path=os.path.join(model_folder, run.name, 'checkpoints'))

@@ -4,6 +4,11 @@ from datetime import datetime
 import sys
 import select
 import numpy as np
+from distutils.dir_util import copy_tree
+
+
+def parent_path(file):
+  return pathlib.Path(file).parent.absolute()
 
 def project_path():
   return pathlib.Path(__file__).parent.parent.absolute()

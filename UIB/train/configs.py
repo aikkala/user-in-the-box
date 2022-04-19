@@ -2,18 +2,76 @@ import torch
 import numpy as np
 from platform import uname
 
-from UIB.models.sb3.schedule import linear_schedule
-from UIB.models.sb3.policies import MultiInputActorCriticPolicyTanhActions, ActorCriticPolicyTanhActions
-from UIB.models.sb3.feature_extractor import VisualAndProprioceptionExtractor
-from UIB.models.sb3.PPO import PPO
-from UIB.models.sb3.callbacks import LinearCurriculum
+from UIB.rl.sb3.schedule import linear_schedule
+from UIB.rl.sb3.policies import MultiInputActorCriticPolicyTanhActions, ActorCriticPolicyTanhActions
+from UIB.rl.sb3.feature_extractor import VisualAndProprioceptionExtractor
+from UIB.rl.sb3.PPO import PPO
+from UIB.rl.sb3.callbacks import LinearCurriculum
 
 from UIB.utils import effort_terms
-import UIB.envs.mobl_arms.pointing.reward_functions as pointing_rewards
-import UIB.envs.mobl_arms.iso_pointing.reward_functions as iso_pointing_rewards
-import UIB.envs.mobl_arms.tracking.reward_functions as tracking_rewards
-import UIB.envs.mobl_arms.button_press.reward_functions as button_press_rewards
-import UIB.envs.mobl_arms.remote_driving.reward_functions as driving_rewards
+import UIB.envs_old_to_be_removed.mobl_arms.pointing.reward_functions as pointing_rewards
+import UIB.envs_old_to_be_removed.mobl_arms.iso_pointing.reward_functions as iso_pointing_rewards
+import UIB.envs_old_to_be_removed.mobl_arms.tracking.reward_functions as tracking_rewards
+import UIB.envs_old_to_be_removed.mobl_arms.button_press.reward_functions as button_press_rewards
+import UIB.envs_old_to_be_removed.mobl_arms.remote_driving.reward_functions as driving_rewards
+
+from UIB.bm_models import MoblArmsIndex
+from UIB.tasks import RemoteDriving, Pointing
+from UIB.perception.proprioception import BasicWithEndEffectorPosition
+from UIB.perception.vision import FixedEye
+from UIB.rl.sb3.feature_extractor import FeatureExtractor
+
+pointing = \
+  {"name": "mobl-arms-index-pointing",
+   "run_parameters": {"action_sample_freq": 20},
+   "rl": { # TODO make some of these params default
+     "algorithm": PPO,
+     "policy_type": MultiInputActorCriticPolicyTanhActions,
+     "policy_kwargs": {
+       "activation_fn": torch.nn.LeakyReLU,
+       "net_arch": [256, 256, 256],
+       "log_std_init": 0.0,
+       "features_extractor_class": FeatureExtractor,
+       "normalize_images": False
+     },
+     "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
+     "total_timesteps": 100_000_000, "device": "cuda", "num_workers": 10,
+     "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
+   },
+   "simulator": {
+     "bm_model": MoblArmsIndex,
+     "perception_modules": {
+       BasicWithEndEffectorPosition: dict(end_effector="hand_2distph"),
+       FixedEye: dict(resolution=[120, 80], pos="0 0 1.2", quat="0.583833 0.399104 -0.399421 -0.583368")},
+     "task": Pointing,
+     "task_kwargs": dict(end_effector="hand_2distph", shoulder="humphant")}
+   }
+
+remote_driving = \
+  {"name": "mobl-arms-index-remote-driving",
+   "run_parameters": {"action_sample_freq": 20},
+   "rl": { # TODO make some of these params default
+     "algorithm": PPO,
+     "policy_type": MultiInputActorCriticPolicyTanhActions,
+     "policy_kwargs": {
+       "activation_fn": torch.nn.LeakyReLU,
+       "net_arch": [256, 256, 256],
+       "log_std_init": 0.0,
+       "features_extractor_class": FeatureExtractor,
+       "normalize_images": False
+     },
+     "lr": linear_schedule(initial_value=5e-5, min_value=1e-7, threshold=0.8),
+     "total_timesteps": 100_000_000, "device": "cuda", "num_workers": 10,
+     "nsteps": 4000, "batch_size": 500, "target_kl": 1.0, "save_freq": 5000000
+   },
+   "simulator": {
+     "bm_model": MoblArmsIndex,
+     "perception_modules": {
+       BasicWithEndEffectorPosition: dict(end_effector="hand_2distph"),
+       FixedEye: dict(resolution=[120, 80], pos="0 0 1.2", quat="0.583833 0.399104 -0.399421 -0.583368")},
+     "task": RemoteDriving,
+     "task_kwargs": dict(end_effector="hand_2distph", episode_length_seconds=10)}
+   }
 
 mobl_arms_pointing_v0 = {
   "name": "pointing-v0-old-model-new-muscles-3CC-r",
@@ -192,7 +250,7 @@ mobl_arms_slider_remote_driving_v1 = {
 }
 
 
-#### Below are the configs used to train the models for the UIST paper ####
+#### Below are the configs used to train the rl for the UIST paper ####
 
 mobl_arms_pointing_uist = {
   "name": "pointing-v1-patch-v1",
