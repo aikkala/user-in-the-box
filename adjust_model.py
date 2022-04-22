@@ -9,20 +9,28 @@ from utils import adjust_mujoco_model_pt0
 from utils import compare_MuJoCo_OpenSim_models
 
 if __name__=="__main__":
-    env_name = 'UIB:mobl-arms-muscles-v0'
+    env_name = 'UIB:mobl-arms-pointing-v1'
 
-    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41.osim"
+    opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_v2.osim"
     #opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_module6_7_CMC.osim"
-    mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles.xml"
-    mujoco_intermediate = "UIB/envs/mobl_arms/models/mobl_arms_muscles_tendonwrapping.xml"
-    mujoco_output = "UIB/envs/mobl_arms/models/mobl_arms_muscles_modified.xml"
-    model_properties_output = "UIB/envs/mobl_arms/models/MoBL_ARMS_analysis.xml"
+    mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_v2.xml"
+    mujoco_intermediate = "UIB/envs/mobl_arms/models/mobl_arms_muscles_v2_tendonwrapping.xml"
+    mujoco_output = "UIB/envs/mobl_arms/models/mobl_arms_muscles_v2_modified.xml"
+    model_properties_output = "UIB/envs/mobl_arms/models/MoBL_ARMS_analysis_v2.xml"
 
     # mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_original.xml"
     # opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixed_hand.osim"
 
     # mujoco_input = "UIB/envs/mobl_arms/models/mobl_arms_muscles_fixedjoints.xml"
     # opensim_input = "UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_fixedjoints.osim"
+
+    # # Scaled model version:
+    # scaling_ID = "U1"
+    # opensim_input = f"UIB/envs/mobl_arms/models/MOBL_ARMS_fixed_41_v2_scaled{scaling_ID}.osim"
+    # mujoco_input = f"UIB/envs/mobl_arms/models/mobl_arms_muscles_v2_scaled{scaling_ID}.xml"
+    # mujoco_intermediate = f"UIB/envs/mobl_arms/models/mobl_arms_muscles_v2_scaled{scaling_ID}_tendonwrapping.xml"
+    # mujoco_output = f"UIB/envs/mobl_arms/models/mobl_arms_muscles_v2_scaled{scaling_ID}_modified.xml"
+    # model_properties_output = f"UIB/envs/mobl_arms/models/MoBL_ARMS_analysis_v2_scaled{scaling_ID}.xml"
 
     # ## TEST WITH MIROSLAV'S NEW HAND MODEL:
     # mujoco_input = "/home/florian/reacher_sg/HandModel/HandModelTSLAdjusted_modified4conversion_converted/HandModelTSLAdjusted_modified4conversion_converted.xml"

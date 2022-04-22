@@ -135,7 +135,7 @@ def adjust_mujoco_model_pt0(mujoco_xml, osim_file):
         spatial_tendon.pop('@damping')
   # TODO: set "tendon_stiffness" to "stiffness_at_one_norm_force" from OpenSim model?
 
-  # # Append OpenSim path points as sites to MuJoCo model:
+  # # MUJOCO MODEL ADJUSTMENT: Append OpenSim path points as sites to MuJoCo model
   # #TODO
   #
   # # Reference sites in tendon paths:
@@ -170,7 +170,7 @@ def adjust_mujoco_model_pt1(mujoco_xml, osim_file):
   if type(osim_file) == str:
     osim_file = opensim_file(osim_file)
 
-  # Append OpenSim wrap objects to MuJoCo model:
+  # MUJOCO MODEL ADJUSTMENT: Append OpenSim wrap objects to MuJoCo model:
   failed_objects = []
   wrap_object_types = ["WrapCylinder", "WrapSphere", "WrapEllipsoid", "WrapTorus"]
   for object_type in wrap_object_types:
