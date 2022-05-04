@@ -2,28 +2,28 @@ from abc import ABC, abstractmethod
 import os
 import shutil
 import inspect
-import mujoco_py
+import mujoco
 import numpy as np
 import xml.etree.ElementTree as ET
 
-from UIB.utils.functions import parent_path
+from uitb.utils.functions import parent_path
 
 
 class BaseTask(ABC):
 
   xml_file = None
 
-  def __init__(self, sim, **kwargs):
+  def __init__(self, model, data, **kwargs):
 
     # Initialise the mujoco model, easier to manipulate things
-    model = mujoco_py.load_model_from_path(self.xml_file)
+    model = mujoco.MjModel.from_xml_path(self.xml_file)
 
     # Get actuator names and joint names (if any)
-    self.actuator_names = model.actuator_names
-    self.joint_names = model.joint_names
+    self.actuator_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(model.nu)]
+    self.joint_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, i) for i in range(model.njnt)]
 
     # Find actuators in the simulation
-    actuator_names_array = np.array(sim.model.actuator_names)
+    actuator_names_array = np.array(self.actuator_names)
     self.actuators = [np.where(actuator_names_array==actuator)[0][0] for actuator in self.actuator_names]
 
     # Get dependent and independent joint names
@@ -33,20 +33,20 @@ class BaseTask(ABC):
     self.independent_joint_names = set(self.joint_names) - self.dependent_joint_names
 
     # Find dependent and independent joints in the simulation
-    sim_joint_names = np.array(sim.model.joint_names)
+    sim_joint_names = np.array(self.joint_names)
     self.dependent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.dependent_joint_names]
     self.independent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.independent_joint_names]
 
 
   @abstractmethod
-  def update(self, sim):
+  def update(self, model, data):
     pass
 
   @abstractmethod
-  def reset(self, sim, rng):
+  def reset(self, model, data, rng):
     pass
 
-  def get_stateful_information(self, sim):
+  def get_stateful_information(self, model, data):
     return None
 
   def get_stateful_information_space_params(self):

@@ -6,9 +6,9 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback, EveryNTimesteps
 
-from UIB.rl.base import BaseModel
-from UIB.rl.sb3.callbacks import EvalCallback
-from UIB.rl.sb3.feature_extractor import FeatureExtractor
+from uitb.rl.base import BaseModel
+from uitb.rl.sb3.callbacks import EvalCallback
+from uitb.rl.sb3.feature_extractor import FeatureExtractor
 
 class PPO(BaseModel):
 
@@ -24,7 +24,7 @@ class PPO(BaseModel):
 
     # Add stateful information extractor to policy_kwargs
     extractors = simulator.perception.extractors.copy()
-    if simulator.task.get_stateful_information(simulator.sim) is not None:
+    if simulator.task.get_stateful_information(simulator.model, simulator.data) is not None:
       extractors["stateful_information"] = simulator.task.stateful_information_extractor
     rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"extractors": extractors}
 

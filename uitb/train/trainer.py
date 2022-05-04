@@ -1,28 +1,18 @@
 import os
-import pickle
 
-from UIB.utils.functions import output_path, timeout_input
-from UIB.train.configs import *
+from uitb.simulator import Simulator
+from uitb.utils.functions import output_path, timeout_input
+from uitb.train.configs import *
 
 import wandb
 from wandb.integration.sb3 import WandbCallback
-
-from UIB.bm_models import MoblArmsIndex
-from UIB.perception.proprioception import BasicWithEndEffectorPosition
-from UIB.perception.vision import FixedEye
-from UIB.tasks import RemoteDriving
-from UIB.simulator import Simulator
-from UIB.rl.sb3.feature_extractor import FeatureExtractor
-from UIB.perception.base import Perception
-
-from UIB.rl.sb3.PPO import PPO
 
 if __name__=="__main__":
 
   # Load a config
   config = pointing
 
-  # Save outputs to UIB/outputs if run folder is not defined
+  # Save outputs to uitb/outputs if run folder is not defined
   if "run_folder" not in config:
     config["run_folder"] = os.path.join(output_path(), config["name"])
 
@@ -42,16 +32,16 @@ if __name__=="__main__":
     config["name"] = name
 
   # Initialise wandb
-  run = wandb.init(mode="enabled", project="uib", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
+  run = wandb.init(project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
 
   # Initialise RL model
-  model = config["rl"]["algorithm"](simulator, config["rl"], config["run_folder"])
+  rl_model = config["rl"]["algorithm"](simulator, config["rl"], config["run_folder"])
 
-  # Haven't figured out how to periodically save rl in wandb; this is currently done inside the model class
+  # Haven't figured out how to periodically save rl in wandb; this is currently done inside the rl_model class
   # TODO this doesn't seem to work; do the files need to be in wandb.run.dir?
   #wandb.save(os.path.join(model_folder, run.name, 'checkpoints', "model_*_steps.zip"),
   #           base_path=os.path.join(model_folder, run.name, 'checkpoints'))
 
   # Start the training
-  model.learn(WandbCallback(verbose=2))
+  rl_model.learn(WandbCallback(verbose=2))
   run.finish()

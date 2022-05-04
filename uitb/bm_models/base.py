@@ -4,12 +4,12 @@ import pathlib
 import os
 import shutil
 import inspect
-import mujoco_py
+import mujoco
 from abc import ABC, abstractmethod, abstractproperty
 
-from UIB.utils.functions import project_path, parent_path
-from UIB.utils import effort_terms
-import UIB.utils.element_tree as ETutils
+from uitb.utils.functions import project_path, parent_path
+from uitb.utils import effort_terms
+import uitb.utils.element_tree as ETutils
 
 
 class BaseBMModel:
@@ -17,15 +17,16 @@ class BaseBMModel:
   xml_file = None
   floor = None
 
-  def __init__(self, sim, **kwargs):
+  def __init__(self, model, data, **kwargs):
 
     # Initialise the mujoco model, easier to manipulate things
-    model = mujoco_py.load_model_from_path(self.xml_file)
+    model = mujoco.MjModel.from_xml_path(self.xml_file)
 
     # Get actuator names and joint names
-    self.muscle_actuator_names = set(np.array(model.actuator_names)[model.actuator_trntype==3])
-    self.motor_actuator_names = set(model.actuator_names) - self.muscle_actuator_names
-    self.joint_names = model.joint_names
+    self.actuator_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(model.nu)]
+    self.muscle_actuator_names = set(np.array(self.actuator_names)[model.actuator_trntype==3])
+    self.motor_actuator_names = set(self.actuator_names) - self.muscle_actuator_names
+    self.joint_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, i) for i in range(model.njnt)]
 
     # Total number of actuators
     self.nu = model.nu
@@ -39,7 +40,7 @@ class BaseBMModel:
     self.motor_alpha = 0.9
 
     # Find actuators in the simulation
-    actuator_names_array = np.array(sim.model.actuator_names)
+    actuator_names_array = np.array(self.actuator_names)
     self.muscle_actuators = [np.where(actuator_names_array==actuator)[0][0] for actuator in self.muscle_actuator_names]
     self.motor_actuators = [np.where(actuator_names_array==actuator)[0][0] for actuator in self.motor_actuator_names]
 
@@ -50,9 +51,10 @@ class BaseBMModel:
     self.independent_joint_names = set(self.joint_names) - self.dependent_joint_names
 
     # Find dependent and independent joints in the simulation
-    sim_joint_names = np.array(sim.model.joint_names)
+    sim_joint_names = np.array(self.joint_names)
     self.dependent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.dependent_joint_names]
     self.independent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.independent_joint_names]
+    #TODO (in entire code): directly access qpos via self.dependent_joint_names and self.independent_joint_names
 
     #self.effort_term = kwargs.get('effort_term', effort_terms.Zero())
 
@@ -109,19 +111,19 @@ class BaseBMModel:
     shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulator", "assets"),
                     dirs_exist_ok=True)
 
-  def set_ctrl(self, sim, action):
-    sim.data.ctrl[self.motor_actuators] = np.clip(self.motor_smooth_avg + action[:self.nm], 0, 1)
-    sim.data.ctrl[self.muscle_actuators] = np.clip(sim.data.act[self.muscle_actuators] + action[self.nm:], 0, 1)
+  def set_ctrl(self, model, data, action):
+    data.ctrl[self.motor_actuators] = np.clip(self.motor_smooth_avg + action[:self.nm], 0, 1)
+    data.ctrl[self.muscle_actuators] = np.clip(data.act[self.muscle_actuators] + action[self.nm:], 0, 1)
 
     # Update smoothed online estimate of motor actuation
     self.motor_smooth_avg = (1-self.motor_alpha)*self.motor_smooth_avg \
-                            + self.motor_alpha*sim.data.ctrl[self.motor_actuators]
+                            + self.motor_alpha*data.ctrl[self.motor_actuators]
 
   @abstractmethod
-  def update(self, sim):
+  def update(self, model, data):
     pass
 
-  def reset(self, sim, rng):
+  def reset(self, model, data, rng):
 
     # TODO add kwargs for setting initial positions
 
@@ -132,11 +134,11 @@ class BaseBMModel:
     act = rng.uniform(low=np.zeros((self.na,)), high=np.ones((self.na,)))
 
     # Set qpos and qvel
-    sim.data.qpos[self.dependent_joints] = 0
-    sim.data.qpos[self.independent_joints] = qpos
-    sim.data.qvel[self.dependent_joints] = 0
-    sim.data.qvel[self.independent_joints] = qvel
-    sim.data.act[self.muscle_actuators] = act
+    data.qpos[self.dependent_joints] = 0
+    data.qpos[self.independent_joints] = qpos
+    data.qvel[self.dependent_joints] = 0
+    data.qvel[self.independent_joints] = qvel
+    data.act[self.muscle_actuators] = act
 
     # Reset smoothed average of motor actuator activation
     self.motor_smooth_avg = np.zeros((self.nm,))
