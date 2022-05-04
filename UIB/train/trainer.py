@@ -1,21 +1,11 @@
 import os
-import pickle
 
+from UIB.simulator import Simulator
 from UIB.utils.functions import output_path, timeout_input
 from UIB.train.configs import *
 
 import wandb
 from wandb.integration.sb3 import WandbCallback
-
-from UIB.bm_models import MoblArmsIndex
-from UIB.perception.proprioception import BasicWithEndEffectorPosition
-from UIB.perception.vision import FixedEye
-from UIB.tasks import RemoteDriving
-from UIB.simulator import Simulator
-from UIB.rl.sb3.feature_extractor import FeatureExtractor
-from UIB.perception.base import Perception
-
-from UIB.rl.sb3.PPO import PPO
 
 if __name__=="__main__":
 
