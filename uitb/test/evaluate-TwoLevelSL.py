@@ -6,8 +6,8 @@ from stable_baselines3 import PPO
 import re
 import argparse
 
-from UIB.utils.logger import EvaluationLogger
-from UIB.envs.mobl_arms import TwoLevelSL
+from uitb.utils.logger import EvaluationLogger
+from uitb.envs_old_to_be_removed.mobl_arms import TwoLevelSL
 
 
 def grab_pip_image(env):

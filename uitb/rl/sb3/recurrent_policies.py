@@ -16,7 +16,7 @@ from torch import nn
 
 from sb3_contrib.common.recurrent.type_aliases import RNNStates
 
-from UIB.models.sb3.policies import ActorCriticPolicyTanhActions
+from uitb.rl.sb3.policies import ActorCriticPolicyTanhActions
 
 
 class RecurrentActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
@@ -142,7 +142,7 @@ class RecurrentActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
       lstm: nn.LSTM,
   ) -> Tuple[th.Tensor, th.Tensor]:
     # LSTM logic
-    # (sequence length, n_envs, features dim) (batch size = n envs_old)
+    # (sequence length, n_envs, features dim) (batch size = n envs_old_to_be_removed)
     n_envs = lstm_states[0].shape[1]
     # Batch to sequence
     features_sequence = features.reshape((n_envs, -1, lstm.input_size)).swapaxes(0, 1)

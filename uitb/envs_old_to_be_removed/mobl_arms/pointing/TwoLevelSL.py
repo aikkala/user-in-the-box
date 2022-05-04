@@ -6,7 +6,7 @@ from stable_baselines3 import PPO
 
 from UIB.archs.regressor import SimpleCNN
 
-from UIB.envs_old.mobl_arms.models.FixedEye.FixedEye import BaseModel
+from UIB.envs_old_to_be_removed.mobl_arms.models.FixedEye.FixedEye import BaseModel
 from torch import nn
 
 class TwoLevelSL(BaseModel):

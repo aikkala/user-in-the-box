@@ -2,24 +2,24 @@ import torch
 import numpy as np
 from platform import uname
 
-from UIB.rl.sb3.schedule import linear_schedule
-from UIB.rl.sb3.policies import MultiInputActorCriticPolicyTanhActions, ActorCriticPolicyTanhActions
-from UIB.rl.sb3.feature_extractor import VisualAndProprioceptionExtractor
-from UIB.rl.sb3.PPO import PPO
-from UIB.rl.sb3.callbacks import LinearCurriculum
+from uitb.rl.sb3.schedule import linear_schedule
+from uitb.rl.sb3.policies import MultiInputActorCriticPolicyTanhActions, ActorCriticPolicyTanhActions
+from uitb.rl.sb3.feature_extractor import VisualAndProprioceptionExtractor
+from uitb.rl.sb3.PPO import PPO
+from uitb.rl.sb3.callbacks import LinearCurriculum
 
-from UIB.utils import effort_terms
-import UIB.envs_old_to_be_removed.mobl_arms.pointing.reward_functions as pointing_rewards
-import UIB.envs_old_to_be_removed.mobl_arms.iso_pointing.reward_functions as iso_pointing_rewards
-import UIB.envs_old_to_be_removed.mobl_arms.tracking.reward_functions as tracking_rewards
-import UIB.envs_old_to_be_removed.mobl_arms.button_press.reward_functions as button_press_rewards
-import UIB.envs_old_to_be_removed.mobl_arms.remote_driving.reward_functions as driving_rewards
+from uitb.utils import effort_terms
+import uitb.envs_old_to_be_removed.mobl_arms.pointing.reward_functions as pointing_rewards
+import uitb.envs_old_to_be_removed.mobl_arms.iso_pointing.reward_functions as iso_pointing_rewards
+import uitb.envs_old_to_be_removed.mobl_arms.tracking.reward_functions as tracking_rewards
+import uitb.envs_old_to_be_removed.mobl_arms.button_press.reward_functions as button_press_rewards
+import uitb.envs_old_to_be_removed.mobl_arms.remote_driving.reward_functions as driving_rewards
 
-from UIB.bm_models import MoblArmsIndex
-from UIB.tasks import RemoteDriving, Pointing
-from UIB.perception.proprioception import BasicWithEndEffectorPosition
-from UIB.perception.vision import FixedEye
-from UIB.rl.sb3.feature_extractor import FeatureExtractor
+from uitb.bm_models import MoblArmsIndex
+from uitb.tasks import RemoteDriving, Pointing
+from uitb.perception.proprioception import BasicWithEndEffectorPosition
+from uitb.perception.vision import FixedEye
+from uitb.rl.sb3.feature_extractor import FeatureExtractor
 
 pointing = \
   {"name": "mobl-arms-index-pointing",
@@ -77,7 +77,7 @@ mobl_arms_pointing_v0 = {
   "name": "pointing-v0-old-model-new-muscles-3CC-r",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-pointing-v0",
+  "env_name": "uitb:mobl-arms-pointing-v0",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cpu",
@@ -97,7 +97,7 @@ mobl_arms_pointing_v1 = {
   "name": "pointing-v1-patch-v1",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-pointing-v1",
+  "env_name": "uitb:mobl-arms-pointing-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -123,7 +123,7 @@ mobl_arms_tracking_v1 = {
   "name": "tracking-v1-patch-v1",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-tracking-v1",
+  "env_name": "uitb:mobl-arms-tracking-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -149,7 +149,7 @@ mobl_arms_button_press_v1 = {
   "name": "test-button-press",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-button-press-v1",
+  "env_name": "uitb:mobl-arms-button-press-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -171,7 +171,7 @@ mobl_arms_iso_pointing_v1 = {
   "name": "iso-pointing-U1-patch-v1-dwell",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-iso-pointing-v1",
+  "env_name": "uitb:mobl-arms-iso-pointing-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -197,7 +197,7 @@ mobl_arms_remote_driving_v1 = {
   "name": "driving-model-v2-patch-v1-newest-location-no-termination",
   "model": PPO,
   "total_timesteps": 200_000_000,
-  "env_name": "UIB:mobl-arms-remote-driving-v1",
+  "env_name": "uitb:mobl-arms-remote-driving-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -228,7 +228,7 @@ mobl_arms_slider_remote_driving_v1 = {
   "name": "driving-slider-relative-reward",
   "model": PPO,
   "total_timesteps": 200_000_000,
-  "env_name": "UIB:mobl-arms-slider-remote-driving-v1",
+  "env_name": "uitb:mobl-arms-slider-remote-driving-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -256,7 +256,7 @@ mobl_arms_pointing_uist = {
   "name": "pointing-v1-patch-v1",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-pointing-v1",
+  "env_name": "uitb:mobl-arms-pointing-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -280,7 +280,7 @@ mobl_arms_iso_pointing_uist = {
   "name": "iso-pointing-U1-patch-v1-dwell-random",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-iso-pointing-v1",
+  "env_name": "uitb:mobl-arms-iso-pointing-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -308,7 +308,7 @@ mobl_arms_tracking_uist = {
   "name": "tracking-v1-patch-v1",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-tracking-v1",
+  "env_name": "uitb:mobl-arms-tracking-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -334,7 +334,7 @@ mobl_arms_button_press_uist = {
   "name": "button-press-v1-patch-v1-smaller-buttons",
   "model": PPO,
   "total_timesteps": 100_000_000,
-  "env_name": "UIB:mobl-arms-button-press-v1",
+  "env_name": "uitb:mobl-arms-button-press-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",
@@ -356,7 +356,7 @@ mobl_arms_remote_driving_uist = {
   "name": "driving-no-early-termination-no-bonus-inside-target",
   "model": PPO,
   "total_timesteps": 200_000_000,
-  "env_name": "UIB:mobl-arms-remote-driving-v1",
+  "env_name": "uitb:mobl-arms-remote-driving-v1",
   "start_method": 'spawn' if 'Microsoft' in uname().release else 'forkserver',
   "num_workers": 10,
   "device": "cuda",

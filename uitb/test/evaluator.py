@@ -12,8 +12,8 @@ from collections import defaultdict
 import matplotlib.pyplot as pp
 from mujoco_py.modder import TextureModder
 
-from UIB.utils.logger import StateLogger, ActionLogger
-from UIB.utils.functions import output_path
+from uitb.utils.logger import StateLogger, ActionLogger
+from uitb.utils.functions import output_path
 
 
 def natural_sort(l):

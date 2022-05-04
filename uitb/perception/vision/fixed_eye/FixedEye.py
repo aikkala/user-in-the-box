@@ -4,8 +4,8 @@ import os
 import mujoco
 import collections
 
-from uitb.perception.base import BaseModule
-from uitb.utils.functions import parent_path
+from UIB.perception.base import BaseModule
+from UIB.utils.functions import parent_path
 from ..extractors import small_cnn
 
 

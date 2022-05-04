@@ -5,8 +5,8 @@ from collections import deque
 import xml.etree.ElementTree as ET
 import os
 
-from UIB.envs_old.mobl_arms.models.FixedEye import FixedEye
-from UIB.envs_old.mobl_arms.choosing.reward_functions import NegativeExpDistanceWithHitBonus
+from UIB.envs_old_to_be_removed.mobl_arms.models.FixedEye import FixedEye
+from UIB.envs_old_to_be_removed.mobl_arms.choosing.reward_functions import NegativeExpDistanceWithHitBonus
 from UIB.utils.functions import project_path
 
 
@@ -44,7 +44,7 @@ class ChoosingEnv(FixedEye):
     self.current_button = self.buttons[0]
 
     # Save the modified XML file and replace old one
-    xml_file = os.path.join(project_path(), 'envs_old/mobl_arms/rl/variants/choosing_env.xml')
+    xml_file = os.path.join(project_path(), 'envs_old_to_be_removed/mobl_arms/rl/variants/choosing_env.xml')
     with open(xml_file, 'w') as file:
       file.write(ET.tostring(tree.getroot(), encoding='unicode'))
     self.xml_file = xml_file

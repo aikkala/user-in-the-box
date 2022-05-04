@@ -6,7 +6,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback
 
-from UIB.models.base import BaseModel
+from uitb.rl.base import BaseModel
 
 
 class RecurrentPPO(BaseModel):
@@ -14,7 +14,7 @@ class RecurrentPPO(BaseModel):
   def __init__(self, config, run_folder):
     super().__init__(config)
 
-    # Initialise parallel envs_old
+    # Initialise parallel envs_old_to_be_removed
     parallel_envs = make_vec_env(config["env_name"], n_envs=config["num_workers"], seed=0,
                                  vec_env_cls=SubprocVecEnv, env_kwargs=config["env_kwargs"],
                                  vec_env_kwargs={'start_method': config["start_method"]})
