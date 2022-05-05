@@ -98,6 +98,10 @@ class Simulator(gym.Env):
 
   def __init__(self, run_folder):
 
+    # Add run folder to python path if not there already
+    if run_folder not in sys.path:
+      sys.path.insert(0, run_folder)
+
     self.id = "uitb:simulator-v0"
 
     # Read config

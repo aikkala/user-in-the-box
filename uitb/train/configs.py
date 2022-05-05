@@ -42,7 +42,7 @@ pointing = \
      "bm_model": MoblArmsIndex,
      "perception_modules": {
        BasicWithEndEffectorPosition: dict(end_effector="hand_2distph"),
-       FixedEye: dict(resolution=[120, 80], pos="0 0 1.2", quat="0.583833 0.399104 -0.399421 -0.583368")},
+       FixedEye: dict(resolution=[120, 80], channels=[3], pos="0 0 1.2", quat="0.583833 0.399104 -0.399421 -0.583368")},
      "task": Pointing,
      "task_kwargs": dict(end_effector="hand_2distph", shoulder="humphant")}
    }

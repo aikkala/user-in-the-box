@@ -9,7 +9,7 @@ from uitb.utils.functions import parent_path
 
 class BaseModule(ABC):
 
-  def __init__(self, sim, bm_model):
+  def __init__(self, sim, bm_model, **kwargs):
     self.module_folder = None
     self.bm_model = bm_model
     self.actuator_names = []

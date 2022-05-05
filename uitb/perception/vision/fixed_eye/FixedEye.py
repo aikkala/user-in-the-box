@@ -8,7 +8,10 @@ from ..extractors import small_cnn
 
 class FixedEye(BaseModule):
 
-  def __init__(self, sim, bm_model, resolution, pos, quat, body="worldbody", **kwargs):
+  def __init__(self, sim, bm_model, resolution, pos, quat, body="worldbody", channels=None, **kwargs):
+    if channels is None:
+      channels = [0, 1, 2, 3]
+    self.channels = channels
     self.resolution = resolution
     self.pos = pos
     self.quat = quat
@@ -16,7 +19,7 @@ class FixedEye(BaseModule):
     super().__init__(sim, bm_model)
     self.module_folder = parent_path(__file__)
 
-    # TODO keywords for choosing color channels, depth channel, and using prior observations
+    # TODO keyword for using prior observations
 
   @staticmethod
   def insert(task, config, **kwargs):
@@ -50,9 +53,6 @@ class FixedEye(BaseModule):
       assert eye_body is not None, f"Body with name {body} was not found"
       eye_body.append(eye)
 
-  def adjust(self, sim):
-    pass
-
   def get_observation(self, sim):
 
     # Get rgb and depth arrays
@@ -65,7 +65,10 @@ class FixedEye(BaseModule):
     rgb = render[0]
     rgb = np.flipud((rgb / 255.0 - 0.5) * 2)
 
-    return np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
+    # Transpose channels
+    obs = np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
+
+    return obs[self.channels, :, :]
 
   def get_observation_space_params(self):
     return {"low": -1, "high": 1, "shape": self.observation_shape}
