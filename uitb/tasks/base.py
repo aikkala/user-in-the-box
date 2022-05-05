@@ -76,3 +76,25 @@ class BaseTask(ABC):
     if os.path.isdir(os.path.join(src, "assets")):
       shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulator", "assets"),
                       dirs_exist_ok=True)
+
+  def _get_body_xvelp_xvelr(self, model, data, bodyname):
+    # TODO: test this reimplementation of mujoco-py
+    jacp = np.zeros(3 * model.nv)
+    jacr = np.zeros(3 * model.nv)
+    mujoco.mj_jacBody(model, data, jacp[:], jacr[:],
+                      mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, bodyname))
+    xvelp = jacp.reshape((3, model.nv)).dot(data.qvel[:])
+    xvelr = jacr.reshape((3, model.nv)).dot(data.qvel[:])
+
+    return xvelp, xvelr
+
+  def _get_geom_xvelp_xvelr(self, model, data, geomname):
+    # TODO: test this reimplementation of mujoco-py
+    jacp = np.zeros(3 * model.nv)
+    jacr = np.zeros(3 * model.nv)
+    mujoco.mj_jacGeom(model, data, jacp[:], jacr[:],
+                      mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, geomname))
+    xvelp = jacp.reshape((3, model.nv)).dot(data.qvel[:])
+    xvelr = jacr.reshape((3, model.nv)).dot(data.qvel[:])
+
+    return xvelp, xvelr

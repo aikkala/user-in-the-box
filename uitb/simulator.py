@@ -10,11 +10,12 @@ import importlib
 try:
   from gym.envs.mujoco.mujoco_rendering import Viewer, RenderContextOffscreen
 except ImportError:
-  from .mujoco_rendering import Viewer, RenderContextOffscreen
+  from uitb.mujoco_rendering import Viewer, RenderContextOffscreen
 
 from uitb.perception.base import Perception
 
 def get_clone_class(src_class):
+
   module = src_class.__module__.split(".")
   module[0] = "simulator"
   module = importlib.import_module(".".join(module))
@@ -79,7 +80,7 @@ class Simulator(gym.Env):
     task = config["simulator"]["task"](model, data, **{**config["simulator"].get("task_kwargs", {}),
                                                **run_parameters})
     bm_model = config["simulator"]["bm_model"](model, data, **{**config["simulator"].get("bm_model_kwargs", {}),
-                                                       **run_parameters})  #TODO: model and data as args?
+                                                       **run_parameters})
     perception = Perception(model, data, bm_model, config["simulator"]["perception_modules"], run_parameters)
 
     # Could save above classes here (with dill) and load them later in Simulator.__init__() if they take a long time
@@ -104,6 +105,10 @@ class Simulator(gym.Env):
       dill.dump(config, file)
 
   def __init__(self, run_folder):
+
+    # Add run folder to python path if not there already
+    if run_folder not in sys.path:
+      sys.path.insert(0, run_folder)
 
     self.id = "uitb:simulator-v0"
 

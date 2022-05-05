@@ -186,7 +186,8 @@ class RemoteDriving(BaseTask):
       info["inside_target"] = False
 
     # Check if target is inside target area with (close to) zero velocity
-    if info["inside_target"] and np.abs(data.get_body_xvelp("car")[1]) <= self.car_velocity_threshold:  #TODO (see below)
+    car_xvelp, _ = self._get_body_xvelp_xvelr(model, data, self.car_body)
+    if info["inside_target"] and np.abs(car_xvelp[1]) <= self.car_velocity_threshold:
       finished = True
       info["target_hit"] = True
     else:
@@ -247,15 +248,17 @@ class RemoteDriving(BaseTask):
     state = super().get_state()
     state["joystick_xpos"] = self.data.geom(self.joystick_geom).xpos.copy()
     state["joystick_xmat"] = self.data.geom(self.joystick_geom).xmat.reshape((3, 3)).copy()
-    state["joystick_xvelp"] = self.data.get_geom_xvelp(self.joystick_geom).copy()  #TODO (https://github.com/openai/mujoco-py/blob/ab86d331c9a77ae412079c6e58b8771fe63747fc/mujoco_py/generated/wrappers.pxi#L2646)
-    state["joystick_xvelr"] = self.data.get_geom_xvelr(self.joystick_geom).copy()  #TODO
+    joystick_xvelp, joystick_xvelr = self._get_geom_xvelp_xvelr(self.model, self.data, self.joystick_geom)
+    state["joystick_xvelp"] = joystick_xvelp
+    state["joystick_xvelr"] = joystick_xvelr
     state["fingertip_at_joystick"] = False
     state["dist_fingertip_to_joystick"] = self.dist_fingertip_to_joystick
 
     state["car_xpos"] = self.data.body(self.car_body).xpos.copy()
     state["car_xmat"] = self.data.body(self.car_body).xmat.reshape((3, 3)).copy()
-    state["car_xvelp"] = self.data.get_body_xvelp(self.car_body).copy()  #TODO
-    state["car_xvelr"] = self.data.get_body_xvelr(self.car_body).copy()  #TODO
+    car_xvelp, car_xvelr = self._get_body_xvelp_xvelr(self.model, self.data, self.car_body)
+    state["car_xvelp"] = car_xvelp
+    state["car_xvelr"] = car_xvelr
     state["target_position"] = self.target_origin.copy() + self.target_position.copy()
     state["target_radius"] = self.target_halfsize
     state["target_hit"] = False

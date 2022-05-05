@@ -4,89 +4,85 @@ import os
 import mujoco
 import collections
 
-from UIB.perception.base import BaseModule
-from UIB.utils.functions import parent_path
+from uitb.perception.base import BaseModule
+from uitb.utils.functions import parent_path
 from ..extractors import small_cnn
 
-
-def _import_egl(width, height):
-  from mujoco.egl import GLContext
-
-  return GLContext(width, height)
-
-
-def _import_glfw(width, height):
-  from mujoco.glfw import GLContext
-
-  return GLContext(width, height)
+try:
+  from gym.envs.mujoco.mujoco_rendering import Viewer, RenderContextOffscreen
+except ImportError:
+  from uitb.mujoco_rendering import Viewer, RenderContextOffscreen
 
 
-def _import_osmesa(width, height):
-  from mujoco.osmesa import GLContext
-
-  return GLContext(width, height)
-
-
-_ALL_RENDERERS = collections.OrderedDict(
-    [
-        ("glfw", _import_glfw),
-        ("egl", _import_egl),
-        ("osmesa", _import_osmesa),
-    ]
-)
-
-def _get_opengl_backend(width, height):
-  backend = os.environ.get("MUJOCO_GL")
-  if backend is not None:
-    try:
-      opengl_context = _ALL_RENDERERS[backend](width, height)
-    except KeyError:
-      raise RuntimeError(
-        "Environment variable {} must be one of {!r}: got {!r}.".format(
-          "MUJOCO_GL", _ALL_RENDERERS.keys(), backend
-        )
-      )
-
-  else:
-    for name, import_func in _ALL_RENDERERS.items():
-      try:
-        opengl_context = _ALL_RENDERERS["osmesa"](width, height)
-        backend = name
-        break
-      except:
-        pass
-    if backend is None:
-      raise RuntimeError(
-        "No OpenGL backend could be imported. Attempting to create a "
-        "rendering context will result in a RuntimeError."
-      )
-
-  return opengl_context
+# def _import_egl(width, height):
+#   from mujoco.egl import GLContext
+#
+#   return GLContext(width, height)
+#
+#
+# def _import_glfw(width, height):
+#   from mujoco.glfw import GLContext
+#
+#   return GLContext(width, height)
+#
+#
+# def _import_osmesa(width, height):
+#   from mujoco.osmesa import GLContext
+#
+#   return GLContext(width, height)
+#
+#
+# _ALL_RENDERERS = collections.OrderedDict(
+#     [
+#         ("glfw", _import_glfw),
+#         ("egl", _import_egl),
+#         ("osmesa", _import_osmesa),
+#     ]
+# )
+#
+# def _get_opengl_backend(width, height):
+#   backend = os.environ.get("MUJOCO_GL")
+#   if backend is not None:
+#     try:
+#       opengl_context = _ALL_RENDERERS[backend](width, height)
+#     except KeyError:
+#       raise RuntimeError(
+#         "Environment variable {} must be one of {!r}: got {!r}.".format(
+#           "MUJOCO_GL", _ALL_RENDERERS.keys(), backend
+#         )
+#       )
+#
+#   else:
+#     for name, import_func in _ALL_RENDERERS.items():
+#       try:
+#         opengl_context = _ALL_RENDERERS["osmesa"](width, height)
+#         backend = name
+#         break
+#       except:
+#         pass
+#     if backend is None:
+#       raise RuntimeError(
+#         "No OpenGL backend could be imported. Attempting to create a "
+#         "rendering context will result in a RuntimeError."
+#       )
+#
+#   return opengl_context
 
 class FixedEye(BaseModule):
 
-  def __init__(self, model, data, bm_model, resolution, pos, quat, body="worldbody", **kwargs):
+  def __init__(self, model, data, bm_model, resolution, pos, quat, body="worldbody", channels=None, **kwargs):
+    if channels is None:
+      channels = [0, 1, 2, 3]
+    self.channels = channels
+    self._viewers = {}
     self.resolution = resolution
-    self.viewport = mujoco.MjrRect(0, 0, self.resolution[0], self.resolution[1])
-
-    # Set RenderContextOffscreen
-    # (see https://github.com/openai/gym/pull/2595/files#diff-bf56c31902c468ca5bec9acd5cce41145c1ec06df443d3a5f1f9e094b6571c28)
-    self.opengl_context = _get_opengl_backend(self.resolution[0], self.resolution[1])
-    self.opengl_context.make_current()
-    self.scene = mujoco.MjvScene(model, 1000)
-    self.camera = mujoco.MjvCamera()
-    self.context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_150)
-    mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, self.context)
-    if self.context.currentBuffer != mujoco.mjtFramebuffer.mjFB_OFFSCREEN:
-      raise RuntimeError("Offscreen rendering not supported")
-
     self.pos = pos
     self.quat = quat
     self.body = body
     super().__init__(model, data, bm_model)
     self.module_folder = parent_path(__file__)
 
-    # TODO keywords for choosing color channels, depth channel, and using prior observations
+    # TODO keyword for using prior observations
 
   @staticmethod
   def insert(task, config, **kwargs):
@@ -120,52 +116,66 @@ class FixedEye(BaseModule):
       assert eye_body is not None, f"Body with name {body} was not found"
       eye_body.append(eye)
 
-  def adjust(self, model, data):
-    pass
 
   def get_observation(self, model, data):
 
     # Get rgb and depth arrays
-
-    # render = sim.render(width=self.resolution[0], height=self.resolution[1], camera_name='fixed-eye',
-    #                     depth=True)
-
-    #TODO
-    # ctx = mujoco.GLContext(self.resolution[0], self.resolution[1])
-    # ctx.make_current()
-    # ###
-    # with _MjSim_render_lock:
-    #   if self._render_context_offscreen is None:
-    #     render_context = MjRenderContextOffscreen(
-    #       self, device_id=-1)
-    #   else:
-    #     render_context = self._render_context_offscreen
-    # render_context.render(width=self.resolution[0], height=self.resolution[1], camera_id=model.camera_name2id('fixed-eye'), segmentation=False)
-    # render = render_context.read_pixels(width, height, depth=True, segmentation=False)
-
-    self.camera.fixedcamid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'fixed-eye')
-    mujoco.mjv_updateScene(
-      model, data, mujoco.MjvOption(), None,
-      self.camera, mujoco.mjtCatBit.mjCAT_ALL, self.scene)
-    mujoco.mjr_render(self.viewport, self.scene, self.context)
-
-    # TODO: compare to https://github.com/rodrigodelazcano/gym/blob/906789e0fd5b11e3c7979065e091a1abc00d1b35/gym/envs/mujoco/mujoco_rendering.py
-    #  (def render() and def read_pixels())
-
-    mujoco.mjr_rectangle(self.viewport, 0, 0, 0, 1)
-    rgb_arr = np.zeros(3 * self.viewport.width * self.viewport.height, dtype=np.uint8)
-    depth_arr = np.zeros(self.viewport.width * self.viewport.height, dtype=np.float32)
-    mujoco.mjr_readPixels(rgb_arr, depth_arr, self.viewport, self.context)
-    rgb = rgb_arr.reshape(self.viewport.height, self.viewport.width, 3)
-    depth = depth_arr.reshape(self.viewport.height, self.viewport.width)
+    render = self.render(model=model, data=data, mode="depth_array", width=self.resolution[0], height=self.resolution[1], camera_name='fixed-eye')
 
     # Normalise
-    #depth = render[1]
+    depth = render[1]
     depth = np.flipud((depth - 0.5) * 2)
-    #rgb = render[0]
+    rgb = render[0]
     rgb = np.flipud((rgb / 255.0 - 0.5) * 2)
 
-    return np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
+    # Transpose channels
+    obs = np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
+
+    return obs[self.channels, :, :]
+
+  # def get_observation(self, model, data):
+  #
+  #   # Get rgb and depth arrays
+  #
+  #   # render = sim.render(width=self.resolution[0], height=self.resolution[1], camera_name='fixed-eye',
+  #   #                     depth=True)
+  #
+  #   #TODO
+  #   # ctx = mujoco.GLContext(self.resolution[0], self.resolution[1])
+  #   # ctx.make_current()
+  #   # ###
+  #   # with _MjSim_render_lock:
+  #   #   if self._render_context_offscreen is None:
+  #   #     render_context = MjRenderContextOffscreen(
+  #   #       self, device_id=-1)
+  #   #   else:
+  #   #     render_context = self._render_context_offscreen
+  #   # render_context.render(width=self.resolution[0], height=self.resolution[1], camera_id=model.camera_name2id('fixed-eye'), segmentation=False)
+  #   # render = render_context.read_pixels(width, height, depth=True, segmentation=False)
+  #
+  #   self.camera.fixedcamid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'fixed-eye')
+  #   mujoco.mjv_updateScene(
+  #     model, data, mujoco.MjvOption(), None,
+  #     self.camera, mujoco.mjtCatBit.mjCAT_ALL, self.scene)
+  #   mujoco.mjr_render(self.viewport, self.scene, self.context)
+  #
+  #   # TODO: compare to https://github.com/rodrigodelazcano/gym/blob/906789e0fd5b11e3c7979065e091a1abc00d1b35/gym/envs/mujoco/mujoco_rendering.py
+  #   #  (def render() and def read_pixels())
+  #
+  #   mujoco.mjr_rectangle(self.viewport, 0, 0, 0, 1)
+  #   rgb_arr = np.zeros(3 * self.viewport.width * self.viewport.height, dtype=np.uint8)
+  #   depth_arr = np.zeros(self.viewport.width * self.viewport.height, dtype=np.float32)
+  #   mujoco.mjr_readPixels(rgb_arr, depth_arr, self.viewport, self.context)
+  #   rgb = rgb_arr.reshape(self.viewport.height, self.viewport.width, 3)
+  #   depth = depth_arr.reshape(self.viewport.height, self.viewport.width)
+  #
+  #   # Normalise
+  #   #depth = render[1]
+  #   depth = np.flipud((depth - 0.5) * 2)
+  #   #rgb = render[0]
+  #   rgb = np.flipud((rgb / 255.0 - 0.5) * 2)
+  #
+  #   return np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
 
   def get_observation_space_params(self):
     return {"low": -1, "high": 1, "shape": self.observation_shape}
@@ -176,3 +186,47 @@ class FixedEye(BaseModule):
 
   def extractor(self):
     return small_cnn(observation_shape=self.observation_shape, out_features=256)
+
+  def render(self, model, data, mode='depth_array', width=1280, height=800, camera_id=None, camera_name=None, preprocess_output=False):
+
+    if mode == 'rgb_array' or mode == 'depth_array':
+        if camera_id is not None and camera_name is not None:
+            raise ValueError("Both `camera_id` and `camera_name` cannot be"
+                             " specified at the same time.")
+
+        no_camera_specified = camera_name is None and camera_id is None
+        if no_camera_specified:
+            camera_name = 'track'
+
+        if camera_id is None:
+          camera_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
+
+          self._get_viewer(model, data, mode).render(width, height, camera_id=camera_id)
+
+    if mode == 'rgb_array':
+        data = self._get_viewer(model, data, mode).read_pixels(width, height, depth=False)
+        if preprocess_output:
+            # original image is upside-down, so flip it
+            return data[::-1, :, :]
+        else:
+            return data
+    elif mode == 'depth_array':
+        self._get_viewer(model, data, mode).render(width, height)
+        data = self._get_viewer(model, data, mode).read_pixels(width, height, depth=True)
+        if preprocess_output:
+            # Extract depth part of the read_pixels() tuple; original image is upside-down, so flip it
+            return data[1][::-1, :]
+        else:
+            return data
+    elif mode == 'human':
+        self._get_viewer(model, data, mode).render()
+
+  def _get_viewer(self, model, data, mode, width=1280, height=800):
+    self.viewer = self._viewers.get(mode)
+    if self.viewer is None:
+      if mode == 'human':
+        self.viewer = Viewer(model, data)
+      elif mode == 'rgb_array' or mode == 'depth_array':
+        self.viewer = RenderContextOffscreen(width, height, model, data)
+      self._viewers[mode] = self.viewer
+    return self.viewer

@@ -182,3 +182,12 @@ class Pointing(BaseTask):
     model.geom("target").size[0] = self.target_radius
 
     mujoco.mj_forward(model, data)
+
+  def get_stateful_information(self, model, data):
+    # Time features (time left to reach target, time spent inside target)
+    targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
+    dwell_time = -1.0 + 2 * np.min([1.0, self.steps_inside_target / self.dwell_threshold])
+    return np.array([dwell_time, targets_hit])
+
+  def get_stateful_information_space_params(self):
+    return {"low": -1, "high": 1, "shape": (2,)}

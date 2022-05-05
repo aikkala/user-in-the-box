@@ -32,7 +32,7 @@ if __name__=="__main__":
     config["name"] = name
 
   # Initialise wandb
-  run = wandb.init(project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
+  run = wandb.init(project="uitb", name=name, sync_tensorboard=True, save_code=True, dir=output_path())
 
   # Initialise RL model
   rl_model = config["rl"]["algorithm"](simulator, config["rl"], config["run_folder"])

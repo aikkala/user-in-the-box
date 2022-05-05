@@ -22,7 +22,7 @@ class PPO(BaseModel):
     parallel_envs = make_vec_env(simulator.id, n_envs=rl_config["num_workers"], seed=0,
                                  vec_env_cls=SubprocVecEnv, env_kwargs={"run_folder": run_folder})
 
-    # Add stateful information extractor to policy_kwargs
+    # Add feature and stateful information extractors to policy_kwargs
     extractors = simulator.perception.extractors.copy()
     if simulator.task.get_stateful_information(simulator.model, simulator.data) is not None:
       extractors["stateful_information"] = simulator.task.stateful_information_extractor
