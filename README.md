@@ -35,3 +35,10 @@ The script UIB/train/trainer.py takes as a input a config file, then calls Simul
 - cameras, lighting
 - getting simulation state
 - evalutions of trained policies
+
+
+## Troubleshooting
+
+### GLFWError: (65544) b'X11: The DISPLAY environment variable is missing'
+
+Follow the reply [given here](https://github.com/openai/mujoco-py/issues/172#issuecomment-680701806): set the environment variable LD_PRELOAD as `export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so` 
