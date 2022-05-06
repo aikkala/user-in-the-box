@@ -19,42 +19,54 @@ class BaseBMModel:
 
   def __init__(self, model, data, **kwargs):
 
-    # Initialise the mujoco model, easier to manipulate things
-    model = mujoco.MjModel.from_xml_path(self.xml_file)
+    # Initialise mujoco model of the biomechanical model, easier to manipulate things
+    bm_model = mujoco.MjModel.from_xml_path(self.xml_file)
 
-    # Get actuator names and joint names
-    self.actuator_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(model.nu)]
-    self.muscle_actuator_names = set(np.array(self.actuator_names)[model.actuator_trntype==3])
-    self.motor_actuator_names = set(self.actuator_names) - self.muscle_actuator_names
-    self.joint_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, i) for i in range(model.njnt)]
+    # Get an rng
+    self.rng = kwargs.get("rng", np.random.default_rng(None))
 
     # Total number of actuators
-    self.nu = model.nu
+    self.nu = bm_model.nu
 
     # Number of muscle actuators
-    self.na = model.na
+    self.na = bm_model.na
 
     # Number of motor actuators
     self.nm = self.nu - self.na
     self.motor_smooth_avg = np.zeros((self.nm,))
     self.motor_alpha = 0.9
 
-    # Find actuators in the simulation
-    actuator_names_array = np.array(self.actuator_names)
-    self.muscle_actuators = [np.where(actuator_names_array==actuator)[0][0] for actuator in self.muscle_actuator_names]
-    self.motor_actuators = [np.where(actuator_names_array==actuator)[0][0] for actuator in self.motor_actuator_names]
+    # Get actuator names (muscle and motor)
+    self.actuator_names = [mujoco.mj_id2name(bm_model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(bm_model.nu)]
+    self.muscle_actuator_names = set(np.array(self.actuator_names)[model.actuator_trntype==3])
+    self.motor_actuator_names = set(self.actuator_names) - self.muscle_actuator_names
 
-    # Get dependent and independent joint names
+    # Sort the names to preserve original ordering (not really necessary but looks nicer)
+    self.muscle_actuator_names = sorted(self.muscle_actuator_names, key=self.actuator_names.index)
+    self.motor_actuator_names = sorted(self.motor_actuator_names, key=self.actuator_names.index)
+
+    # Find actuator indices in the simulation
+    self.muscle_actuators = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+                             for actuator_name in self.muscle_actuator_names]
+    self.motor_actuators = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+                            for actuator_name in self.motor_actuator_names]
+
+    # Get joint names (dependent and independent)
+    self.joint_names = [mujoco.mj_id2name(bm_model, mujoco.mjtObj.mjOBJ_JOINT, i) for i in range(bm_model.njnt)]
     self.dependent_joint_names = {self.joint_names[idx] for idx in
-                                  np.unique(model.eq_obj1id[model.eq_active.astype(bool)])} \
-      if model.eq_obj1id is not None else set()
+                                  np.unique(bm_model.eq_obj1id[bm_model.eq_active.astype(bool)])} \
+      if bm_model.eq_obj1id is not None else set()
     self.independent_joint_names = set(self.joint_names) - self.dependent_joint_names
 
-    # Find dependent and independent joints in the simulation
-    sim_joint_names = np.array(self.joint_names)
-    self.dependent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.dependent_joint_names]
-    self.independent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.independent_joint_names]
-    #TODO (in entire code): directly access qpos via self.dependent_joint_names and self.independent_joint_names
+    # Sort the names to preserve original ordering (not really necessary but looks nicer)
+    self.dependent_joint_names = sorted(self.dependent_joint_names, key=self.joint_names.index)
+    self.independent_joint_names = sorted(self.independent_joint_names, key=self.joint_names.index)
+
+    # Find dependent and independent joint indices in the simulation
+    self.dependent_joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
+                             for joint_name in self.dependent_joint_names]
+    self.independent_joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
+                               for joint_name in self.independent_joint_names]
 
     #self.effort_term = kwargs.get('effort_term', effort_terms.Zero())
 
@@ -64,7 +76,7 @@ class BaseBMModel:
   @staticmethod
   def insert(task_tree, config):
 
-    C = config["simulator"]["bm_model"]
+    C = config["simulation"]["bm_model"]
 
     # Parse xml file
     bm_tree = ET.parse(C.xml_file)
@@ -100,7 +112,7 @@ class BaseBMModel:
   def clone(cls, run_folder):
 
     # Create 'bm_models' folder
-    dst = os.path.join(run_folder, "simulator", "bm_models")
+    dst = os.path.join(run_folder, "simulation", "bm_models")
     os.makedirs(dst, exist_ok=True)
 
     # Copy bm-model folder
@@ -108,7 +120,7 @@ class BaseBMModel:
     shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
 
     # Copy assets
-    shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulator", "assets"),
+    shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulation", "assets"),
                     dirs_exist_ok=True)
 
   def set_ctrl(self, model, data, action):
@@ -123,15 +135,15 @@ class BaseBMModel:
   def update(self, model, data):
     pass
 
-  def reset(self, model, data, rng):
+  def reset(self, model, data):
 
     # TODO add kwargs for setting initial positions
 
     # Randomly sample qpos, qvel, act
     nq = len(self.independent_joints)
-    qpos = rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
-    qvel = rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
-    act = rng.uniform(low=np.zeros((self.na,)), high=np.ones((self.na,)))
+    qpos = self.rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
+    qvel = self.rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
+    act = self.rng.uniform(low=np.zeros((self.na,)), high=np.ones((self.na,)))
 
     # Set qpos and qvel
     data.qpos[self.dependent_joints] = 0

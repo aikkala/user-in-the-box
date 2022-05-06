@@ -8,7 +8,7 @@ class BasicWithEndEffectorPosition(BaseModule):
 
   def __init__(self, model, data, bm_model, end_effector, **kwargs):
     self.end_effector = end_effector
-    super().__init__(model, data, bm_model)
+    super().__init__(model, data, bm_model, **kwargs)
     self.module_folder = parent_path(__file__)
     self.independent_joints = None
 
@@ -16,7 +16,7 @@ class BasicWithEndEffectorPosition(BaseModule):
   def insert(task, config, **kwargs):
     pass
 
-  def reset(self, model, data, rng):
+  def reset(self, model, data):
     pass
 
   def extractor(self):

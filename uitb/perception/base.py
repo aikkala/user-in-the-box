@@ -3,6 +3,7 @@ import os
 import shutil
 import inspect
 import numpy as np
+import mujoco
 
 from uitb.utils.functions import parent_path
 
@@ -14,6 +15,9 @@ class BaseModule(ABC):
     self.bm_model = bm_model
     self.actuator_names = []
     self.joint_names = []
+
+    # Get an rng
+    self.rng = kwargs.get("rng", np.random.default_rng(None))
 
     # Get modality
     self.modality = parent_path(inspect.getfile(self.__class__)).parent.stem
@@ -34,7 +38,7 @@ class BaseModule(ABC):
   def clone(cls, run_folder):
 
     # Create "perception" folder if needed
-    dst = os.path.join(run_folder, "simulator", "perception")
+    dst = os.path.join(run_folder, "simulation", "perception")
     os.makedirs(dst, exist_ok=True)
 
     # Get src for this module
@@ -52,11 +56,11 @@ class BaseModule(ABC):
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulator", "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulation", "assets"),
                       dirs_exist_ok=True)
 
   @abstractmethod
-  def reset(self, model, data, rng):
+  def reset(self, model, data):
     pass
 
   def set_ctrl(self, model, data, action):
@@ -96,10 +100,14 @@ class Perception:
       self.joint_names.extend(module.joint_names)
       self.extractors[module.modality] = module.extractor()
 
-    # Find actuators in the MuJoCo model
-    actuator_names_array = np.array(self.actuator_names)
-    self.actuators = [np.where(actuator_names_array==actuator)[0][0] for actuator in self.actuator_names]
+    # Find actuators in the simulation
+    self.actuators = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+                      for actuator_name in self.actuator_names]
     self.nu = len(self.actuators)
+
+    # Find joints in the simulation
+    self.joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
+                   for joint_name in self.joint_names]
 
   def set_ctrl(self, model, data, action):
     num = 0
@@ -107,9 +115,9 @@ class Perception:
       module.set_ctrl(model, data, action[num:num+module.nu])
       num += module.nu
 
-  def reset(self, model, data, rng):
+  def reset(self, model, data):
     for module in self.perception_modules:
-      module.reset(model, data, rng)
+      module.reset(model, data)
 
   def get_observation(self, model, data):
 

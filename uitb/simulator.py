@@ -7,17 +7,12 @@ import dill
 import sys
 import importlib
 
-try:
-  from gym.envs.mujoco.mujoco_rendering import Viewer, RenderContextOffscreen
-except ImportError:
-  from uitb.mujoco_rendering import Viewer, RenderContextOffscreen
-
 from uitb.perception.base import Perception
 
 def get_clone_class(src_class):
 
   module = src_class.__module__.split(".")
-  module[0] = "simulator"
+  module[0] = "simulation"
   module = importlib.import_module(".".join(module))
   return getattr(module, src_class.__name__)
 
@@ -28,83 +23,80 @@ class Simulator(gym.Env):
   def build(config):
 
     # Make sure required things are defined in config
-    assert "simulator" in config, "Simulator (simulator) must be defined in config"
-    assert "bm_model" in config["simulator"], "Biomechanical model (bm_model) must be defined in config"
-    assert "task" in config["simulator"], "task (task) must be defined in config"
+    assert "simulation" in config, "Simulation specs (simulation) must be defined in config"
+    assert "bm_model" in config["simulation"], "Biomechanical model (bm_model) must be defined in config"
+    assert "task" in config["simulation"], "task (task) must be defined in config"
 
     assert "run_parameters" in config, "Run parameters (run_parameters) must be defined in config"
     run_parameters = config["run_parameters"]
     assert "action_sample_freq" in run_parameters, "Action sampling frequency (action_sample_freq) must be defined " \
                                                    "in run parameters"
 
+    # By default use cloned files (set to False in config for debugging)
+    if "use_cloned_files" not in config:
+      config["use_cloned_files"] = True
+
     # Create a folder for the simulator
     os.makedirs(config["run_folder"], exist_ok=True)
 
     # Load the environment
-    config["simulator"]["task"].clone(config["run_folder"])
-    task = config["simulator"]["task"].initialise_task(config)
+    config["simulation"]["task"].clone(config["run_folder"])
+    task = config["simulation"]["task"].initialise_task(config)
 
     # Load biomechanical model
-    config["simulator"]["bm_model"].clone(config["run_folder"])
-    config["simulator"]["bm_model"].insert(task, config)
+    config["simulation"]["bm_model"].clone(config["run_folder"])
+    config["simulation"]["bm_model"].insert(task, config)
 
     # Add perception modules
-    for module, kwargs in config["simulator"].get("perception_modules", {}).items():
+    for module, kwargs in config["simulation"].get("perception_modules", {}).items():
       module.clone(config["run_folder"])
       module.insert(task, config, **kwargs)
 
-    # We need to save the mujoco xml file and then load it, because when reading the xml string directly we would need
-    # to copy assets to /tmp for which we might not have permissions
-    task_file = os.path.join(config["run_folder"], "simulator", "task.xml")
-    with open(task_file, 'w') as file:
+    # TODO read the xml file directly from task.getroot() instead of writing it to a file first; need to input a dict
+    #  of assets to mujoco.MjModel.from_xml_path
+    task_file = os.path.join(config["run_folder"], "simulation", "task")
+    with open(task_file+".xml", 'w') as file:
       task.write(file, encoding='unicode')
 
-    # Update classes in config
-    sys.path.insert(0, config["run_folder"])
-    config["simulator"]["task"] = get_clone_class(config["simulator"]["task"])
-    config["simulator"]["bm_model"] = get_clone_class(config["simulator"]["bm_model"])
-    perception_modules = {}
-    for module, kwargs in config["simulator"].get("perception_modules", {}).items():
-      perception_modules[get_clone_class(module)] = kwargs
-    config["simulator"]["perception_modules"] = perception_modules
+    if config["use_cloned_files"]:
+      # Update classes in config
+      sys.path.insert(0, config["run_folder"])
+      config["simulation"]["task"] = get_clone_class(config["simulation"]["task"])
+      config["simulation"]["bm_model"] = get_clone_class(config["simulation"]["bm_model"])
+      perception_modules = {}
+      for module, kwargs in config["simulation"].get("perception_modules", {}).items():
+        perception_modules[get_clone_class(module)] = kwargs
+      config["simulation"]["perception_modules"] = perception_modules
 
     # Load the mujoco model
-    model = mujoco.MjModel.from_xml_path(task_file)
+    model = mujoco.MjModel.from_xml_path(task_file+".xml")
 
     # Initialise MjData
-    frame_skip = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
-    data = mujoco.MjData(model) #, nsubsteps=frame_skip)
+    data = mujoco.MjData(model)
 
     # Add an rng to run parameters
     run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
 
     # Add dt to run parameters
+    frame_skip = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
     run_parameters["dt"] = model.opt.timestep*frame_skip
 
-    # Now initialise the actual classes; sim is input to the inits so that stuff can be modified if needed
+    # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
     # (e.g. move target to a specific position wrt to a body part)
-    task = config["simulator"]["task"](model, data, **{**config["simulator"].get("task_kwargs", {}),
-                                               **run_parameters})
-    bm_model = config["simulator"]["bm_model"](model, data, **{**config["simulator"].get("bm_model_kwargs", {}),
-                                                       **run_parameters})
-    perception = Perception(model, data, bm_model, config["simulator"]["perception_modules"], run_parameters)
+    task = config["simulation"]["task"](model, data, **{**config["simulation"].get("task_kwargs", {}),
+                                                        **run_parameters})
+    bm_model = config["simulation"]["bm_model"](model, data, **{**config["simulation"].get("bm_model_kwargs", {}),
+                                                                **run_parameters})
+    perception = Perception(model, data, bm_model, config["simulation"]["perception_modules"], run_parameters)
 
-    # Could save above classes here (with dill) and load them later in Simulator.__init__() if they take a long time
-    # to initialise
+    # It would be nice to save an xml here in addition to saving a binary model file. But seems like there's only one
+    # function to save an xml file: mujoco.mj_saveLastXML, which doesn't work here because we read the original
+    # task and bm_model xml files. I've tried to read again the task_file with mujoco.MjModel.from_xml_path(task_file)
+    # and then call mujoco.mj_saveLastXML(task_file, model) but it doesn't save the changes into the model (like
+    # setting target-plane to 55cm in front of and 10cm to the right of the biomechanical model's shoulder)
 
-    # TODO There's an interesting bug here in mujoco_py. Because we load the original bm_model in the BaseBMModel
-    #  initialisator it somehow replaces the model we load above (with mujoco_py.load_model_from_path), and messes up
-    #  the save operation below. This happens even though sim.model still refers to the model we load above. To fix
-    #  this bug we have to load the model from task_file again. It's almost as there could be only one model at a time
-    #  loaded into mujoco_py. Need to check later that the modifications we put into sim.model in the initialisators
-    #  of env and bm_model are really saved
-    #mujoco_py.load_model_from_path(task_file)
-    model = mujoco.MjModel.from_xml_path(task_file)
-
-    # Save updated mujoco xml file
-    # with open(task_file, 'w') as file:
-    #   sim.save(file, 'xml', True)
-    mujoco.mj_saveLastXML(task_file, model)
+    # Save the modified model as binary
+    mujoco.mj_saveModel(model, task_file+".mjcf", None)
 
     # Save configs
     with open(os.path.join(config["run_folder"], "config.dill"), 'wb') as file:
@@ -112,24 +104,15 @@ class Simulator(gym.Env):
 
   def __init__(self, run_folder):
 
-    # Add run folder to python path if not there already
-    if run_folder not in sys.path:
-      sys.path.insert(0, run_folder)
-
     self.id = "uitb:simulator-v0"
 
     # Read config
     with open(os.path.join(run_folder, "config.dill"), "rb") as file:
       self.config = dill.load(file)
 
-    #with open(os.path.join(self.config["run_folder"], "bm_model.dill"), 'rb') as file:
-    #  self.bm_model = dill.load(file)
-
-    #with open(os.path.join(self.config["run_folder"], "task.dill"), 'rb') as file:
-    #  self.task = dill.load(file)
-
-    #with open(os.path.join(self.config["run_folder"], "perception.dill"), 'rb') as file:
-    #  self.perception = dill.load(file)
+    # Add run folder to python path if not there already
+    if self.config["use_cloned_files"] and run_folder not in sys.path:
+      sys.path.insert(0, run_folder)
 
     # Get run parameters
     run_parameters = self.config["run_parameters"]
@@ -138,22 +121,23 @@ class Simulator(gym.Env):
     run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
 
     # Load the mujoco model
-    #self.model = mujoco_py.load_model_from_path(os.path.join(run_folder, "simulator", "task.xml"))
-    self.model = mujoco.MjModel.from_xml_path(os.path.join(run_folder, "simulator", "task.xml"))
+    self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, "simulation", "task.mjcf"))
 
     # Initialise data
+    self.data = mujoco.MjData(self.model)
+
+    # Get frame skip
     self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
-    self.data = mujoco.MjData(self.model) #, nsubsteps=self.frame_skip)
 
     # Add dt to run parameters
-    run_parameters["dt"] = self.dt()
+    run_parameters["dt"] = self.dt
 
     # Initialise classes
-    self.task = self.config["simulator"]["task"](self.model, self.data, **{
-      **self.config["simulator"].get("task_kwargs", {}), **run_parameters})
-    self.bm_model = self.config["simulator"]["bm_model"](self.model, self.data, **{
-      **self.config["simulator"].get("bm_model_kwargs", {}), **run_parameters})
-    self.perception = Perception(self.model, self.data, self.bm_model, self.config["simulator"]["perception_modules"], run_parameters)
+    self.task = self.config["simulation"]["task"](self.model, self.data, **{
+      **self.config["simulation"].get("task_kwargs", {}), **run_parameters})
+    self.bm_model = self.config["simulation"]["bm_model"](self.model, self.data, **{
+      **self.config["simulation"].get("bm_model_kwargs", {}), **run_parameters})
+    self.perception = Perception(self.model, self.data, self.bm_model, self.config["simulation"]["perception_modules"], run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
     self.action_space = self.initialise_action_space()
@@ -165,13 +149,13 @@ class Simulator(gym.Env):
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
     # Set camera stuff, self._viewers needs to be initialised before self.get_observation() is called
-    self.viewer = None
-    self._viewers = {}
-    self.metadata = {
-      'render.modes': ['human', 'rgb_array', 'depth_array'],
-      'video.frames_per_second': int(np.round(1.0 / (self.model.opt.timestep * self.frame_skip))),
-      "imagesize": (1600, 1280)
-    }
+    #self.viewer = None
+    #self._viewers = {}
+    #self.metadata = {
+    #  'render.modes': ['human', 'rgb_array', 'depth_array'],
+    #  'video.frames_per_second': int(np.round(1.0 / (self.model.opt.timestep * self.frame_skip))),
+    #  "imagesize": (1600, 1280)
+    #}
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
@@ -233,9 +217,9 @@ class Simulator(gym.Env):
     mujoco.mj_resetData(self.model, self.data)
 
     # Reset all models
-    self.bm_model.reset(self.sim)
-    self.perception.reset(self.sim)
-    self.task.reset(self.sim)
+    self.bm_model.reset(self.model, self.data)
+    self.perception.reset(self.model, self.data)
+    self.task.reset(self.model, self.data)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self.model, self.data)
@@ -306,41 +290,41 @@ class Simulator(gym.Env):
   #
   #   return np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
 
-  def render(self, mode='human', width=1280, height=800, camera_id=None, camera_name=None):
-
-    if mode == 'rgb_array' or mode == 'depth_array':
-        if camera_id is not None and camera_name is not None:
-            raise ValueError("Both `camera_id` and `camera_name` cannot be"
-                             " specified at the same time.")
-
-        no_camera_specified = camera_name is None and camera_id is None
-        if no_camera_specified:
-            camera_name = 'track'
-
-        if camera_id is None:
-          camera_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
-
-          self._get_viewer(mode).render(width, height, camera_id=camera_id)
-
-    if mode == 'rgb_array':
-        data = self._get_viewer(mode).read_pixels(width, height, depth=False)
-        # original image is upside-down, so flip it
-        return data[::-1, :, :]
-    elif mode == 'depth_array':
-        self._get_viewer(mode).render(width, height)
-        # Extract depth part of the read_pixels() tuple
-        data = self._get_viewer(mode).read_pixels(width, height, depth=True)[1]
-        # original image is upside-down, so flip it
-        return data[::-1, :]
-    elif mode == 'human':
-        self._get_viewer(mode).render()
-
-  def _get_viewer(self, mode, width=1280, height=800):
-    self.viewer = self._viewers.get(mode)
-    if self.viewer is None:
-      if mode == 'human':
-        self.viewer = Viewer(self.model, self.data)
-      elif mode == 'rgb_array' or mode == 'depth_array':
-        self.viewer = RenderContextOffscreen(width, height, self.model, self.data)
-      self._viewers[mode] = self.viewer
-    return self.viewer
+  # def render(self, mode='human', width=1280, height=800, camera_id=None, camera_name=None):
+  #
+  #   if mode == 'rgb_array' or mode == 'depth_array':
+  #       if camera_id is not None and camera_name is not None:
+  #           raise ValueError("Both `camera_id` and `camera_name` cannot be"
+  #                            " specified at the same time.")
+  #
+  #       no_camera_specified = camera_name is None and camera_id is None
+  #       if no_camera_specified:
+  #           camera_name = 'track'
+  #
+  #       if camera_id is None:
+  #         camera_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
+  #
+  #         self._get_viewer(mode).render(width, height, camera_id=camera_id)
+  #
+  #   if mode == 'rgb_array':
+  #       data = self._get_viewer(mode).read_pixels(width, height, depth=False)
+  #       # original image is upside-down, so flip it
+  #       return data[::-1, :, :]
+  #   elif mode == 'depth_array':
+  #       self._get_viewer(mode).render(width, height)
+  #       # Extract depth part of the read_pixels() tuple
+  #       data = self._get_viewer(mode).read_pixels(width, height, depth=True)[1]
+  #       # original image is upside-down, so flip it
+  #       return data[::-1, :]
+  #   elif mode == 'human':
+  #       self._get_viewer(mode).render()
+  #
+  # def _get_viewer(self, mode, width=1280, height=800):
+  #   self.viewer = self._viewers.get(mode)
+  #   if self.viewer is None:
+  #     if mode == 'human':
+  #       self.viewer = Viewer(self.model, self.data)
+  #     elif mode == 'rgb_array' or mode == 'depth_array':
+  #       self.viewer = RenderContextOffscreen(width, height, self.model, self.data)
+  #     self._viewers[mode] = self.viewer
+  #   return self.viewer

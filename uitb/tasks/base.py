@@ -15,35 +15,30 @@ class BaseTask(ABC):
 
   def __init__(self, model, data, **kwargs):
 
-    # Initialise the mujoco model, easier to manipulate things
-    model = mujoco.MjModel.from_xml_path(self.xml_file)
+    # Initialise mujoco model of the task, easier to manipulate things
+    task_model = mujoco.MjModel.from_xml_path(self.xml_file)
+
+    # Get an rng
+    self.rng = kwargs.get("rng", np.random.default_rng(None))
 
     # Get actuator names and joint names (if any)
-    self.actuator_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(model.nu)]
-    self.joint_names = [mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, i) for i in range(model.njnt)]
+    self.actuator_names = [mujoco.mj_id2name(task_model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(task_model.nu)]
+    self.joint_names = [mujoco.mj_id2name(task_model, mujoco.mjtObj.mjOBJ_JOINT, i) for i in range(task_model.njnt)]
 
-    # Find actuators in the simulation
-    actuator_names_array = np.array(self.actuator_names)
-    self.actuators = [np.where(actuator_names_array==actuator)[0][0] for actuator in self.actuator_names]
+    # Find actuator indices in the simulation
+    self.actuators = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
+                      for actuator_name in self.actuator_names]
 
-    # Get dependent and independent joint names
-    self.dependent_joint_names = {self.joint_names[idx] for idx in
-                                  np.unique(model.eq_obj1id[model.eq_active.astype(bool)])} \
-      if model.eq_obj1id is not None else set()
-    self.independent_joint_names = set(self.joint_names) - self.dependent_joint_names
-
-    # Find dependent and independent joints in the simulation
-    sim_joint_names = np.array(self.joint_names)
-    self.dependent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.dependent_joint_names]
-    self.independent_joints = [np.where(sim_joint_names==joint)[0][0] for joint in self.independent_joint_names]
-
+    # Find joint indices in the simulation
+    self.joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
+                   for joint_name in self.joint_names]
 
   @abstractmethod
   def update(self, model, data):
     pass
 
   @abstractmethod
-  def reset(self, model, data, rng):
+  def reset(self, model, data):
     pass
 
   def get_stateful_information(self, model, data):
@@ -65,7 +60,7 @@ class BaseTask(ABC):
   def clone(cls, run_folder):
 
     # Create 'tasks' folder
-    dst = os.path.join(run_folder, "simulator", "tasks")
+    dst = os.path.join(run_folder, "simulation", "tasks")
     os.makedirs(dst, exist_ok=True)
 
     # Copy env folder
@@ -74,7 +69,7 @@ class BaseTask(ABC):
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulator", "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulation", "assets"),
                       dirs_exist_ok=True)
 
   def _get_body_xvelp_xvelr(self, model, data, bodyname):

@@ -3,86 +3,99 @@ import numpy as np
 import os
 import mujoco
 import collections
+from collections import deque
 
 from uitb.perception.base import BaseModule
 from uitb.utils.functions import parent_path
 from ..extractors import small_cnn
 
-try:
-  from gym.envs.mujoco.mujoco_rendering import Viewer, RenderContextOffscreen
-except ImportError:
-  from uitb.mujoco_rendering import Viewer, RenderContextOffscreen
-
-
-# def _import_egl(width, height):
-#   from mujoco.egl import GLContext
-#
-#   return GLContext(width, height)
-#
-#
-# def _import_glfw(width, height):
-#   from mujoco.glfw import GLContext
-#
-#   return GLContext(width, height)
-#
-#
-# def _import_osmesa(width, height):
-#   from mujoco.osmesa import GLContext
-#
-#   return GLContext(width, height)
-#
-#
-# _ALL_RENDERERS = collections.OrderedDict(
-#     [
-#         ("glfw", _import_glfw),
-#         ("egl", _import_egl),
-#         ("osmesa", _import_osmesa),
-#     ]
-# )
-#
-# def _get_opengl_backend(width, height):
-#   backend = os.environ.get("MUJOCO_GL")
-#   if backend is not None:
-#     try:
-#       opengl_context = _ALL_RENDERERS[backend](width, height)
-#     except KeyError:
-#       raise RuntimeError(
-#         "Environment variable {} must be one of {!r}: got {!r}.".format(
-#           "MUJOCO_GL", _ALL_RENDERERS.keys(), backend
-#         )
-#       )
-#
-#   else:
-#     for name, import_func in _ALL_RENDERERS.items():
-#       try:
-#         opengl_context = _ALL_RENDERERS["osmesa"](width, height)
-#         backend = name
-#         break
-#       except:
-#         pass
-#     if backend is None:
-#       raise RuntimeError(
-#         "No OpenGL backend could be imported. Attempting to create a "
-#         "rendering context will result in a RuntimeError."
-#       )
-#
-#   return opengl_context
-
 class FixedEye(BaseModule):
 
-  def __init__(self, model, data, bm_model, resolution, pos, quat, body="worldbody", channels=None, **kwargs):
+  def __init__(self, model, data, bm_model, resolution, pos, quat, body="worldbody", channels=None, buffer=None,
+               **kwargs):
+    """
+    A simple eye model using a fixed camera.
+
+    Args:
+        model: A MjModel object of the simulation
+        data: A MjData object of the simulation
+        bm_model: A biomechanical model class object inheriting from BaseBMModel
+        resolution: Resolution in pixels [width, height]
+        pos: Position of the camera [x, y, z]
+        quat: Orientation of the camera as a quaternion [w, x, y, z]
+        body (optional): Body to which the camera is attached, default is 'worldbody'
+        channels (optional): Which channels to use; 0-2 refer to RGB, 3 is depth. Default value is None, which means that all channels are used (i.e. same as channels=[0,1,2,3])
+        buffer (optional): Defines a buffer of given length (in seconds) that is utilized to include prior observations
+        **kwargs (optional): Keyword args that may be used
+    """
+
+    self.model = model
+    self.data = data
+
+    # Probably already called
+    mujoco.mj_forward(self.model, self.data)
+
+    # Set camera specs
     if channels is None:
       channels = [0, 1, 2, 3]
     self.channels = channels
-    self._viewers = {}
     self.resolution = resolution
     self.pos = pos
     self.quat = quat
     self.body = body
-    super().__init__(model, data, bm_model)
+
+    # Initialise camera
+    gl = mujoco.GLContext(self.resolution[0], self.resolution[1])
+    gl.make_current()
+    self.scene = mujoco.MjvScene(self.model, maxgeom=1000)
+    self.camera = mujoco.MjvCamera()
+    self.voptions = mujoco.MjvOption()
+    self.perturb = mujoco.MjvPerturb()
+    self.context = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_150)
+    mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN.value, self.context)
+    self.viewport = mujoco.MjrRect(left=0, bottom=0, width=self.resolution[0], height=self.resolution[1])
+    self.camera.type = mujoco.mjtCamera.mjCAMERA_FIXED
+    self.camera.fixedcamid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, 'fixed-eye')
+
+    # Define a vision buffer for including previous visual observations
+    if buffer is None:
+      self.buffer = None
+    else:
+      assert "dt" in kwargs, "dt must be defined in order to include prior observations"
+      maxlen = 1 + int(buffer/kwargs["dt"])
+      self.buffer = deque(maxlen=maxlen)
+
+    super().__init__(model, data, bm_model, **kwargs)
     self.module_folder = parent_path(__file__)
 
-    # TODO keyword for using prior observations
+  def render(self):
+
+    # Update scene
+    mujoco.mjv_updateScene(
+      self.model,
+      self.data,
+      self.voptions,
+      self.perturb,
+      self.camera,
+      mujoco.mjtCatBit.mjCAT_ALL,
+      self.scene,
+    )
+
+    # Render
+    mujoco.mjr_render(self.viewport, self.scene, self.context)
+
+    # Initialise rgb and depth arrays
+    rgb_arr = np.zeros(3 * self.viewport.width * self.viewport.height, dtype=np.uint8)
+    depth_arr = np.zeros(self.viewport.width * self.viewport.height, dtype=np.float32)
+
+    # Read pixels into arrays
+    mujoco.mjr_readPixels(rgb_arr, depth_arr, self.viewport, self.context)
+
+    # Reshape and flip
+    rgb_img = np.flipud(rgb_arr.reshape(self.viewport.height, self.viewport.width, 3))
+    depth_img = np.flipud(depth_arr.reshape(self.viewport.height, self.viewport.width))
+
+    return rgb_img, depth_img
 
   @staticmethod
   def insert(task, config, **kwargs):
@@ -119,69 +132,37 @@ class FixedEye(BaseModule):
   def get_observation(self, model, data):
 
     # Get rgb and depth arrays
-    render = self.render(model=model, data=data, mode="depth_array", width=self.resolution[0], height=self.resolution[1], camera_name='fixed-eye')
+    rgb, depth = self.render()
 
     # Normalise
-    depth = render[1]
-    depth = np.flipud((depth - 0.5) * 2)
-    rgb = render[0]
-    rgb = np.flipud((rgb / 255.0 - 0.5) * 2)
+    depth = (depth - 0.5) * 2
+    rgb = (rgb / 255.0 - 0.5) * 2
 
     # Transpose channels
     obs = np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
 
-    return obs[self.channels, :, :]
-  
+    # Choose channels
+    obs = obs[self.channels, :, :]
+
+    # Include prior observation if needed
+    if self.buffer is not None:
+      # Update buffer
+      if len(self.buffer) > 0:
+        self.buffer.pop()
+      while len(self.buffer) < self.buffer.maxlen:
+        self.buffer.appendleft(obs)
+
+      # Use latest and oldest observation, and their difference
+      obs = np.concatenate([self.buffer[0], self.buffer[-1], self.buffer[-1] - self.buffer[0]], axis=2)
+
+    return obs
+
   def get_observation_space_params(self):
     return {"low": -1, "high": 1, "shape": self.observation_shape}
 
-  def reset(self, model, data, rng):
-    # TODO reset once prior observations are implemented
-    pass
+  def reset(self, model, data):
+    if self.buffer is not None:
+      self.buffer.clear()
 
   def extractor(self):
     return small_cnn(observation_shape=self.observation_shape, out_features=256)
-
-  def render(self, model, data, mode='depth_array', width=1280, height=800, camera_id=None, camera_name=None, preprocess_output=False):
-
-    if mode == 'rgb_array' or mode == 'depth_array':
-        if camera_id is not None and camera_name is not None:
-            raise ValueError("Both `camera_id` and `camera_name` cannot be"
-                             " specified at the same time.")
-
-        no_camera_specified = camera_name is None and camera_id is None
-        if no_camera_specified:
-            camera_name = 'track'
-
-        if camera_id is None:
-          camera_id = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
-
-          self._get_viewer(model, data, mode).render(width, height, camera_id=camera_id)
-
-    if mode == 'rgb_array':
-        data = self._get_viewer(model, data, mode).read_pixels(width, height, depth=False)
-        if preprocess_output:
-            # original image is upside-down, so flip it
-            return data[::-1, :, :]
-        else:
-            return data
-    elif mode == 'depth_array':
-        self._get_viewer(model, data, mode).render(width, height)
-        data = self._get_viewer(model, data, mode).read_pixels(width, height, depth=True)
-        if preprocess_output:
-            # Extract depth part of the read_pixels() tuple; original image is upside-down, so flip it
-            return data[1][::-1, :]
-        else:
-            return data
-    elif mode == 'human':
-        self._get_viewer(model, data, mode).render()
-
-  def _get_viewer(self, model, data, mode, width=1280, height=800):
-    self.viewer = self._viewers.get(mode)
-    if self.viewer is None:
-      if mode == 'human':
-        self.viewer = Viewer(model, data)
-      elif mode == 'rgb_array' or mode == 'depth_array':
-        self.viewer = RenderContextOffscreen(width, height, model, data)
-      self._viewers[mode] = self.viewer
-    return self.viewer

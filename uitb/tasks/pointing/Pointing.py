@@ -4,7 +4,7 @@ import mujoco
 
 from .reward_functions import NegativeExpDistanceWithHitBonus
 
-from uitb.utils.functions import project_path, parent_path
+from uitb.utils.functions import parent_path
 from uitb.tasks.base import BaseTask
 
 class Pointing(BaseTask):
@@ -12,16 +12,13 @@ class Pointing(BaseTask):
   xml_file = os.path.join(parent_path(__file__), "task.xml")
 
   def __init__(self, model, data, end_effector, shoulder, **kwargs):
-    super().__init__(model, data)
+    super().__init__(model, data, **kwargs)
 
     # This task requires an end-effector to be defined TODO could be either body or geom, or why not a site
     self.end_effector = end_effector
 
     # Also a shoulder that is used to define the location of target plane
     self.shoulder = shoulder
-
-    # Get an rng
-    self.rng = kwargs.get("rng", np.random.default_rng(None))
 
     # Get action sample freq
     action_sample_freq = kwargs["action_sample_freq"]
@@ -54,9 +51,9 @@ class Pointing(BaseTask):
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
 
-    # Define plane where targets will be spawned: 0.5m in front of shoulder, or the "humphant" body. Note that this
-    # body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
-    self.target_origin = data.body(self.shoulder).xpos + np.array([0.5, 0, 0])
+    # Define plane where targets will move: 0.55m in front of and 0.1m to the right of shoulder, or the "humphant" body.
+    # Note that this body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
+    self.target_origin = data.body(self.shoulder).xpos + np.array([0.55, -0.1, 0])
     self.target_position = self.target_origin.copy()
     self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
@@ -65,8 +62,8 @@ class Pointing(BaseTask):
     self.target_plane_geom_idx = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, "target-plane")
     self.target_plane_body_idx = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "target-plane")
     model.geom_size[self.target_plane_geom_idx] = np.array([0.005,
-                                                                (self.target_limits_y[1] - self.target_limits_y[0])/2,
-                                                                (self.target_limits_z[1] - self.target_limits_z[0])/2])
+                                                            (self.target_limits_y[1] - self.target_limits_y[0])/2,
+                                                            (self.target_limits_z[1] - self.target_limits_z[0])/2])
     model.body_pos[self.target_plane_body_idx] = self.target_origin
 
     # Set camera angle TODO need to rethink how cameras are implemented
@@ -148,7 +145,7 @@ class Pointing(BaseTask):
     state["targets_hit"] = self.targets_hit
     return state
 
-  def reset(self, model, data, rng):
+  def reset(self, model, data):
 
     # Reset counters
     self.steps_since_last_hit = 0
@@ -183,7 +180,7 @@ class Pointing(BaseTask):
 
     mujoco.mj_forward(model, data)
 
-  def get_stateful_information(self, sim):
+  def get_stateful_information(self, model, data):
     # Time features (time left to reach target, time spent inside target)
     targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
     dwell_time = -1.0 + 2 * np.min([1.0, self.steps_inside_target / self.dwell_threshold])
