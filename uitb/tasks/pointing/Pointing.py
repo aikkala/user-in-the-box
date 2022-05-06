@@ -183,7 +183,7 @@ class Pointing(BaseTask):
 
     mujoco.mj_forward(model, data)
 
-  def get_stateful_information(self, model, data):
+  def get_stateful_information(self, sim):
     # Time features (time left to reach target, time spent inside target)
     targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
     dwell_time = -1.0 + 2 * np.min([1.0, self.steps_inside_target / self.dwell_threshold])

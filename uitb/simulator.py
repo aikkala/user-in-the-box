@@ -75,6 +75,12 @@ class Simulator(gym.Env):
     frame_skip = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
     data = mujoco.MjData(model) #, nsubsteps=frame_skip)
 
+    # Add an rng to run parameters
+    run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
+
+    # Add dt to run parameters
+    run_parameters["dt"] = model.opt.timestep*frame_skip
+
     # Now initialise the actual classes; sim is input to the inits so that stuff can be modified if needed
     # (e.g. move target to a specific position wrt to a body part)
     task = config["simulator"]["task"](model, data, **{**config["simulator"].get("task_kwargs", {}),
@@ -128,9 +134,8 @@ class Simulator(gym.Env):
     # Get run parameters
     run_parameters = self.config["run_parameters"]
 
-    # Add an rng to run parameters
-    self.rng = np.random.default_rng(run_parameters.get("random_seed", None))
-    run_parameters["rng"] = self.rng
+    # Add rng to run parameters
+    run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
 
     # Load the mujoco model
     #self.model = mujoco_py.load_model_from_path(os.path.join(run_folder, "simulator", "task.xml"))
@@ -139,6 +144,9 @@ class Simulator(gym.Env):
     # Initialise data
     self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
     self.data = mujoco.MjData(self.model) #, nsubsteps=self.frame_skip)
+
+    # Add dt to run parameters
+    run_parameters["dt"] = self.dt()
 
     # Initialise classes
     self.task = self.config["simulator"]["task"](self.model, self.data, **{
@@ -225,9 +233,9 @@ class Simulator(gym.Env):
     mujoco.mj_resetData(self.model, self.data)
 
     # Reset all models
-    self.bm_model.reset(self.model, self.data, self.rng)
-    self.perception.reset(self.model, self.data, self.rng)
-    self.task.reset(self.model, self.data, self.rng)
+    self.bm_model.reset(self.sim)
+    self.perception.reset(self.sim)
+    self.task.reset(self.sim)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self.model, self.data)

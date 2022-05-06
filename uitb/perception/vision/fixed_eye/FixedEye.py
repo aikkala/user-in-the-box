@@ -116,7 +116,6 @@ class FixedEye(BaseModule):
       assert eye_body is not None, f"Body with name {body} was not found"
       eye_body.append(eye)
 
-
   def get_observation(self, model, data):
 
     # Get rgb and depth arrays
@@ -132,51 +131,7 @@ class FixedEye(BaseModule):
     obs = np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
 
     return obs[self.channels, :, :]
-
-  # def get_observation(self, model, data):
-  #
-  #   # Get rgb and depth arrays
-  #
-  #   # render = sim.render(width=self.resolution[0], height=self.resolution[1], camera_name='fixed-eye',
-  #   #                     depth=True)
-  #
-  #   #TODO
-  #   # ctx = mujoco.GLContext(self.resolution[0], self.resolution[1])
-  #   # ctx.make_current()
-  #   # ###
-  #   # with _MjSim_render_lock:
-  #   #   if self._render_context_offscreen is None:
-  #   #     render_context = MjRenderContextOffscreen(
-  #   #       self, device_id=-1)
-  #   #   else:
-  #   #     render_context = self._render_context_offscreen
-  #   # render_context.render(width=self.resolution[0], height=self.resolution[1], camera_id=model.camera_name2id('fixed-eye'), segmentation=False)
-  #   # render = render_context.read_pixels(width, height, depth=True, segmentation=False)
-  #
-  #   self.camera.fixedcamid = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'fixed-eye')
-  #   mujoco.mjv_updateScene(
-  #     model, data, mujoco.MjvOption(), None,
-  #     self.camera, mujoco.mjtCatBit.mjCAT_ALL, self.scene)
-  #   mujoco.mjr_render(self.viewport, self.scene, self.context)
-  #
-  #   # TODO: compare to https://github.com/rodrigodelazcano/gym/blob/906789e0fd5b11e3c7979065e091a1abc00d1b35/gym/envs/mujoco/mujoco_rendering.py
-  #   #  (def render() and def read_pixels())
-  #
-  #   mujoco.mjr_rectangle(self.viewport, 0, 0, 0, 1)
-  #   rgb_arr = np.zeros(3 * self.viewport.width * self.viewport.height, dtype=np.uint8)
-  #   depth_arr = np.zeros(self.viewport.width * self.viewport.height, dtype=np.float32)
-  #   mujoco.mjr_readPixels(rgb_arr, depth_arr, self.viewport, self.context)
-  #   rgb = rgb_arr.reshape(self.viewport.height, self.viewport.width, 3)
-  #   depth = depth_arr.reshape(self.viewport.height, self.viewport.width)
-  #
-  #   # Normalise
-  #   #depth = render[1]
-  #   depth = np.flipud((depth - 0.5) * 2)
-  #   #rgb = render[0]
-  #   rgb = np.flipud((rgb / 255.0 - 0.5) * 2)
-  #
-  #   return np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
-
+  
   def get_observation_space_params(self):
     return {"low": -1, "high": 1, "shape": self.observation_shape}
 
