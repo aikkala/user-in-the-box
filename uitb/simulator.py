@@ -188,6 +188,9 @@ class Simulator(gym.Env):
     # Advance the simulation
     mujoco.mj_step(self.model, self.data, nstep=self.frame_skip)
 
+    # Update bm model (e.g. update constraints)
+    self.bm_model.update(self.model, self.data)
+
     # Find out what happened
     reward, finished, info = self.task.update(self.model, self.data)
 

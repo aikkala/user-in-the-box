@@ -15,15 +15,6 @@ class MoblArmsIndex(BaseBMModel):
     # Set shoulder variant
     self.shoulder_variant = kwargs.get("shoulder_variant", "patch-v1")
 
-    # # Get equality constraint ID of shoulder1_r2
-    # if self.shoulder_variant.startswith("patch"):
-    #   cond1 = model.eq_type==2
-    #   cond2 = model.eq_obj1id==model.joint_name2id("shoulder1_r2")
-    #   cond3 = model.eq_obj2id==model.joint_name2id("elv_angle")
-    #   eq_ID_shoulder1_r2 = np.where(cond1&cond2&cond3)[0]
-    #   assert eq_ID_shoulder1_r2.size == 1, "Couldn't find the equality constraint"
-    #   self.eq_ID_shoulder1_r2 = eq_ID_shoulder1_r2[0]
-
   def update(self, model, data):
 
     # Update shoulder equality constraints
@@ -37,3 +28,7 @@ class MoblArmsIndex(BaseBMModel):
           2 * np.min((data.joint('shoulder_elv').qpos,
                       np.pi - data.joint('shoulder_elv').qpos)) / np.pi \
           * data.joint('elv_angle').qpos
+
+  def reset(self, model, data):
+    super().reset(model, data)
+    self.update(model, data)
