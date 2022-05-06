@@ -24,7 +24,7 @@ class PPO(BaseModel):
 
     # Add feature and stateful information extractors to policy_kwargs
     extractors = simulator.perception.extractors.copy()
-    if simulator.task.get_stateful_information(simulator.sim) is not None:
+    if simulator.task.get_stateful_information(simulator.model, simulator.data) is not None:
       extractors["stateful_information"] = simulator.task.stateful_information_extractor
     rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"extractors": extractors}
 

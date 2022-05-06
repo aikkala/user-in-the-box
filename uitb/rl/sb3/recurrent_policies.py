@@ -16,7 +16,7 @@ from torch import nn
 
 from sb3_contrib.common.recurrent.type_aliases import RNNStates
 
-from UIB.rl.sb3.policies import ActorCriticPolicyTanhActions
+from uitb.rl.sb3.policies import ActorCriticPolicyTanhActions
 
 
 class RecurrentActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):

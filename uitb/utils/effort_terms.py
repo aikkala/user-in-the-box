@@ -1,6 +1,6 @@
 import numpy as np
 from abc import ABC, abstractmethod
-import mujoco_py
+import mujoco
 
 class BaseTerm(ABC):
   @abstractmethod
@@ -16,7 +16,7 @@ class Neural(BaseTerm):
   def __init__(self, weight=1e-4):
       self.weight = weight
   def get(self, env):
-    return self.weight * np.sum(env.sim.data.ctrl ** 2)
+    return self.weight * np.sum(env.data.ctrl ** 2)
   def __repr__(self):
     return "Neural"
 
@@ -24,9 +24,9 @@ class Composite(BaseTerm):
   def __init__(self, weight=1e-7):
     self.weight = weight
   def get(self, env):
-    mujoco_py.cymj._mj_inverse(env.sim.model, env.sim.data)
-    angle_acceleration = np.sum(env.sim.data.qacc[env.independent_joints] ** 2)
-    energy = np.sum(env.sim.data.qvel[env.independent_joints] ** 2 * env.sim.data.qfrc_inverse[env.independent_joints] ** 2)
+    mujoco.mj_inverse(env.model, env.data)
+    angle_acceleration = np.sum(env.data.qacc[env.independent_joints] ** 2)
+    energy = np.sum(env.data.qvel[env.independent_joints] ** 2 * env.data.qfrc_inverse[env.independent_joints] ** 2)
     return self.weight * (energy + 0.05 * angle_acceleration)
   def __repr__(self):
     return "Composite"
@@ -41,7 +41,7 @@ class MuscleState(BaseTerm):
   def __init__(self, weight=1e-4):
     self.weight = weight
   def get(self, env):
-    return self.weight * np.sum(env.sim.data.act ** 2)
+    return self.weight * np.sum(env.data.act ** 2)
   def __repr__(self):
     return "MuscleState"
 
@@ -66,7 +66,7 @@ class CumulativeFatigue(BaseTerm):
       self.MR = np.ones((env.model.na,))
 
     # Get target load
-    TL = env.sim.data.act.copy()
+    TL = env.data.act.copy()
 
     # Calculate C(t)
     C = np.zeros_like(self.MA)

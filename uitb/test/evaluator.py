@@ -130,10 +130,10 @@ if __name__=="__main__":
     config = pickle.load(file)
 
   # Define output directories
-  env_name = config["env_name"]
+  env_name = config["name"]
   run_folder = Path(args.config_file).parent.absolute()
   checkpoint_dir = os.path.join(run_folder, 'checkpoints')
-  evaluate_dir = os.path.join(output_path(), config["env_name"], config["name"])
+  evaluate_dir = os.path.join(output_path(), config["name"], config["name"])
 
   # Make sure output dir exists
   os.makedirs(evaluate_dir, exist_ok=True)

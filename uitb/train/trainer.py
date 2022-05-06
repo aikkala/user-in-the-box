@@ -35,13 +35,13 @@ if __name__=="__main__":
   run = wandb.init(project="uitb", name=name, sync_tensorboard=True, save_code=True, dir=output_path())
 
   # Initialise RL model
-  model = config["rl"]["algorithm"](simulator, config["rl"], config["run_folder"])
+  rl_model = config["rl"]["algorithm"](simulator, config["rl"], config["run_folder"])
 
-  # Haven't figured out how to periodically save rl in wandb; this is currently done inside the model class
+  # Haven't figured out how to periodically save rl in wandb; this is currently done inside the rl_model class
   # TODO this doesn't seem to work; do the files need to be in wandb.run.dir?
   #wandb.save(os.path.join(model_folder, run.name, 'checkpoints', "model_*_steps.zip"),
   #           base_path=os.path.join(model_folder, run.name, 'checkpoints'))
 
   # Start the training
-  model.learn(WandbCallback(verbose=2))
+  rl_model.learn(WandbCallback(verbose=2))
   run.finish()

@@ -25,7 +25,7 @@ def copy_children(name, src, dst, exclude=None):
     create(dst, name)
 
     # Copy each element except ones that are excluded
-    for element in elements.getchildren():
+    for element in elements:
       if exclude is not None and \
           element.tag == exclude["tag"] and element.attrib[exclude["attrib"]] == exclude["name"]:
         continue

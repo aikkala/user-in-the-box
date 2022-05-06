@@ -6,7 +6,7 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback
 
-from UIB.rl.base import BaseModel
+from uitb.rl.base import BaseModel
 
 
 class RecurrentPPO(BaseModel):

@@ -67,8 +67,8 @@ remote_driving = \
    "simulator": {
      "bm_model": MoblArmsIndex,
      "perception_modules": {
-       BasicWithEndEffectorPosition: dict(end_effector="hand_2distph"),
-       FixedEye: dict(resolution=[120, 80], pos="0 0 1.2", quat="0.583833 0.399104 -0.399421 -0.583368")},
+       "BasicWithEndEffectorPosition": (BasicWithEndEffectorPosition, dict(end_effector="hand_2distph")),
+       "FixedEye": (FixedEye, dict(resolution=[120, 80], pos="0 0 1.2", quat="0.583833 0.399104 -0.399421 -0.583368"))},
      "task": RemoteDriving,
      "task_kwargs": dict(end_effector="hand_2distph", episode_length_seconds=10)}
    }
