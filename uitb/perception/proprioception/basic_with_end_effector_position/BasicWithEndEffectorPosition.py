@@ -1,5 +1,6 @@
 from uitb.perception.base import BaseModule
 from uitb.utils.functions import parent_path
+from ..extractors import one_layer
 
 import numpy as np
 
@@ -20,7 +21,8 @@ class BasicWithEndEffectorPosition(BaseModule):
     pass
 
   def extractor(self):
-    return None
+    #return None
+    return one_layer(observation_shape=self.observation_shape, out_features=128)
 
   def get_observation_space_params(self):
     return {"low": -float('inf'), "high": float('inf'), "shape": self.observation_shape}

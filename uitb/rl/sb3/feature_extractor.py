@@ -79,7 +79,8 @@ class FeatureExtractor(BaseFeaturesExtractor):
     for key, extractor in extractors.items():
       if extractor is None:
         extractors[key] = nn.Identity()
-      total_concat_size += extractors[key](th.from_numpy(fake_observation[key])[None]).shape[1]
+    #  total_concat_size += extractors[key](th.from_numpy(fake_observation[key])[None]).shape[1]
+    total_concat_size = 256 + 128
 
     # Convert into ModuleDict
     self.extractors = nn.ModuleDict(extractors)
@@ -91,7 +92,10 @@ class FeatureExtractor(BaseFeaturesExtractor):
     encoded_tensor_list = []
 
     # self.extractors contain nn.Modules that do all the processing.
-    for key, extractor in self.extractors.items():
-      encoded_tensor_list.append(extractor(observations[key]))
+    #for key, extractor in self.extractors.items():
+    #  encoded_tensor_list.append(extractor(observations[key]))
+    encoded_tensor_list.append(self.extractors["vision"](observations["vision"]))
+    combined = th.cat([observations["proprioception"], observations["stateful_information"]] ,dim=1)
+    encoded_tensor_list.append(self.extractors["proprioception"](combined))
     # Return a (B, self._features_dim) PyTorch tensor, where B is batch dimension.
     return th.cat(encoded_tensor_list, dim=1)
