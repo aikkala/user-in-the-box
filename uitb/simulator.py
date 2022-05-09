@@ -120,9 +120,6 @@ class Simulator(gym.Env):
     # Initialise data
     self.data = mujoco.MjData(self.model)
 
-    # Get frame skip
-    self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
-
     # Get run parameters TODO need to rethink how run parameters are given
     if run_parameters is None:
       run_parameters = self.config["run_parameters"]
@@ -134,6 +131,9 @@ class Simulator(gym.Env):
       run_parameters["dt"] = self.dt
     else:
       self.config["run_parameters"] = run_parameters
+
+    # Get frame skip
+    self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
 
     # Initialise classes
     self.task = self.config["simulation"]["task"](self.model, self.data, **{
