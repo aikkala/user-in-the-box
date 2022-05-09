@@ -133,6 +133,7 @@ class FixedEye(BaseModule):
 
     # Get rgb and depth arrays
     rgb, depth = self.render()
+    assert not np.all(rgb==0), "There's still something wrong with rendering"
 
     # Normalise
     depth = (depth - 0.5) * 2
