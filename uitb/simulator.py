@@ -127,13 +127,14 @@ class Simulator(gym.Env):
       # Add rng to run parameters
       run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
 
-      # Add dt to run parameters TODO this shouldn't really be a run parameter since it cannot be changed, it depends on action_sample_freq
-      run_parameters["dt"] = self.dt
     else:
       self.config["run_parameters"] = run_parameters
 
     # Get frame skip
     self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
+
+    # Add dt to run parameters TODO this shouldn't really be a run parameter since it cannot be changed, it depends on action_sample_freq
+    run_parameters["dt"] = self.dt
 
     # Initialise classes
     self.task = self.config["simulation"]["task"](self.model, self.data, **{
