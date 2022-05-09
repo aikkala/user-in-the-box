@@ -102,7 +102,7 @@ class Simulator(gym.Env):
     with open(os.path.join(config["run_folder"], "config.dill"), 'wb') as file:
       dill.dump(config, file)
 
-  def __init__(self, run_folder):
+  def __init__(self, run_folder, run_parameters=None):
 
     self.id = "uitb:simulator-v0"
 
@@ -114,12 +114,6 @@ class Simulator(gym.Env):
     if self.config["use_cloned_files"] and run_folder not in sys.path:
       sys.path.insert(0, run_folder)
 
-    # Get run parameters
-    run_parameters = self.config["run_parameters"]
-
-    # Add rng to run parameters
-    run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
-
     # Load the mujoco model
     self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, "simulation", "task.mjcf"))
 
@@ -129,8 +123,17 @@ class Simulator(gym.Env):
     # Get frame skip
     self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
 
-    # Add dt to run parameters
-    run_parameters["dt"] = self.dt
+    # Get run parameters TODO need to rethink how run parameters are given
+    if run_parameters is None:
+      run_parameters = self.config["run_parameters"]
+
+      # Add rng to run parameters
+      run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
+
+      # Add dt to run parameters TODO this shouldn't really be a run parameter since it cannot be changed, it depends on action_sample_freq
+      run_parameters["dt"] = self.dt
+    else:
+      self.config["run_parameters"] = run_parameters
 
     # Initialise classes
     self.task = self.config["simulation"]["task"](self.model, self.data, **{
@@ -148,14 +151,22 @@ class Simulator(gym.Env):
     # Collect some episode statistics
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
-    # Set camera stuff, self._viewers needs to be initialised before self.get_observation() is called
-    #self.viewer = None
-    #self._viewers = {}
-    #self.metadata = {
-    #  'render.modes': ['human', 'rgb_array', 'depth_array'],
-    #  'video.frames_per_second': int(np.round(1.0 / (self.model.opt.timestep * self.frame_skip))),
-    #  "imagesize": (1600, 1280)
-    #}
+    # Initialise camera
+    self.metadata = {
+      'video.frames_per_second': int(np.round(1.0 / self.dt)),
+      "imagesize": (640, 480)
+    }
+    self.gl = mujoco.GLContext(*self.metadata["imagesize"])
+    self.gl.make_current()
+    self.scene = mujoco.MjvScene(self.model, maxgeom=1000)
+    self.camera = mujoco.MjvCamera()
+    self.voptions = mujoco.MjvOption()
+    self.perturb = mujoco.MjvPerturb()
+    self.context = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_150)
+    mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN.value, self.context)
+    self.viewport = mujoco.MjrRect(left=0, bottom=0, width=self.metadata["imagesize"][0], height=self.metadata["imagesize"][1])
+    self.camera.type = mujoco.mjtCamera.mjCAMERA_FIXED
+    self.camera.fixedcamid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
@@ -236,7 +247,6 @@ class Simulator(gym.Env):
   def dt(self):
     return self.model.opt.timestep * self.frame_skip
 
-
   def get_state(self):
     state = {"step": self.steps, "timestep": self.data.time,
              "qpos": self.data.qpos[self.independent_joints].copy(),
@@ -250,84 +260,37 @@ class Simulator(gym.Env):
              "termination": False}
     return state
 
-  # def render(self, width=1280, height=800, camera_id=None, camera_name=None):
-  #
-  #   # Get rgb and depth arrays
-  #   # TODO: compare to https://github.com/rodrigodelazcano/gym/blob/906789e0fd5b11e3c7979065e091a1abc00d1b35/gym/envs/mujoco/mujoco_rendering.py
-  #   #  (def render() and def read_pixels())
-  #
-  #   rect = mujoco.MjrRect(left=0, bottom=0, width=width, height=height)
-  #
-  #   # Sometimes buffers are too small.
-  #   if width > self.con.offWidth or height > self.con.offHeight:
-  #     new_width = max(width, self.model.vis.global_.offwidth)
-  #     new_height = max(height, self.model.vis.global_.offheight)
-  #     self.update_offscreen_size(new_width, new_height)
-  #
-  #   if camera_name is not None:
-  #     self.camera.fixedcamid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
-  #   elif camera_id is not None:
-  #     if camera_id == -1:
-  #       self.cam.type = mujoco.mjtCamera.mjCAMERA_FREE
-  #     else:
-  #       self.cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
-  #     self.cam.fixedcamid = camera_id
-  #
-  #   mujoco.mjv_updateScene(
-  #     self.model, self.data, mujoco.MjvOption(), None,
-  #     self.camera, mujoco.mjtCatBit.mjCAT_ALL, self.scene)
-  #   mujoco.mjr_render(self.viewport, self.scene, self.context)
-  #
-  #   mujoco.mjr_rectangle(self.viewport, 0, 0, 0, 1)
-  #   rgb_arr = np.zeros(3 * self.viewport.width * self.viewport.height, dtype=np.uint8)
-  #   depth_arr = np.zeros(self.viewport.width * self.viewport.height, dtype=np.float32)
-  #   mujoco.mjr_readPixels(rgb_arr, depth_arr, self.viewport, self.context)
-  #   rgb = rgb_arr.reshape(self.viewport.height, self.viewport.width, 3)
-  #   depth = depth_arr.reshape(self.viewport.height, self.viewport.width)
-  #
-  #   # Normalise
-  #   #depth = render[1]
-  #   depth = np.flipud((depth - 0.5) * 2)
-  #   #rgb = render[0]
-  #   rgb = np.flipud((rgb / 255.0 - 0.5) * 2)
-  #
-  #   return np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
+  def render(self):
 
-  # def render(self, mode='human', width=1280, height=800, camera_id=None, camera_name=None):
-  #
-  #   if mode == 'rgb_array' or mode == 'depth_array':
-  #       if camera_id is not None and camera_name is not None:
-  #           raise ValueError("Both `camera_id` and `camera_name` cannot be"
-  #                            " specified at the same time.")
-  #
-  #       no_camera_specified = camera_name is None and camera_id is None
-  #       if no_camera_specified:
-  #           camera_name = 'track'
-  #
-  #       if camera_id is None:
-  #         camera_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, camera_name)
-  #
-  #         self._get_viewer(mode).render(width, height, camera_id=camera_id)
-  #
-  #   if mode == 'rgb_array':
-  #       data = self._get_viewer(mode).read_pixels(width, height, depth=False)
-  #       # original image is upside-down, so flip it
-  #       return data[::-1, :, :]
-  #   elif mode == 'depth_array':
-  #       self._get_viewer(mode).render(width, height)
-  #       # Extract depth part of the read_pixels() tuple
-  #       data = self._get_viewer(mode).read_pixels(width, height, depth=True)[1]
-  #       # original image is upside-down, so flip it
-  #       return data[::-1, :]
-  #   elif mode == 'human':
-  #       self._get_viewer(mode).render()
-  #
-  # def _get_viewer(self, mode, width=1280, height=800):
-  #   self.viewer = self._viewers.get(mode)
-  #   if self.viewer is None:
-  #     if mode == 'human':
-  #       self.viewer = Viewer(self.model, self.data)
-  #     elif mode == 'rgb_array' or mode == 'depth_array':
-  #       self.viewer = RenderContextOffscreen(width, height, self.model, self.data)
-  #     self._viewers[mode] = self.viewer
-  #   return self.viewer
+    # Update scene
+    mujoco.mjv_updateScene(
+      self.model,
+      self.data,
+      self.voptions,
+      self.perturb,
+      self.camera,
+      mujoco.mjtCatBit.mjCAT_ALL,
+      self.scene,
+    )
+
+    # Render
+    mujoco.mjr_render(self.viewport, self.scene, self.context)
+
+    # Initialise rgb array
+    rgb_arr = np.zeros(3 * self.viewport.width * self.viewport.height, dtype=np.uint8)
+
+    # Read pixels into arrays
+    mujoco.mjr_readPixels(rgb_arr, None, self.viewport, self.context)
+
+    # Reshape and flip
+    rgb_img = np.flipud(rgb_arr.reshape(self.viewport.height, self.viewport.width, 3))
+
+    return rgb_img
+
+  def write_video(self, imgs, filepath):
+    import cv2
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    out = cv2.VideoWriter(filepath, fourcc, self.metadata["video.frames_per_second"], self.metadata["imagesize"])
+    for img in imgs:
+      out.write(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    out.release()

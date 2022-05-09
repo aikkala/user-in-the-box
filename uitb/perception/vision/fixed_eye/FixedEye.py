@@ -45,8 +45,8 @@ class FixedEye(BaseModule):
     self.body = body
 
     # Initialise camera
-    gl = mujoco.GLContext(self.resolution[0], self.resolution[1])
-    gl.make_current()
+    self.gl = mujoco.GLContext(*self.resolution)
+    self.gl.make_current()
     self.scene = mujoco.MjvScene(self.model, maxgeom=1000)
     self.camera = mujoco.MjvCamera()
     self.voptions = mujoco.MjvOption()
