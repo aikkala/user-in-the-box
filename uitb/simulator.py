@@ -152,21 +152,21 @@ class Simulator(gym.Env):
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
     # Initialise camera
-    self.metadata = {
-      'video.frames_per_second': int(np.round(1.0 / self.dt)),
-      "imagesize": (640, 480)
-    }
-    self.gl = mujoco.GLContext(*self.metadata["imagesize"])
-    self.gl.make_current()
-    self.scene = mujoco.MjvScene(self.model, maxgeom=1000)
-    self.camera = mujoco.MjvCamera()
-    self.voptions = mujoco.MjvOption()
-    self.perturb = mujoco.MjvPerturb()
-    self.context = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_150)
-    mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN.value, self.context)
-    self.viewport = mujoco.MjrRect(left=0, bottom=0, width=self.metadata["imagesize"][0], height=self.metadata["imagesize"][1])
-    self.camera.type = mujoco.mjtCamera.mjCAMERA_FIXED
-    self.camera.fixedcamid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')
+    # self.metadata = {
+    #   'video.frames_per_second': int(np.round(1.0 / self.dt)),
+    #   "imagesize": (640, 480)
+    # }
+    # self.gl = mujoco.GLContext(*self.metadata["imagesize"])
+    # self.gl.make_current()
+    # self.scene = mujoco.MjvScene(self.model, maxgeom=1000)
+    # self.camera = mujoco.MjvCamera()
+    # self.voptions = mujoco.MjvOption()
+    # self.perturb = mujoco.MjvPerturb()
+    # self.context = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_150)
+    # mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN.value, self.context)
+    # self.viewport = mujoco.MjrRect(left=0, bottom=0, width=self.metadata["imagesize"][0], height=self.metadata["imagesize"][1])
+    # self.camera.type = mujoco.mjtCamera.mjCAMERA_FIXED
+    # self.camera.fixedcamid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
