@@ -19,7 +19,7 @@ class BaseTask(ABC):
     task_model = mujoco.MjModel.from_xml_path(self.xml_file)
 
     # Get an rng
-    self.rng = kwargs.get("rng", np.random.default_rng(None))
+    self.rng = np.random.default_rng(kwargs.get("random_seed", None))
 
     # Get actuator names and joint names (if any)
     self.actuator_names = [mujoco.mj_id2name(task_model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(task_model.nu)]

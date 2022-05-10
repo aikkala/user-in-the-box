@@ -23,7 +23,7 @@ class BaseBMModel:
     bm_model = mujoco.MjModel.from_xml_path(self.xml_file)
 
     # Get an rng
-    self.rng = kwargs.get("rng", np.random.default_rng(None))
+    self.rng = np.random.default_rng(kwargs.get("random_seed", None))
 
     # Total number of actuators
     self.nu = bm_model.nu

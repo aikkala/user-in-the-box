@@ -17,7 +17,7 @@ class BaseModule(ABC):
     self.joint_names = []
 
     # Get an rng
-    self.rng = kwargs.get("rng", np.random.default_rng(None))
+    self.rng = np.random.default_rng(kwargs.get("random_seed", None))
 
     # Get modality
     self.modality = parent_path(inspect.getfile(self.__class__)).parent.stem
