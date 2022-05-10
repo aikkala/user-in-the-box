@@ -8,6 +8,7 @@ import sys
 import importlib
 
 from uitb.perception.base import Perception
+from uitb.utils.viewers import Viewer
 
 def get_clone_class(src_class):
 
@@ -19,22 +20,27 @@ def get_clone_class(src_class):
 
 class Simulator(gym.Env):
 
-  @staticmethod
-  def build(config):
+  id = "uitb:simulator-v0"
+
+  @classmethod
+  def build(cls, config):
 
     # Make sure required things are defined in config
     assert "simulation" in config, "Simulation specs (simulation) must be defined in config"
     assert "bm_model" in config["simulation"], "Biomechanical model (bm_model) must be defined in config"
     assert "task" in config["simulation"], "task (task) must be defined in config"
 
-    assert "run_parameters" in config, "Run parameters (run_parameters) must be defined in config"
-    run_parameters = config["run_parameters"]
+    assert "run_parameters" in config["simulation"], "Run parameters (run_parameters) must be defined in config"
+    run_parameters = config["simulation"]["run_parameters"]
     assert "action_sample_freq" in run_parameters, "Action sampling frequency (action_sample_freq) must be defined " \
                                                    "in run parameters"
 
+    # Set simulator id
+    config["id"] = cls.id
+
     # By default use cloned files (set to False in config for debugging)
-    if "use_cloned_files" not in config:
-      config["use_cloned_files"] = True
+    if "use_cloned_files" not in run_parameters:
+      config["run_parameters"]["use_cloned_files"] = True
 
     # Create a folder for the simulator
     os.makedirs(config["run_folder"], exist_ok=True)
@@ -58,24 +64,11 @@ class Simulator(gym.Env):
     with open(task_file+".xml", 'w') as file:
       task.write(file, encoding='unicode')
 
-    if config["use_cloned_files"]:
-      # Update classes in config
-      sys.path.insert(0, config["run_folder"])
-      config["simulation"]["task"] = get_clone_class(config["simulation"]["task"])
-      config["simulation"]["bm_model"] = get_clone_class(config["simulation"]["bm_model"])
-      perception_modules = {}
-      for module, kwargs in config["simulation"].get("perception_modules", {}).items():
-        perception_modules[get_clone_class(module)] = kwargs
-      config["simulation"]["perception_modules"] = perception_modules
-
     # Load the mujoco model
     model = mujoco.MjModel.from_xml_path(task_file+".xml")
 
     # Initialise MjData
     data = mujoco.MjData(model)
-
-    # Add an rng to run parameters
-    run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
 
     # Add dt to run parameters
     frame_skip = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
@@ -104,15 +97,28 @@ class Simulator(gym.Env):
 
   def __init__(self, run_folder, run_parameters=None):
 
-    self.id = "uitb:simulator-v0"
-
     # Read config
     with open(os.path.join(run_folder, "config.dill"), "rb") as file:
       self.config = dill.load(file)
 
-    # Add run folder to python path if not there already
-    if self.config["use_cloned_files"] and run_folder not in sys.path:
-      sys.path.insert(0, run_folder)
+    # Get run parameters: these parameters can be used to override parameters used during training
+    if run_parameters is None:
+      run_parameters = self.config["simulation"]["run_parameters"].copy()
+
+    # Use cloned files?
+    if run_parameters["use_cloned_files"]:
+
+      # Add cloned files to python path if not there already
+      if run_folder not in sys.path:
+        sys.path.insert(0, self.config["run_folder"])
+
+      # Update classes in config
+      self.config["simulation"]["task"] = get_clone_class(self.config["simulation"]["task"])
+      self.config["simulation"]["bm_model"] = get_clone_class(self.config["simulation"]["bm_model"])
+      perception_modules = {}
+      for module, kwargs in self.config["simulation"].get("perception_modules", {}).items():
+        perception_modules[get_clone_class(module)] = kwargs
+      self.config["simulation"]["perception_modules"] = perception_modules
 
     # Load the mujoco model
     self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, "simulation", "task.mjcf"))
@@ -120,20 +126,10 @@ class Simulator(gym.Env):
     # Initialise data
     self.data = mujoco.MjData(self.model)
 
-    # Get run parameters TODO need to rethink how run parameters are given
-    if run_parameters is None:
-      run_parameters = self.config["run_parameters"]
-
-      # Add rng to run parameters
-      run_parameters["rng"] = np.random.default_rng(run_parameters.get("random_seed", None))
-
-    else:
-      self.config["run_parameters"] = run_parameters
-
     # Get frame skip
     self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
 
-    # Add dt to run parameters TODO this shouldn't really be a run parameter since it cannot be changed, it depends on action_sample_freq
+    # Add dt to run parameters so it's easier to pass to models
     run_parameters["dt"] = self.dt
 
     # Initialise classes
@@ -152,22 +148,9 @@ class Simulator(gym.Env):
     # Collect some episode statistics
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
-    # Initialise camera
-    # self.metadata = {
-    #   'video.frames_per_second': int(np.round(1.0 / self.dt)),
-    #   "imagesize": (640, 480)
-    # }
-    # self.gl = mujoco.GLContext(*self.metadata["imagesize"])
-    # self.gl.make_current()
-    # self.scene = mujoco.MjvScene(self.model, maxgeom=1000)
-    # self.camera = mujoco.MjvCamera()
-    # self.voptions = mujoco.MjvOption()
-    # self.perturb = mujoco.MjvPerturb()
-    # self.context = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_150)
-    # mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN.value, self.context)
-    # self.viewport = mujoco.MjrRect(left=0, bottom=0, width=self.metadata["imagesize"][0], height=self.metadata["imagesize"][1])
-    # self.camera.type = mujoco.mjtCamera.mjCAMERA_FIXED
-    # self.camera.fixedcamid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')
+    # Initialise viewer
+    #self.viewer = Viewer(self.model, self.data, camera_name='for_testing',
+    #                     resolution=[640, 480], dt=self.dt)
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
@@ -260,38 +243,3 @@ class Simulator(gym.Env):
              "fingertip_xvelr": self.data.get_geom_xvelr(self.fingertip).copy(),
              "termination": False}
     return state
-
-  def render(self):
-
-    # Update scene
-    mujoco.mjv_updateScene(
-      self.model,
-      self.data,
-      self.voptions,
-      self.perturb,
-      self.camera,
-      mujoco.mjtCatBit.mjCAT_ALL,
-      self.scene,
-    )
-
-    # Render
-    mujoco.mjr_render(self.viewport, self.scene, self.context)
-
-    # Initialise rgb array
-    rgb_arr = np.zeros(3 * self.viewport.width * self.viewport.height, dtype=np.uint8)
-
-    # Read pixels into arrays
-    mujoco.mjr_readPixels(rgb_arr, None, self.viewport, self.context)
-
-    # Reshape and flip
-    rgb_img = np.flipud(rgb_arr.reshape(self.viewport.height, self.viewport.width, 3))
-
-    return rgb_img
-
-  def write_video(self, imgs, filepath):
-    import cv2
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(filepath, fourcc, self.metadata["video.frames_per_second"], self.metadata["imagesize"])
-    for img in imgs:
-      out.write(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    out.release()

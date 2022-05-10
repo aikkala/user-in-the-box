@@ -23,8 +23,6 @@ from uitb.rl.sb3.feature_extractor import FeatureExtractor
 
 pointing = \
   {"name": "mobl-arms-index-pointing",
-   "use_cloned_files": True,
-   "run_parameters": {"action_sample_freq": 20},
    "rl": {
      "algorithm": PPO,
      "policy_type": MultiInputActorCriticPolicyTanhActions,
@@ -41,11 +39,14 @@ pointing = \
    },
    "simulation": {
      "bm_model": MoblArmsIndex,
+     "bm_model_kwargs": dict(shoulder_variant="none"),
      "perception_modules": {
        BasicWithEndEffectorPosition: dict(end_effector="hand_2distph"),
        FixedEye: dict(resolution=[120, 80], channels=[3], pos="0 0 1.2", quat="0.583833 0.399104 -0.399421 -0.583368")},
      "task": Pointing,
-     "task_kwargs": dict(end_effector="hand_2distph", shoulder="humphant")}
+     "task_kwargs": dict(end_effector="hand_2distph", shoulder="humphant"),
+     "run_parameters": {"action_sample_freq": 20, "use_cloned_files": False}
+   },
    }
 
 tracking = \
