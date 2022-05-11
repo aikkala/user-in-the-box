@@ -40,7 +40,7 @@ class BasicWithEndEffectorPosition(BaseModule):
     qacc = data.qacc[self.bm_model.independent_joints].copy()
 
     # Get end-effector position; not normalised
-    fingertip_position = data.geom(self.end_effector).xpos
+    fingertip_position = data.geom(self.end_effector).xpos.copy()
 
     # Normalise act
     act = (data.act.copy() - 0.5) * 2
