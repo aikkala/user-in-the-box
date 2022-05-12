@@ -21,8 +21,7 @@ class BasicWithEndEffectorPosition(BaseModule):
     pass
 
   def extractor(self):
-    #return None
-    return one_layer(observation_shape=self.observation_shape, out_features=128)
+    return None
 
   def get_observation_space_params(self):
     return {"low": -float('inf'), "high": float('inf'), "shape": self.observation_shape}

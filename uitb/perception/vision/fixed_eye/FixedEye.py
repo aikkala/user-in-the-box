@@ -140,12 +140,10 @@ class FixedEye(BaseModule):
     rgb = (rgb / 255.0 - 0.5) * 2
 
     # Transpose channels
-    #obs = np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
-    obs = np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2)
+    obs = np.transpose(np.concatenate([rgb, np.expand_dims(depth, 2)], axis=2), [2, 0, 1])
 
     # Choose channels
-    #obs = obs[self.channels, :, :]
-    obs = obs[:, :, self.channels]
+    obs = obs[self.channels, :, :]
 
     # Include prior observation if needed
     if self.buffer is not None:
