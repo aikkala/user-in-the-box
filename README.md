@@ -2,6 +2,7 @@
 
 - `conda_env.yml` can be used to create a conda environment
 
+- Tested only with EGL for headless rendering: enable with `export MUJOCO_GL=egl`
 
 ## The Idea
 
@@ -9,25 +10,25 @@ This toolbox aims to create a flexible modelling approach for various different 
 
 ## The Simulator class
 
-This class defines an OpenAI gym environment "UIB:simulator-v0", which takes as an input a path to a simulation folder. The simulation folder contains all necessary parts for the simulation: a biomechanical model, a perception model, and the task model. The simulation folder is created with class method Simulation.build(config), where the config (defined in UIB/train/configs.py) defines the models.
+~~This class defines an OpenAI gym environment "UIB:simulator-v0", which takes as an input a path to a simulation folder. The simulation folder contains all necessary parts for the simulation: a biomechanical model, a perception model, and the task model. The simulation folder is created with class method Simulation.build(config), where the config (defined in UIB/train/configs.py) defines the models.~~ 
 
 ## Biomechanical models
 
-Defined in UIB/bm_models
+Defined in uitb/bm_models
 
 ## Perception models
 
-Defined in UIB/perception
+Defined in uitb/perception
 
 ## Task models
 
-Defined in UIB/tasks
+Defined in uitb/tasks
 
-The created simulation folder is supposed to be a standalone package that can be easily shared with others. I'm not sure if we can make it completely standalone, and if the approach I'm using makes sense (essentially clone the original classes). Might make more sense to just use docker or singularity.
+~~The created simulation folder is supposed to be a standalone package that can be easily shared with others. I'm not sure if we can make it completely standalone, and if the approach I'm using makes sense (essentially clone the original classes). Might make more sense to just use docker or singularity.~~
 
 ## Training
 
-The script UIB/train/trainer.py takes as a input a config file, then calls Simulation.build(config) to build the simulation, and then starts running the training. 
+The script uitb/train/trainer.py takes as a input a config file, then calls Simulation.build(config) to build the simulation, and then starts running the training. 
 
 ## TODO list
 - reward functions
@@ -38,7 +39,3 @@ The script UIB/train/trainer.py takes as a input a config file, then calls Simul
 
 
 ## Troubleshooting
-
-### GLFWError: (65544) b'X11: The DISPLAY environment variable is missing'
-
-Follow the reply [given here](https://github.com/openai/mujoco-py/issues/172#issuecomment-680701806): set the environment variable LD_PRELOAD as `export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libGLEW.so` 
