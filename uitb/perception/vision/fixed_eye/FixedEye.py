@@ -44,6 +44,11 @@ class FixedEye(BaseModule):
     self.quat = quat
     self.body = body
 
+    # Update resolution (actually only needed if resolution is bigger than [640,480]); these need only be set until
+    # mujoco.MjrContext is created
+    self.model.vis.global_.offwidth = self.resolution[0]
+    self.model.vis.global_.offheight = self.resolution[1]
+
     # Initialise camera
     self.gl = mujoco.GLContext(*self.resolution)
     self.gl.make_current()

@@ -5,6 +5,9 @@ import cv2
 
 class Viewer:
 
+  # This class still needs some work. Perhaps a better idea would be to use dm_control functionality if it is
+  # available / supported, cf. https://github.com/deepmind/dm_control/blob/main/dm_control/mujoco/engine.py
+
   def __init__(self, model, data, camera_name, resolution, dt=None):
 
     self.model = model
@@ -19,6 +22,11 @@ class Viewer:
     # Create GL context and make it current
     self.gl = mujoco.GLContext(*resolution)
     self.gl.make_current()
+
+    # Update resolution (really only needed when resolution is bigger than [640,480]); these need only be set until
+    # mujoco.MjrContext is created, and can be then overwritten (by e.g. a visual perception module)
+    self.model.vis.global_.offwidth = self.resolution[0]
+    self.model.vis.global_.offheight = self.resolution[1]
 
     # Use mujoco python bindings to create a viewer (scene, camera, context, viewport, etc)
     self.scene = mujoco.MjvScene(self.model, maxgeom=1000)
