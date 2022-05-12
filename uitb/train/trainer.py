@@ -12,10 +12,6 @@ if __name__=="__main__":
   # Load a config
   config = pointing
 
-  # Save outputs to uitb/outputs if run folder is not defined
-  if "run_folder" not in config:
-    config["run_folder"] = os.path.join(output_path(), config["name"])
-
   # Build the simulator
   Simulator.build(config)
 

@@ -7,8 +7,9 @@ import dill
 import sys
 import importlib
 
-from uitb.perception.base import Perception
-from uitb.utils.viewers import Viewer
+from .perception.base import Perception
+from .utils.viewers import Viewer
+from .utils.functions import output_path
 
 def get_clone_class(src_class):
 
@@ -37,6 +38,10 @@ class Simulator(gym.Env):
 
     # Set simulator id
     config["id"] = cls.id
+
+    # Save outputs to uitb/outputs if run folder is not defined
+    if "run_folder" not in config:
+      config["run_folder"] = os.path.join(output_path(), config["name"])
 
     # By default use cloned files (set to False in config for debugging)
     if "use_cloned_files" not in run_parameters:
@@ -150,7 +155,7 @@ class Simulator(gym.Env):
 
     # Initialise viewer
     #self.viewer = Viewer(self.model, self.data, camera_name='for_testing',
-    #                     resolution=[640, 480], dt=self.dt)
+    #                     resolution=[640*2, 480*2], dt=self.dt)
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
