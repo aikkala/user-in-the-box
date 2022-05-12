@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class BaseModel(ABC):
+class BaseRLModel(ABC):
 
   def __init__(self, **kwargs):
     pass

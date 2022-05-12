@@ -1,16 +1,12 @@
 import numpy as np
 import xml.etree.ElementTree as ET
-import os
 import mujoco
 
-from uitb.tasks.base import BaseTask
-from uitb.utils.functions import parent_path
+from ..base import BaseTask
 from .reward_functions import NegativeExpDistance, RewardBonus
 
 
 class RemoteDriving(BaseTask):
-
-  xml_file = os.path.join(parent_path(__file__), "task.xml")
 
   def __init__(self, model, data, **kwargs):
     super().__init__(model, data)
@@ -106,7 +102,7 @@ class RemoteDriving(BaseTask):
   @classmethod
   def initialise_task(cls, config):
 
-    assert "end_effector" in config["simulator"]["task_kwargs"], \
+    assert "end_effector" in config["simulation"]["task_kwargs"], \
       "End-effector must be defined for this environment"
     end_effector = config["simulator"]["task_kwargs"]["end_effector"]
 
@@ -211,9 +207,9 @@ class RemoteDriving(BaseTask):
 
     return reward, finished, info
 
-  def spawn_car(self, model, data, rng):
+  def spawn_car(self, model, data):
     # Choose qpos value of slide joint in x-direction uniformly from joint angle range
-    new_car_qpos = rng.uniform(*model.jnt_range[model._joint_name2id[self.car_joint]])
+    new_car_qpos = self.rng.uniform(*model.jnt_range[model._joint_name2id[self.car_joint]])
 
     data.qpos[model._joint_name2id[self.car_joint]] = new_car_qpos
     mujoco.mj_forward(model, data)
@@ -221,11 +217,11 @@ class RemoteDriving(BaseTask):
     # Get car position
     self.car_position = data.body(self.car_body).xpos.copy()
 
-  def spawn_target(self, model, data, rng):
+  def spawn_target(self, model, data):
 
     # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
     for _ in range(10):
-      target_rel = rng.uniform(*self.target_limits)
+      target_rel = self.rng.uniform(*self.target_limits)
       # negative sign required, since y goes to left but car looks to the right
       new_position =  np.array([0, -target_rel, 0])
       distance = np.linalg.norm(self.car_position - (new_position + self.target_origin))
@@ -237,7 +233,7 @@ class RemoteDriving(BaseTask):
     model.body_pos[model._body_name2id["target"]] = self.target_origin + self.target_position
 
     # Sample target half-size
-    self.target_halfsize = rng.uniform(*self.target_halfsize_limit)
+    self.target_halfsize = self.rng.uniform(*self.target_halfsize_limit)
 
     # Set target half-size
     model.geom_size[model._geom_name2id["target"]][0] = self.target_halfsize
@@ -266,7 +262,7 @@ class RemoteDriving(BaseTask):
     state["dist_car_to_bound"] = self.dist_car_to_bound
     return state
 
-  def reset(self, model, data, rng):
+  def reset(self, model, data):
 
     # Reset counters
     self.steps = 0
@@ -278,7 +274,7 @@ class RemoteDriving(BaseTask):
 
     # Spawn a new car location
     # WARNING: needs to be executed AFTER setting qpos above!
-    self.spawn_car(model, data, rng)
+    self.spawn_car(model, data)
 
     # Spawn a new target location (depending on current car location)
-    self.spawn_target(model, data, rng)
+    self.spawn_target(model, data)

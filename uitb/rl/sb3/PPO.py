@@ -1,16 +1,15 @@
 import os
-import gym
 
 from stable_baselines3 import PPO as PPO_sb3
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.callbacks import CheckpointCallback, EveryNTimesteps
 
-from uitb.rl.base import BaseModel
-from uitb.rl.sb3.callbacks import EvalCallback
-from uitb.rl.sb3.feature_extractor import FeatureExtractor
+from ..base import BaseRLModel
+from .callbacks import EvalCallback
+from .feature_extractor import FeatureExtractor
 
-class PPO(BaseModel):
+class PPO(BaseRLModel):
 
   def __init__(self, simulator, rl_config, run_folder):
     super().__init__()
@@ -22,11 +21,11 @@ class PPO(BaseModel):
     parallel_envs = make_vec_env(simulator.id, n_envs=rl_config["num_workers"], seed=0,
                                  vec_env_cls=SubprocVecEnv, env_kwargs={"run_folder": run_folder})
 
-    # Add feature and stateful information extractors to policy_kwargs
-    extractors = simulator.perception.extractors.copy()
+    # Add feature and stateful information encoders to policy_kwargs
+    encoders = simulator.perception.encoders.copy()
     if simulator.task.get_stateful_information(simulator.model, simulator.data) is not None:
-      extractors["stateful_information"] = simulator.task.stateful_information_extractor
-    rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"extractors": extractors}
+      encoders["stateful_information"] = simulator.task.stateful_information_encoder
+    rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"extractors": encoders}
 
     # Initialise model
     self.model = PPO_sb3(rl_config["policy_type"], parallel_envs, verbose=1, policy_kwargs=rl_config["policy_kwargs"],

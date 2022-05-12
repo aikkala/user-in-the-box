@@ -1,13 +1,11 @@
 import xml.etree.ElementTree as ET
 import numpy as np
-import os
 import mujoco
-import collections
 from collections import deque
 
-from uitb.perception.base import BaseModule
-from uitb.utils.functions import parent_path
-from ..extractors import small_cnn
+from ...base import BaseModule
+from ....utils.functions import parent_path
+from ..encoders import small_cnn
 
 class FixedEye(BaseModule):
 
@@ -170,5 +168,6 @@ class FixedEye(BaseModule):
     if self.buffer is not None:
       self.buffer.clear()
 
-  def extractor(self):
+  @property
+  def encoder(self):
     return small_cnn(observation_shape=self.observation_shape, out_features=256)

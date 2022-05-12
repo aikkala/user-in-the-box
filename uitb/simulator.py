@@ -191,7 +191,10 @@ class Simulator(gym.Env):
     # Update bm model (e.g. update constraints)
     self.bm_model.update(self.model, self.data)
 
-    # Find out what happened
+    # Update perception modules
+    self.perception.update(self.model, self.data)
+
+    # Update environment
     reward, finished, info = self.task.update(self.model, self.data)
 
     # Add an effort cost to reward

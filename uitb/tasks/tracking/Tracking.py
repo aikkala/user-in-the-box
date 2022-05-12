@@ -1,15 +1,11 @@
 import numpy as np
-import os
+import mujoco
 
-from uitb.tasks.base import BaseTask
-from uitb.utils.functions import parent_path
-
+from ..base import BaseTask
 from .reward_functions import NegativeDistance
 
 
 class Tracking(BaseTask):
-
-  xml_file = os.path.join(parent_path(__file__), "task.xml")
 
   def __init__(self, model, data, end_effector, shoulder, **kwargs):
     super().__init__(model, data, **kwargs)
@@ -43,40 +39,39 @@ class Tracking(BaseTask):
 
     # Target radius
     self.target_radius = kwargs.get('target_radius', 0.05)
-    sim.model.geom_size[sim.model._geom_name2id["target"]][0] = self.target_radius
+    model.geom("target").size[0] = self.target_radius
 
     # Do a forward step so stuff like geom and body positions are calculated
-    sim.forward()
+    mujoco.mj_forward(model, data)
 
     # Define plane where targets will move: 0.55m in front of and 0.1m to the right of shoulder, or the "humphant" body.
     # Note that this body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
-    self.target_origin = sim.data.get_body_xpos(self.shoulder) + np.array([0.55, -0.1, 0])
+    self.target_origin = data.body(self.shoulder).xpos(self.shoulder).copy() + np.array([0.55, -0.1, 0])
     self.target_position = self.target_origin.copy()
     self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
 
     # Update plane location
-    self.target_plane_geom_idx = sim.model._geom_name2id["target-plane"]
-    self.target_plane_body_idx = sim.model._body_name2id["target-plane"]
-    sim.model.geom_size[self.target_plane_geom_idx] = np.array([0.005,
-                                                                (self.target_limits_y[1] - self.target_limits_y[0])/2,
-                                                                (self.target_limits_z[1] - self.target_limits_z[0])/2])
-    sim.model.body_pos[self.target_plane_body_idx] = self.target_origin
+    self.target_plane_geom_idx = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, "target-plane")
+    self.target_plane_body_idx = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "target-plane")
+    model.geom("target-plane").size = np.array([0.005,
+                                                (self.target_limits_y[1] - self.target_limits_y[0])/2,
+                                                (self.target_limits_z[1] - self.target_limits_z[0])/2])
+    model.body("target-plane").pos = self.target_origin
 
     # Generate trajectory
     self.sin_y, self.sin_z = self.generate_trajectory()
 
-    sim.model.cam_pos[sim.model._camera_name2id['for_testing']] = np.array([-0.8, -0.6, 1.5])
-    sim.model.cam_quat[sim.model._camera_name2id['for_testing']] = np.array(
-      [0.718027, 0.4371043, -0.31987, -0.4371043])
+    model.cam("for_testing").pos = np.array([-0.8, -0.6, 1.5])
+    model.cam("for_testing").quat = np.array([0.718027, 0.4371043, -0.31987, -0.4371043])
 
-  def update(self, sim):
+  def update(self, model, data):
 
     finished = False
     info = {"termination": False}
 
     # Get end-effector position
-    ee_position = sim.data.get_geom_xpos(self.end_effector)
+    ee_position = data.geom(self.end_effector).xpos.copy()
 
     # Distance to target origin
     dist = np.linalg.norm(self.target_position - (ee_position - self.target_origin))
@@ -101,11 +96,11 @@ class Tracking(BaseTask):
     #reward -= self.effort_term.get(self)
 
     # Update target location
-    self.update_target_location(sim)
+    self.update_target_location(model, data)
 
     return reward, finished, info
 
-  def reset(self, sim):
+  def reset(self, model, data):
 
     # Reset counters
     self.steps = 0
@@ -114,7 +109,7 @@ class Tracking(BaseTask):
     self.sin_y, self.sin_z = self.generate_trajectory()
 
     # Update target location
-    self.update_target_location(sim)
+    self.update_target_location(model, data)
 
   def generate_trajectory(self):
     sin_y = self.generate_sine_wave(self.target_limits_y, num_components=5)
@@ -141,9 +136,9 @@ class Tracking(BaseTask):
 
     return sine
 
-  def update_target_location(self, sim):
+  def update_target_location(self, model, data):
     self.target_position[0] = 0
     self.target_position[1] = self.sin_y[self.steps]
     self.target_position[2] = self.sin_z[self.steps]
-    sim.model.body_pos[sim.model._body_name2id["target"]] = self.target_origin + self.target_position
-    sim.forward()
+    model.body("target").pos = self.target_origin + self.target_position
+    mujoco.mj_forward(model, data)

@@ -1,15 +1,10 @@
 import numpy as np
-import os
 import mujoco
 
 from .reward_functions import NegativeExpDistanceWithHitBonus
-
-from uitb.utils.functions import parent_path
-from uitb.tasks.base import BaseTask
+from ..base import BaseTask
 
 class Pointing(BaseTask):
-
-  xml_file = os.path.join(parent_path(__file__), "task.xml")
 
   def __init__(self, model, data, end_effector, shoulder, **kwargs):
     super().__init__(model, data, **kwargs)

@@ -1,13 +1,9 @@
-from uitb.bm_models.base import BaseBMModel
-from uitb.utils.functions import parent_path
+from ..base import BaseBMModel
 
-import os
 import numpy as np
 
 
 class MoblArmsIndex(BaseBMModel):
-
-  xml_file = os.path.join(parent_path(__file__), "mobl_arms_index.xml")
 
   def __init__(self, model, data, **kwargs):
     super().__init__(model, data, **kwargs)
@@ -28,7 +24,3 @@ class MoblArmsIndex(BaseBMModel):
           2 * np.min((data.joint('shoulder_elv').qpos,
                       np.pi - data.joint('shoulder_elv').qpos)) / np.pi \
           * data.joint('elv_angle').qpos
-
-  def reset(self, model, data):
-    super().reset(model, data)
-    self.update(model, data)

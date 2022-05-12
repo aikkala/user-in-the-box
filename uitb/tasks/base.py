@@ -6,17 +6,15 @@ import mujoco
 import numpy as np
 import xml.etree.ElementTree as ET
 
-from uitb.utils.functions import parent_path
+from ..utils.functions import parent_path
 
 
 class BaseTask(ABC):
 
-  xml_file = None
-
   def __init__(self, model, data, **kwargs):
 
     # Initialise mujoco model of the task, easier to manipulate things
-    task_model = mujoco.MjModel.from_xml_path(self.xml_file)
+    task_model = mujoco.MjModel.from_xml_path(self.get_xml_file())
 
     # Get an rng
     self.rng = np.random.default_rng(kwargs.get("random_seed", None))
@@ -33,6 +31,10 @@ class BaseTask(ABC):
     self.joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
                    for joint_name in self.joint_names]
 
+  @classmethod
+  def get_xml_file(cls):
+    return os.path.join(parent_path(inspect.getfile(cls)), "task.xml")
+
   @abstractmethod
   def update(self, model, data):
     pass
@@ -48,13 +50,13 @@ class BaseTask(ABC):
     return None
 
   @property
-  def stateful_information_extractor(self):
+  def stateful_information_encoder(self):
     return None
 
   @classmethod
   def initialise_task(cls, config):
     # Parse xml file and return the tree
-    return ET.parse(cls.xml_file)
+    return ET.parse(cls.get_xml_file())
 
   @classmethod
   def clone(cls, run_folder):

@@ -16,7 +16,7 @@ from uitb.perception.vision import FixedEye
 from uitb.rl.sb3.feature_extractor import FeatureExtractor
 
 pointing = \
-  {"name": "mobl-arms-index-pointing-with-shoulder-variant-before-step",
+  {"name": "test",
    "rl": {
      "algorithm": PPO,
      "policy_type": MultiInputActorCriticPolicyTanhActions,

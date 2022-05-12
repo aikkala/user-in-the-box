@@ -5,7 +5,7 @@ import inspect
 import numpy as np
 import mujoco
 
-from uitb.utils.functions import parent_path
+from ..utils.functions import parent_path
 
 
 class BaseModule(ABC):
@@ -25,14 +25,35 @@ class BaseModule(ABC):
     # Get observation shape
     self.observation_shape = self.get_observation(model, data).shape
 
-  @property
-  def nu(self):
-    return len(self.actuator_names)
-
   @staticmethod
   @abstractmethod
   def insert(task, config, **kwargs):
     pass
+
+  @abstractmethod
+  def get_observation(self, model, data):
+    pass
+
+  @abstractmethod
+  def get_observation_space_params(self):
+    return {"low": None, "high": None, "shape": None}
+
+  def reset(self, model, data):
+    pass
+
+  def update(self, model, data):
+    pass
+
+  def set_ctrl(self, model, data, action):
+    pass
+
+  @property
+  def encoder(self):
+    return None
+
+  @property
+  def nu(self):
+    return len(self.actuator_names)
 
   @classmethod
   def clone(cls, run_folder):
@@ -49,7 +70,7 @@ class BaseModule(ABC):
     os.makedirs(modality, exist_ok=True)
 
     # Copy the extractors file
-    shutil.copyfile(os.path.join(src.parent, "extractors.py"), os.path.join(modality, "extractors.py"))
+    shutil.copyfile(os.path.join(src.parent, "encoders.py"), os.path.join(modality, "encoders.py"))
 
     # Copy module folder
     shutil.copytree(src, os.path.join(modality, src.stem), dirs_exist_ok=True)
@@ -58,26 +79,6 @@ class BaseModule(ABC):
     if os.path.isdir(os.path.join(src, "assets")):
       shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulation", "assets"),
                       dirs_exist_ok=True)
-
-  @abstractmethod
-  def reset(self, model, data):
-    pass
-
-  def set_ctrl(self, model, data, action):
-    pass
-
-  @abstractmethod
-  def get_observation(self, model, data):
-    pass
-
-  @property
-  @abstractmethod
-  def extractor(self):
-    pass
-
-  @abstractmethod
-  def get_observation_space_params(self):
-    return {"low": None, "high": None, "shape": None}
 
 
 class Perception:
@@ -88,8 +89,8 @@ class Perception:
     self.actuator_names = []
     self.joint_names = []
 
-    # Get extractors
-    self.extractors = dict()
+    # Get encoders
+    self.encoders = dict()
 
     self.perception_modules = []
     for module_cls, kwargs in perception_modules.items():
@@ -98,7 +99,7 @@ class Perception:
       self.perception_modules.append(module)
       self.actuator_names.extend(module.actuator_names)
       self.joint_names.extend(module.joint_names)
-      self.extractors[module.modality] = module.extractor()
+      self.encoders[module.modality] = module.encoder
 
     # Find actuators in the simulation
     self.actuators = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
@@ -118,11 +119,14 @@ class Perception:
   def reset(self, model, data):
     for module in self.perception_modules:
       module.reset(model, data)
+    self.update(model, data)
+
+  def update(self, model, data):
+    for module in self.perception_modules:
+      module.update(model, data)
 
   def get_observation(self, model, data):
-
     observations = {}
     for module in self.perception_modules:
-      observations[module.modality] = module.get_observation(model,data)
-
+      observations[module.modality] = module.get_observation(model, data)
     return observations

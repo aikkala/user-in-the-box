@@ -7,20 +7,19 @@ import inspect
 import mujoco
 from abc import ABC, abstractmethod, abstractproperty
 
-from uitb.utils.functions import project_path, parent_path
-from uitb.utils import effort_terms
-import uitb.utils.element_tree as ETutils
+from ..utils.functions import parent_path
+from ..utils import element_tree as ETutils
+#from uitb.utils import effort_terms
 
 
 class BaseBMModel:
 
-  xml_file = None
   floor = None
 
   def __init__(self, model, data, **kwargs):
 
     # Initialise mujoco model of the biomechanical model, easier to manipulate things
-    bm_model = mujoco.MjModel.from_xml_path(self.xml_file)
+    bm_model = mujoco.MjModel.from_xml_path(self.get_xml_file())
 
     # Get an rng
     self.rng = np.random.default_rng(kwargs.get("random_seed", None))
@@ -73,13 +72,20 @@ class BaseBMModel:
     # If the model has a floor/ground, it should be defined so we can ignore it when cloning
     self.floor = kwargs.get("floor", None)
 
+  def update(self, model, data):
+    pass
+
+  @classmethod
+  def get_xml_file(cls):
+    return os.path.join(parent_path(inspect.getfile(cls)), "bm_model.xml")
+
   @staticmethod
   def insert(task_tree, config):
 
     C = config["simulation"]["bm_model"]
 
     # Parse xml file
-    bm_tree = ET.parse(C.xml_file)
+    bm_tree = ET.parse(C.get_xml_file())
     bm_root = bm_tree.getroot()
 
     # Get task root
@@ -131,10 +137,6 @@ class BaseBMModel:
     self.motor_smooth_avg = (1-self.motor_alpha)*self.motor_smooth_avg \
                             + self.motor_alpha*data.ctrl[self.motor_actuators]
 
-  @abstractmethod
-  def update(self, model, data):
-    pass
-
   def reset(self, model, data):
 
     # TODO add kwargs for setting initial positions
@@ -157,3 +159,6 @@ class BaseBMModel:
 
     # Some effort terms may be stateful and need to be reset
     #self.effort_term.reset()
+
+    # Finally update whatever needs to be updated
+    self.update(model, data)
