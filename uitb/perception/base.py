@@ -4,6 +4,7 @@ import shutil
 import inspect
 import numpy as np
 import mujoco
+import pathlib
 
 from ..utils.functions import parent_path
 
@@ -56,11 +57,16 @@ class BaseModule(ABC):
     return len(self.actuator_names)
 
   @classmethod
-  def clone(cls, run_folder):
+  def clone(cls, run_folder, module_name):
 
     # Create "perception" folder if needed
-    dst = os.path.join(run_folder, "simulation", "perception")
+    dst = os.path.join(run_folder, module_name, "perception")
     os.makedirs(dst, exist_ok=True)
+
+    # Copy this file and __init__.py
+    base_file = pathlib.Path(__file__)
+    shutil.copyfile(base_file, os.path.join(dst, base_file.name))
+    shutil.copyfile(os.path.join(base_file.parent, "__init__.py"), os.path.join(dst, "__init__.py"))
 
     # Get src for this module
     src = parent_path(inspect.getfile(cls))
@@ -69,15 +75,20 @@ class BaseModule(ABC):
     modality = os.path.join(dst, src.parent.stem)
     os.makedirs(modality, exist_ok=True)
 
-    # Copy the extractors file
+    # Copy the encoders file
     shutil.copyfile(os.path.join(src.parent, "encoders.py"), os.path.join(modality, "encoders.py"))
+
+    # Create an __init__.py file with the relevant import
+    modules = cls.__module__.split(".")
+    with open(os.path.join(modality, "__init__.py"), "w") as file:
+      file.write("from ." + ".".join(modules[3:]) + " import " + cls.__name__)
 
     # Copy module folder
     shutil.copytree(src, os.path.join(modality, src.stem), dirs_exist_ok=True)
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulation", "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, module_name, "assets"),
                       dirs_exist_ok=True)
 
 
@@ -94,7 +105,6 @@ class Perception:
 
     self.perception_modules = []
     for module_cls, kwargs in perception_modules.items():
-      kwargs = {} if kwargs is None else kwargs
       module = module_cls(model, data, bm_model, **{**kwargs, **run_parameters})
       self.perception_modules.append(module)
       self.actuator_names.extend(module.actuator_names)
