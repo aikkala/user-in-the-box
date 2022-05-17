@@ -3,25 +3,34 @@ from gym import spaces
 import mujoco
 import os
 import numpy as np
-import dill
 import sys
 import importlib
+import shutil
+import inspect
+import pathlib
+from ruamel.yaml import YAML
 
 from .perception.base import Perception
 from .utils.viewers import Viewer
-from .utils.functions import output_path
-
-def get_clone_class(src_class):
-
-  module = src_class.__module__.split(".")
-  module[0] = "simulation"
-  module = importlib.import_module(".".join(module))
-  return getattr(module, src_class.__name__)
+from .utils.functions import output_path, parent_path
 
 
 class Simulator(gym.Env):
 
   id = "uitb:simulator-v0"
+
+  @staticmethod
+  def get_class(modules, cls_str):
+    # TODO check for incorrect module names etc
+    src = __name__.split(".")[0]
+    if "." in cls_str:
+      mods = cls_str.split(".")
+      modules += "." + ".".join(mods[:-1])
+      cls_name = mods[-1]
+    else:
+      cls_name = cls_str
+    module = importlib.import_module(src + "." + modules)
+    return getattr(module, cls_name)
 
   @classmethod
   def build(cls, config):
@@ -41,36 +50,49 @@ class Simulator(gym.Env):
 
     # Save outputs to uitb/outputs if run folder is not defined
     if "run_folder" not in config:
-      config["run_folder"] = os.path.join(output_path(), config["name"])
+      config["run_folder"] = os.path.join(output_path(), config["run_name"])
 
-    # By default use cloned files (set to False in config for debugging)
-    if "use_cloned_files" not in run_parameters:
-      config["run_parameters"]["use_cloned_files"] = True
+    # If 'module_name' is not defined use 'name' TODO check that module_name is suitable for a python module
+    if "module_name" not in config:
+      config["module_name"] = config["run_name"]
 
-    # Create a folder for the simulator
-    os.makedirs(config["run_folder"], exist_ok=True)
+    # The name used in gym has a suffix -v0
+    config["gym_name"] = "uitb:" + config["module_name"] + "-v0"
 
-    # Load the environment
-    config["simulation"]["task"].clone(config["run_folder"])
-    task = config["simulation"]["task"].initialise_task(config)
+    # Initialise a simulator in the run folder
+    cls.initialise(config["run_folder"], config["module_name"])
 
-    # Load biomechanical model
-    config["simulation"]["bm_model"].clone(config["run_folder"])
-    config["simulation"]["bm_model"].insert(task, config)
+    # Load task class
+    task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
+    task_cls.clone(config["run_folder"], config["module_name"])
+    simulation = task_cls.initialise()
+
+    # Load biomechanical model class
+    bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
+    bm_cls.clone(config["run_folder"], config["module_name"])
+    bm_cls.insert(simulation)
 
     # Add perception modules
-    for module, kwargs in config["simulation"].get("perception_modules", {}).items():
-      module.clone(config["run_folder"])
-      module.insert(task, config, **kwargs)
+    perception_modules = {}
+    for module_cfg in config["simulation"].get("perception_modules", []):
+      module_cls = cls.get_class("perception", module_cfg["cls"])
+      module_kwargs = module_cfg.get("kwargs", {})
+      module_cls.clone(config["run_folder"], config["module_name"])
+      module_cls.insert(simulation, config, **module_kwargs)
+      perception_modules[module_cls] = module_kwargs
+
+    # Clone also RL library files so the package will be completely standalone
+    rl_cls = cls.get_class("rl", config["rl"]["algorithm"])
+    rl_cls.clone(config["run_folder"], config["module_name"])
 
     # TODO read the xml file directly from task.getroot() instead of writing it to a file first; need to input a dict
     #  of assets to mujoco.MjModel.from_xml_path
-    task_file = os.path.join(config["run_folder"], "simulation", "task")
-    with open(task_file+".xml", 'w') as file:
-      task.write(file, encoding='unicode')
+    simulation_file = os.path.join(config["run_folder"], config["module_name"], "simulation")
+    with open(simulation_file+".xml", 'w') as file:
+      simulation.write(file, encoding='unicode')
 
     # Load the mujoco model
-    model = mujoco.MjModel.from_xml_path(task_file+".xml")
+    model = mujoco.MjModel.from_xml_path(simulation_file+".xml")
 
     # Initialise MjData
     data = mujoco.MjData(model)
@@ -81,11 +103,9 @@ class Simulator(gym.Env):
 
     # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
     # (e.g. move target to a specific position wrt to a body part)
-    task = config["simulation"]["task"](model, data, **{**config["simulation"].get("task_kwargs", {}),
-                                                        **run_parameters})
-    bm_model = config["simulation"]["bm_model"](model, data, **{**config["simulation"].get("bm_model_kwargs", {}),
-                                                                **run_parameters})
-    perception = Perception(model, data, bm_model, config["simulation"]["perception_modules"], run_parameters)
+    task = task_cls(model, data, **{**config["simulation"]["task"].get("kwargs", {}), **run_parameters})
+    bm_model = bm_cls(model, data, **{**config["simulation"]["bm_model"].get("kwargs", {}), **run_parameters})
+    perception = Perception(model, data, bm_model, perception_modules, run_parameters)
 
     # It would be nice to save an xml here in addition to saving a binary model file. But seems like there's only one
     # function to save an xml file: mujoco.mj_saveLastXML, which doesn't work here because we read the original
@@ -94,39 +114,65 @@ class Simulator(gym.Env):
     # setting target-plane to 55cm in front of and 10cm to the right of the biomechanical model's shoulder)
 
     # Save the modified model as binary
-    mujoco.mj_saveModel(model, task_file+".mjcf", None)
+    mujoco.mj_saveModel(model, simulation_file+".mjcf", None)
 
-    # Save configs
-    with open(os.path.join(config["run_folder"], "config.dill"), 'wb') as file:
-      dill.dump(config, file)
+    # Save config
+    yaml = YAML()
+    with open(os.path.join(config["run_folder"], "config.yaml"), "w") as stream:
+      yaml.dump(config, stream)
+
+  @classmethod
+  def initialise(cls, run_folder, module_name):
+
+    # Create the folder
+    dst = os.path.join(run_folder, module_name)
+    os.makedirs(dst, exist_ok=True)
+
+    # Copy simulator
+    src = pathlib.Path(inspect.getfile(cls))
+    shutil.copyfile(src, os.path.join(dst, src.name))
+
+    # Create __init__.py with env registration
+    with open(os.path.join(dst, "__init__.py"), "w") as file:
+      file.write("from .simulator import Simulator\n\n")
+      file.write("from gym.envs.registration import register\n")
+      file.write("import pathlib\n\n")
+      file.write("module_folder = pathlib.Path(__file__).parent\n")
+      file.write("run_folder = module_folder.parent\n")
+      file.write("kwargs = {'run_folder': run_folder}\n")
+      file.write("register(id=f'{module_folder.stem}-v0', entry_point=f'{module_folder.stem}.simulator:Simulator', kwargs=kwargs)\n")
+
+    # Copy utils
+    shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(run_folder, module_name, "utils"),
+                    dirs_exist_ok=True)
+
+  @staticmethod
+  def get(config):
+    # TODO make sure config has been built before calling this method
+
+    # Add run folder to path and import the module. We could perhaps load the module specifically from
+    # config["run_folder"], but since we are inserting the path on top of sys.path the module from that path will be
+    # loaded anyway in case of modules with equivalent names
+    if config["run_folder"] not in sys.path:
+      sys.path.insert(0, config["run_folder"])
+    mod = importlib.import_module(config["module_name"])
+    return getattr(mod, "Simulator")(config["run_folder"])
 
   def __init__(self, run_folder, run_parameters=None):
 
-    # Read config
-    with open(os.path.join(run_folder, "config.dill"), "rb") as file:
-      self.config = dill.load(file)
+    # Read
+    yaml = YAML()
+    with open(os.path.join(run_folder, "config.yaml"), "r") as stream:
+      #self.config = dill.load(file)
+      self.config = yaml.load(stream)
+
 
     # Get run parameters: these parameters can be used to override parameters used during training
     if run_parameters is None:
       run_parameters = self.config["simulation"]["run_parameters"].copy()
 
-    # Use cloned files?
-    if run_parameters["use_cloned_files"]:
-
-      # Add cloned files to python path if not there already
-      if run_folder not in sys.path:
-        sys.path.insert(0, self.config["run_folder"])
-
-      # Update classes in config
-      self.config["simulation"]["task"] = get_clone_class(self.config["simulation"]["task"])
-      self.config["simulation"]["bm_model"] = get_clone_class(self.config["simulation"]["bm_model"])
-      perception_modules = {}
-      for module, kwargs in self.config["simulation"].get("perception_modules", {}).items():
-        perception_modules[get_clone_class(module)] = kwargs
-      self.config["simulation"]["perception_modules"] = perception_modules
-
     # Load the mujoco model
-    self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, "simulation", "task.mjcf"))
+    self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, self.config["module_name"], "simulation.mjcf"))
 
     # Initialise data
     self.data = mujoco.MjData(self.model)
@@ -137,12 +183,23 @@ class Simulator(gym.Env):
     # Add dt to run parameters so it's easier to pass to models
     run_parameters["dt"] = self.dt
 
-    # Initialise classes
-    self.task = self.config["simulation"]["task"](self.model, self.data, **{
-      **self.config["simulation"].get("task_kwargs", {}), **run_parameters})
-    self.bm_model = self.config["simulation"]["bm_model"](self.model, self.data, **{
-      **self.config["simulation"].get("bm_model_kwargs", {}), **run_parameters})
-    self.perception = Perception(self.model, self.data, self.bm_model, self.config["simulation"]["perception_modules"], run_parameters)
+    # Initialise task object
+    task_cls = self.get_class("tasks", self.config["simulation"]["task"]["cls"])
+    self.task = task_cls(self.model, self.data,
+                         **{**self.config["simulation"]["task"].get("kwargs", {}), **run_parameters})
+
+    # Initialise bm_model object
+    bm_cls = self.get_class("bm_models", self.config["simulation"]["bm_model"]["cls"])
+    self.bm_model = bm_cls(self.model, self.data,
+                           **{**self.config["simulation"]["bm_model"].get("kwargs", {}), **run_parameters})
+
+    # Initialise perception object
+    perception_modules = {}
+    for module_cfg in self.config["simulation"].get("perception_modules", []):
+      module_cls = self.get_class("perception", module_cfg["cls"])
+      module_kwargs = module_cfg.get("kwargs", {})
+      perception_modules[module_cls] = module_kwargs
+    self.perception = Perception(self.model, self.data, self.bm_model, perception_modules, run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
     self.action_space = self.initialise_action_space()

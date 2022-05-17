@@ -2,6 +2,7 @@ import numpy as np
 import xml.etree.ElementTree as ET
 import pathlib
 import os
+import re
 import shutil
 import inspect
 import mujoco
@@ -13,8 +14,6 @@ from ..utils import element_tree as ETutils
 
 
 class BaseBMModel:
-
-  floor = None
 
   def __init__(self, model, data, **kwargs):
 
@@ -79,13 +78,15 @@ class BaseBMModel:
   def get_xml_file(cls):
     return os.path.join(parent_path(inspect.getfile(cls)), "bm_model.xml")
 
-  @staticmethod
-  def insert(task_tree, config):
+  @classmethod
+  def get_floor(cls):
+    return None
 
-    C = config["simulation"]["bm_model"]
+  @classmethod
+  def insert(cls, task_tree):
 
     # Parse xml file
-    bm_tree = ET.parse(C.get_xml_file())
+    bm_tree = ET.parse(cls.get_xml_file())
     bm_root = bm_tree.getroot()
 
     # Get task root
@@ -98,10 +99,10 @@ class BaseBMModel:
     ETutils.copy_children("asset", bm_root, task_root, exclude={"tag": "texture", "attrib": "type", "name": "skybox"})
 
     # Add bodies, except floor/ground
-    if C.floor is not None:
+    if cls.get_floor() is not None:
       ETutils.copy_children("worldbody", bm_root, task_root,
-                   exclude={"tag": C.floor.tag, "attrib": "name",
-                            "name": C.floor.attrib.get("name", None)})
+                   exclude={"tag": cls.get_floor().tag, "attrib": "name",
+                            "name": cls.get_floor().attrib.get("name", None)})
     else:
       ETutils.copy_children("worldbody", bm_root, task_root)
 
@@ -115,18 +116,27 @@ class BaseBMModel:
     ETutils.copy_children("equality", bm_root, task_root)
 
   @classmethod
-  def clone(cls, run_folder):
+  def clone(cls, run_folder, module_name):
 
     # Create 'bm_models' folder
-    dst = os.path.join(run_folder, "simulation", "bm_models")
+    dst = os.path.join(run_folder, module_name, "bm_models")
     os.makedirs(dst, exist_ok=True)
+
+    # Copy this file
+    base_file = pathlib.Path(__file__)
+    shutil.copyfile(base_file, os.path.join(dst, base_file.name))
+
+    # Create an __init__.py file with the relevant import
+    modules = cls.__module__.split(".")
+    with open(os.path.join(dst, "__init__.py"), "w") as file:
+      file.write("from ." + ".".join(modules[2:]) + " import " + cls.__name__)
 
     # Copy bm-model folder
     src = parent_path(inspect.getfile(cls))
     shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
 
     # Copy assets
-    shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulation", "assets"),
+    shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, module_name, "assets"),
                     dirs_exist_ok=True)
 
   def set_ctrl(self, model, data, action):

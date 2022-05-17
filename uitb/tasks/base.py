@@ -5,6 +5,7 @@ import inspect
 import mujoco
 import numpy as np
 import xml.etree.ElementTree as ET
+import pathlib
 
 from ..utils.functions import parent_path
 
@@ -54,16 +55,25 @@ class BaseTask(ABC):
     return None
 
   @classmethod
-  def initialise_task(cls, config):
+  def initialise(cls):
     # Parse xml file and return the tree
     return ET.parse(cls.get_xml_file())
 
   @classmethod
-  def clone(cls, run_folder):
+  def clone(cls, run_folder, module_name):
 
     # Create 'tasks' folder
-    dst = os.path.join(run_folder, "simulation", "tasks")
+    dst = os.path.join(run_folder, module_name, "tasks")
     os.makedirs(dst, exist_ok=True)
+
+    # Copy this file and __init__.py
+    base_file = pathlib.Path(__file__)
+    shutil.copyfile(base_file, os.path.join(dst, base_file.name))
+
+    # Create an __init__.py file with the relevant import
+    modules = cls.__module__.split(".")
+    with open(os.path.join(dst, "__init__.py"), "w") as file:
+      file.write("from ." + ".".join(modules[2:]) + " import " + cls.__name__)
 
     # Copy env folder
     src = parent_path(inspect.getfile(cls))
@@ -71,7 +81,7 @@ class BaseTask(ABC):
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, "simulation", "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, module_name, "assets"),
                       dirs_exist_ok=True)
 
   def _get_body_xvelp_xvelr(self, model, data, bodyname):
