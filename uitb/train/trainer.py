@@ -22,7 +22,7 @@ if __name__=="__main__":
   Simulator.build(config)
 
   # Initialise
-  simulator = Simulator.get(config)
+  simulator = Simulator.get(config["run_folder"])
 
   # Get name for this run from config
   name = config.get("run_name", None)
