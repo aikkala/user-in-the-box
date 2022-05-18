@@ -120,7 +120,7 @@ class FixedEye(BaseModule):
     # Create eye
     eye = ET.Element("body", name="fixed-eye", pos=kwargs["pos"], quat=kwargs["quat"])
     eye.append(ET.Element("geom", name="fixed-eye", type="mesh", mesh="eye", euler="0.69 1.43 0",
-                          material="blue-eye", size="0.025"))
+                          material="blue-eye", size="0.025", rgba="1.0 1.0 1.0 1.0"))
     eye.append(ET.Element("camera", name="fixed-eye", fovy="90"))
 
     # Add eye to a body
