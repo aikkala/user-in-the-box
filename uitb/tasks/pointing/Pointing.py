@@ -15,12 +15,9 @@ class Pointing(BaseTask):
     # Also a shoulder that is used to define the location of target plane
     self.shoulder = shoulder
 
-    # Get action sample freq
-    action_sample_freq = kwargs["action_sample_freq"]
-
     # Use early termination if target is not hit in time
     self.steps_since_last_hit = 0
-    self.max_steps_without_hit = action_sample_freq*4
+    self.max_steps_without_hit = self.action_sample_freq*4
     self.steps = 0
 
     # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
@@ -30,7 +27,7 @@ class Pointing(BaseTask):
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
     self.steps_inside_target = 0
-    self.dwell_threshold = int(0.5*action_sample_freq)
+    self.dwell_threshold = int(0.5*self.action_sample_freq)
 
     # Radius limits for target
     self.target_radius_limit = kwargs.get('target_radius_limit', np.array([0.05, 0.15]))

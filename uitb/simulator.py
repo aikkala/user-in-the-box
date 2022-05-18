@@ -65,7 +65,7 @@ class Simulator(gym.Env):
     # Load task class
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
     task_cls.clone(config["run_folder"], config["module_name"])
-    simulation = task_cls.initialise()
+    simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
 
     # Load biomechanical model class
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
@@ -146,17 +146,33 @@ class Simulator(gym.Env):
     shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(run_folder, module_name, "utils"),
                     dirs_exist_ok=True)
 
-  @staticmethod
-  def get(config):
-    # TODO make sure config has been built before calling this method
+  @classmethod
+  def get(cls, run_folder, package_name=None, use_cloned=True):
+    # TODO make sure simulator has been built before calling this method
 
-    # Add run folder to path and import the module. We could perhaps load the module specifically from
-    # config["run_folder"], but since we are inserting the path on top of sys.path the module from that path will be
-    # loaded anyway in case of modules with equivalent names
-    if config["run_folder"] not in sys.path:
-      sys.path.insert(0, config["run_folder"])
-    mod = importlib.import_module(config["module_name"])
-    return getattr(mod, "Simulator")(config["run_folder"])
+    # If package_name is not given just find the folder with an __init__.py file
+    if package_name is None:
+      package_name = []
+      for name in os.listdir(run_folder):
+        if os.path.isdir(os.path.join(run_folder, name)):
+          files = os.listdir(os.path.join(run_folder, name))
+          if "__init__.py" in files:
+            package_name.append(name)
+      assert len(package_name) == 1, "Found zero or multiple packages"
+      package_name = package_name[0]
+
+    if use_cloned:
+      # Make sure run_folder is in path
+      if run_folder not in sys.path:
+        sys.path.insert(0, run_folder)
+
+      # Get Simulator class
+      cls = getattr(importlib.import_module(package_name), "Simulator")
+    else:
+      pass
+
+    # Return Simulator object
+    return cls(run_folder)
 
   def __init__(self, run_folder, run_parameters=None):
 

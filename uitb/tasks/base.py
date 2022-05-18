@@ -17,6 +17,10 @@ class BaseTask(ABC):
     # Initialise mujoco model of the task, easier to manipulate things
     task_model = mujoco.MjModel.from_xml_path(self.get_xml_file())
 
+    # Get action sample freq
+    self.action_sample_freq = kwargs["action_sample_freq"]
+
+
     # Get an rng
     self.rng = np.random.default_rng(kwargs.get("random_seed", None))
 
@@ -55,7 +59,7 @@ class BaseTask(ABC):
     return None
 
   @classmethod
-  def initialise(cls):
+  def initialise(cls, task_kwargs):
     # Parse xml file and return the tree
     return ET.parse(cls.get_xml_file())
 
