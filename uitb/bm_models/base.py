@@ -116,10 +116,10 @@ class BaseBMModel:
     ETutils.copy_children("equality", bm_root, task_root)
 
   @classmethod
-  def clone(cls, run_folder, module_name):
+  def clone(cls, run_folder, package_name):
 
     # Create 'bm_models' folder
-    dst = os.path.join(run_folder, module_name, "bm_models")
+    dst = os.path.join(run_folder, package_name, "bm_models")
     os.makedirs(dst, exist_ok=True)
 
     # Copy this file
@@ -136,7 +136,7 @@ class BaseBMModel:
     shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
 
     # Copy assets
-    shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, module_name, "assets"),
+    shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
                     dirs_exist_ok=True)
 
   def set_ctrl(self, model, data, action):

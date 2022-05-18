@@ -64,10 +64,10 @@ class BaseTask(ABC):
     return ET.parse(cls.get_xml_file())
 
   @classmethod
-  def clone(cls, run_folder, module_name):
+  def clone(cls, run_folder, package_name):
 
     # Create 'tasks' folder
-    dst = os.path.join(run_folder, module_name, "tasks")
+    dst = os.path.join(run_folder, package_name, "tasks")
     os.makedirs(dst, exist_ok=True)
 
     # Copy this file and __init__.py
@@ -85,7 +85,7 @@ class BaseTask(ABC):
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, module_name, "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
                       dirs_exist_ok=True)
 
   def _get_body_xvelp_xvelr(self, model, data, bodyname):

@@ -52,24 +52,24 @@ class Simulator(gym.Env):
     if "run_folder" not in config:
       config["run_folder"] = os.path.join(output_path(), config["run_name"])
 
-    # If 'module_name' is not defined use 'name' TODO check that module_name is suitable for a python module
-    if "module_name" not in config:
-      config["module_name"] = config["run_name"]
+    # If 'package_name' is not defined use 'run_name' TODO check that package_name is suitable for a python module
+    if "package_name" not in config:
+      config["package_name"] = config["run_name"]
 
     # The name used in gym has a suffix -v0
-    config["gym_name"] = "uitb:" + config["module_name"] + "-v0"
+    config["gym_name"] = "uitb:" + config["package_name"] + "-v0"
 
     # Initialise a simulator in the run folder
-    cls.initialise(config["run_folder"], config["module_name"])
+    cls.initialise(config["run_folder"], config["package_name"])
 
     # Load task class
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
-    task_cls.clone(config["run_folder"], config["module_name"])
+    task_cls.clone(config["run_folder"], config["package_name"])
     simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
 
     # Load biomechanical model class
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
-    bm_cls.clone(config["run_folder"], config["module_name"])
+    bm_cls.clone(config["run_folder"], config["package_name"])
     bm_cls.insert(simulation)
 
     # Add perception modules
@@ -77,17 +77,17 @@ class Simulator(gym.Env):
     for module_cfg in config["simulation"].get("perception_modules", []):
       module_cls = cls.get_class("perception", module_cfg["cls"])
       module_kwargs = module_cfg.get("kwargs", {})
-      module_cls.clone(config["run_folder"], config["module_name"])
+      module_cls.clone(config["run_folder"], config["package_name"])
       module_cls.insert(simulation, config, **module_kwargs)
       perception_modules[module_cls] = module_kwargs
 
     # Clone also RL library files so the package will be completely standalone
     rl_cls = cls.get_class("rl", config["rl"]["algorithm"])
-    rl_cls.clone(config["run_folder"], config["module_name"])
+    rl_cls.clone(config["run_folder"], config["package_name"])
 
     # TODO read the xml file directly from task.getroot() instead of writing it to a file first; need to input a dict
     #  of assets to mujoco.MjModel.from_xml_path
-    simulation_file = os.path.join(config["run_folder"], config["module_name"], "simulation")
+    simulation_file = os.path.join(config["run_folder"], config["package_name"], "simulation")
     with open(simulation_file+".xml", 'w') as file:
       simulation.write(file, encoding='unicode')
 
@@ -122,10 +122,10 @@ class Simulator(gym.Env):
       yaml.dump(config, stream)
 
   @classmethod
-  def initialise(cls, run_folder, module_name):
+  def initialise(cls, run_folder, package_name):
 
     # Create the folder
-    dst = os.path.join(run_folder, module_name)
+    dst = os.path.join(run_folder, package_name)
     os.makedirs(dst, exist_ok=True)
 
     # Copy simulator
@@ -143,7 +143,7 @@ class Simulator(gym.Env):
       file.write("register(id=f'{module_folder.stem}-v0', entry_point=f'{module_folder.stem}.simulator:Simulator', kwargs=kwargs)\n")
 
     # Copy utils
-    shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(run_folder, module_name, "utils"),
+    shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(run_folder, package_name, "utils"),
                     dirs_exist_ok=True)
 
   @classmethod
@@ -188,7 +188,7 @@ class Simulator(gym.Env):
       run_parameters = self.config["simulation"]["run_parameters"].copy()
 
     # Load the mujoco model
-    self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, self.config["module_name"], "simulation.mjcf"))
+    self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, self.config["package_name"], "simulation.mjcf"))
 
     # Initialise data
     self.data = mujoco.MjData(self.model)

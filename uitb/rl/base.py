@@ -16,10 +16,10 @@ class BaseRLModel(ABC):
     pass
 
   @classmethod
-  def clone(cls, run_folder, module_name):
+  def clone(cls, run_folder, package_name):
 
     # Create 'rl' folder
-    dst = os.path.join(run_folder, module_name, "rl")
+    dst = os.path.join(run_folder, package_name, "rl")
     os.makedirs(dst, exist_ok=True)
 
     # Copy the rl library folder

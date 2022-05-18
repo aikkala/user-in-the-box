@@ -32,7 +32,7 @@ if __name__=="__main__":
     name = timeout_input("Give a name for this run. Input empty string or wait for 30 seconds for a random name.",
                          timeout=30, default="")
     config["run_name"] = name
-    config["module_name"] = name.replace("-", "_")
+    config["package_name"] = name.replace("-", "_")
 
   # Initialise wandb
   run = wandb.init(project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())

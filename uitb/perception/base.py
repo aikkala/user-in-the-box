@@ -57,10 +57,10 @@ class BaseModule(ABC):
     return len(self.actuator_names)
 
   @classmethod
-  def clone(cls, run_folder, module_name):
+  def clone(cls, run_folder, package_name):
 
     # Create "perception" folder if needed
-    dst = os.path.join(run_folder, module_name, "perception")
+    dst = os.path.join(run_folder, package_name, "perception")
     os.makedirs(dst, exist_ok=True)
 
     # Copy this file and __init__.py
@@ -88,7 +88,7 @@ class BaseModule(ABC):
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, module_name, "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
                       dirs_exist_ok=True)
 
 
