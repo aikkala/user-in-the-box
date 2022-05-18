@@ -1,4 +1,4 @@
-run_name: "mobl_arms_index_pointing"
+run_name: "mobl_arms_index_choice_reaction"
 
 simulation:
   bm_model:
@@ -6,15 +6,15 @@ simulation:
     kwargs:
       shoulder_variant: "none"
   task:
-    cls: "Pointing"
+    cls: "ChoiceReaction"
     kwargs:
-      end_effector: "hand_2distph"
-      shoulder: "humphant"
+      end_effector: ["geom", "hand_2distph"]
+      shoulder: ["body", "humphant"]
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
         resolution: [120, 80]
-        channels: [3]
+        channels: [0, 1, 2, 3]
         pos: "0 0 1.2"
         quat: "0.583833 0.399104 -0.399421 -0.583368"
     - cls: "proprioception.BasicWithEndEffectorPosition"
