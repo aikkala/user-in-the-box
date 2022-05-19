@@ -11,7 +11,7 @@ import pathlib
 from ruamel.yaml import YAML
 
 from .perception.base import Perception
-from .utils.viewers import Viewer
+from .utils.rendering import Camera, Context
 from .utils.functions import output_path, parent_path
 
 
@@ -41,7 +41,7 @@ class Simulator(gym.Env):
     assert "task" in config["simulation"], "task (task) must be defined in config"
 
     assert "run_parameters" in config["simulation"], "Run parameters (run_parameters) must be defined in config"
-    run_parameters = config["simulation"]["run_parameters"]
+    run_parameters = config["simulation"]["run_parameters"].copy()
     assert "action_sample_freq" in run_parameters, "Action sampling frequency (action_sample_freq) must be defined " \
                                                    "in run parameters"
 
@@ -100,6 +100,10 @@ class Simulator(gym.Env):
     # Add dt to run parameters
     frame_skip = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
     run_parameters["dt"] = model.opt.timestep*frame_skip
+
+    # Initialise a rendering context, required for e.g. some vision modules
+    run_parameters["rendering_context"] = Context(model,
+                                                  max_resolution=run_parameters.get("max_resolution", [1280, 960]))
 
     # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
     # (e.g. move target to a specific position wrt to a body part)
@@ -182,7 +186,6 @@ class Simulator(gym.Env):
       #self.config = dill.load(file)
       self.config = yaml.load(stream)
 
-
     # Get run parameters: these parameters can be used to override parameters used during training
     self.run_parameters = self.config["simulation"]["run_parameters"].copy()
     self.run_parameters.update(run_parameters)
@@ -198,6 +201,10 @@ class Simulator(gym.Env):
 
     # Add dt to run parameters so it's easier to pass to models
     self.run_parameters["dt"] = self.dt
+
+    # Initialise a rendering context, required for e.g. some vision modules
+    run_parameters["rendering_context"] = Context(self.model,
+                                                  max_resolution=run_parameters.get("max_resolution", [1280, 960]))
 
     # Initialise task object
     task_cls = self.get_class("tasks", self.config["simulation"]["task"]["cls"])
@@ -227,8 +234,7 @@ class Simulator(gym.Env):
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
     # Initialise viewer
-    #self.viewer = Viewer(self.model, self.data, camera_name='for_testing',
-    #                     resolution=[640*2, 480*2], dt=self.dt)
+    self.camera = Camera(run_parameters["rendering_context"], self.model, self.data, camera_id='for_testing')
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
