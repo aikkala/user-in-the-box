@@ -28,7 +28,7 @@ class BaseModule(ABC):
 
   @staticmethod
   @abstractmethod
-  def insert(task, config, **kwargs):
+  def insert(simulation, config, **kwargs):
     pass
 
   @abstractmethod
