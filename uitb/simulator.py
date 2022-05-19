@@ -147,7 +147,7 @@ class Simulator(gym.Env):
                     dirs_exist_ok=True)
 
   @classmethod
-  def get(cls, run_folder, package_name=None, use_cloned=True):
+  def get(cls, run_folder, run_parameters=None, package_name=None, use_cloned=True):
     # TODO make sure simulator has been built before calling this method
 
     # If package_name is not given just find the folder with an __init__.py file
@@ -172,7 +172,7 @@ class Simulator(gym.Env):
       pass
 
     # Return Simulator object
-    return cls(run_folder)
+    return cls(run_folder, run_parameters=run_parameters)
 
   def __init__(self, run_folder, run_parameters=None):
 
@@ -184,8 +184,8 @@ class Simulator(gym.Env):
 
 
     # Get run parameters: these parameters can be used to override parameters used during training
-    if run_parameters is None:
-      run_parameters = self.config["simulation"]["run_parameters"].copy()
+    self.run_parameters = self.config["simulation"]["run_parameters"].copy()
+    self.run_parameters.update(run_parameters)
 
     # Load the mujoco model
     self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, self.config["package_name"], "simulation.mjcf"))
@@ -194,20 +194,20 @@ class Simulator(gym.Env):
     self.data = mujoco.MjData(self.model)
 
     # Get frame skip
-    self.frame_skip = int(1 / (self.model.opt.timestep * run_parameters["action_sample_freq"]))
+    self.frame_skip = int(1 / (self.model.opt.timestep * self.run_parameters["action_sample_freq"]))
 
     # Add dt to run parameters so it's easier to pass to models
-    run_parameters["dt"] = self.dt
+    self.run_parameters["dt"] = self.dt
 
     # Initialise task object
     task_cls = self.get_class("tasks", self.config["simulation"]["task"]["cls"])
     self.task = task_cls(self.model, self.data,
-                         **{**self.config["simulation"]["task"].get("kwargs", {}), **run_parameters})
+                         **{**self.config["simulation"]["task"].get("kwargs", {}), **self.run_parameters})
 
     # Initialise bm_model object
     bm_cls = self.get_class("bm_models", self.config["simulation"]["bm_model"]["cls"])
     self.bm_model = bm_cls(self.model, self.data,
-                           **{**self.config["simulation"]["bm_model"].get("kwargs", {}), **run_parameters})
+                           **{**self.config["simulation"]["bm_model"].get("kwargs", {}), **self.run_parameters})
 
     # Initialise perception object
     perception_modules = {}
@@ -215,7 +215,7 @@ class Simulator(gym.Env):
       module_cls = self.get_class("perception", module_cfg["cls"])
       module_kwargs = module_cfg.get("kwargs", {})
       perception_modules[module_cls] = module_kwargs
-    self.perception = Perception(self.model, self.data, self.bm_model, perception_modules, run_parameters)
+    self.perception = Perception(self.model, self.data, self.bm_model, perception_modules, self.run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
     self.action_space = self.initialise_action_space()

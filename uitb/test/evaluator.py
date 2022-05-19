@@ -1,18 +1,13 @@
-import gym
 import os
-import sys
 import numpy as np
 from stable_baselines3 import PPO
 import re
 import argparse
 import scipy.ndimage
-import dill
-from pathlib import Path
 from collections import defaultdict
 import matplotlib.pyplot as pp
 
 from uitb.utils.logger import StateLogger, ActionLogger
-from uitb.utils.functions import output_path
 from uitb.simulator import Simulator
 
 
@@ -71,22 +66,25 @@ if __name__=="__main__":
                       help='output file for action log if logging is enabled (default: ./action_log)')
   args = parser.parse_args()
 
-  # Add run folder to python path if not there already
-  if args.run_folder not in sys.path:
-    sys.path.insert(0, args.run_folder)
-
-  # Load config file
-  config_file = os.path.join(args.run_folder, 'config.dill')
-  with open(config_file, 'rb') as file:
-    config = dill.load(file)
-
-  # Define output directories
-  #config["use_cloned_files"] = False
+  # Define directories
   checkpoint_dir = os.path.join(args.run_folder, 'checkpoints')
   evaluate_dir = os.path.join(args.run_folder, 'evaluate')
 
   # Make sure output dir exists
   os.makedirs(evaluate_dir, exist_ok=True)
+
+  # Override run parameters
+  run_params = dict()
+  run_params["action_sample_freq"] = 100
+  run_params["evaluate"] = True
+
+  # Use deterministic actions?
+  deterministic = False
+
+  # Initialise environment
+  env = Simulator.get(args.run_folder, run_parameters=run_params)
+
+  print(f"run parameters are: {env.run_parameters}")
 
   # Load latest model if filename not given
   if args.checkpoint is not None:
@@ -95,26 +93,9 @@ if __name__=="__main__":
     files = natural_sort(os.listdir(checkpoint_dir))
     model_file = files[-1]
 
-  # Load policy
+  # Load policy TODO should create a load method for uitb.rl.BaseRLModel
   print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}')
   model = PPO.load(os.path.join(checkpoint_dir, model_file))
-
-  # Load and override run parameters
-  run_params = config["simulation"]["run_parameters"]
-  run_params["action_sample_freq"] = 100
-  #run_params["freq_curriculum"] = lambda : 1.0
-  run_params["evaluate"] = True
-  #run_params["target_radius_limit"] = np.array([0.05, 0.1])
-  #run_params["target_halfsize_limit"] = np.array([0.3, 0.3])
-
-  # Use deterministic actions?
-  deterministic = False
-
-  print(f"run parameters are: {run_params}")
-
-  # Initialise environment
-  #env = gym.make(env_name, **env_kwargs)
-  env = Simulator(args.run_folder, run_parameters=run_params)
 
   if args.logging:
 
