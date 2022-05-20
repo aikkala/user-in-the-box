@@ -188,7 +188,7 @@ class Simulator(gym.Env):
 
     # Get run parameters: these parameters can be used to override parameters used during training
     self.run_parameters = self.config["simulation"]["run_parameters"].copy()
-    self.run_parameters.update(run_parameters)
+    self.run_parameters.update(run_parameters or {})
 
     # Load the mujoco model
     self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, self.config["package_name"], "simulation.mjcf"))
@@ -203,8 +203,8 @@ class Simulator(gym.Env):
     self.run_parameters["dt"] = self.dt
 
     # Initialise a rendering context, required for e.g. some vision modules
-    run_parameters["rendering_context"] = Context(self.model,
-                                                  max_resolution=run_parameters.get("max_resolution", [1280, 960]))
+    self.run_parameters["rendering_context"] = Context(self.model,
+                                                       max_resolution=self.run_parameters.get("max_resolution", [1280, 960]))
 
     # Initialise task object
     task_cls = self.get_class("tasks", self.config["simulation"]["task"]["cls"])
@@ -234,7 +234,8 @@ class Simulator(gym.Env):
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
     # Initialise viewer
-    self.camera = Camera(run_parameters["rendering_context"], self.model, self.data, camera_id='for_testing')
+    self.camera = Camera(self.run_parameters["rendering_context"], self.model, self.data, camera_id='for_testing',
+                         dt=self.dt)
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
