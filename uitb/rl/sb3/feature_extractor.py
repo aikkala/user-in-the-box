@@ -7,11 +7,8 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 class FeatureExtractor(BaseFeaturesExtractor):
   def __init__(self, observation_space: gym.spaces.Dict, extractors):
-    # We do not know features-dim here before going over all the items,
-    # so put something dummy for now. PyTorch requires calling
-    # nn.Module.__init__ before adding modules
-    super().__init__(observation_space, features_dim=1)
 
+    # Sample a fake observation
     fake_observation = observation_space.sample()
 
     # Convert None extractors into identity layers
@@ -19,13 +16,16 @@ class FeatureExtractor(BaseFeaturesExtractor):
     for key, extractor in extractors.items():
       if extractor is None:
         extractors[key] = nn.Identity()
-      total_concat_size += extractors[key](th.from_numpy(fake_observation[key])[None]).shape[1]
+      fake_obs_tensor = th.from_numpy(fake_observation[key])[None]
+      if len(extractor._modules) > 0:
+        fake_obs_tensor = fake_obs_tensor.to(next(extractor.parameters()).device)
+      total_concat_size += extractors[key](fake_obs_tensor).shape[1]
+
+    # Initialise parent class
+    super().__init__(observation_space, features_dim=total_concat_size)
 
     # Convert into ModuleDict
     self.extractors = nn.ModuleDict(extractors)
-
-    # Update the features dim manually
-    self._features_dim = total_concat_size
 
   def forward(self, observations) -> th.Tensor:
     encoded_tensor_list = []
