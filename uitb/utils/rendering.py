@@ -134,7 +134,7 @@ class Camera:
     self._depth_buffer = np.empty((self._resolution[1], self._resolution[0]), dtype=np.float32) if depth else None
 
     # Set frames per second
-    self._fps = self.set_fps(dt) if dt else None
+    self.set_fps(dt) if dt else None
 
   @property
   def width(self):

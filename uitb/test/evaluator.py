@@ -20,14 +20,14 @@ def grab_pip_image(env):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
 
   # Grab images
-  img = env.viewer.render()
+  img, _ = env.camera.render()
 
   ocular_img = None
   for module in env.perception.perception_modules:
     if module.modality == "vision":
       # TODO would be better to have a class function that returns "human-viewable" rendering of the observation;
       #  e.g. in case the vision model has two cameras, or returns a combination of rgb + depth images etc.
-      ocular_img, _ = module.render()
+      ocular_img, _ = module._camera.render()
 
   if ocular_img is not None:
 
@@ -40,8 +40,8 @@ def grab_pip_image(env):
       resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 
     # Embed ocular image into free image
-    i = env.viewer.resolution[1] - resample_height
-    j = env.viewer.resolution[0] - resample_width
+    i = env.camera.height - resample_height
+    j = env.camera.width - resample_width
     img[i:, j:] = resampled_img
 
   return img
@@ -160,5 +160,5 @@ if __name__=="__main__":
 
   if args.record:
     # Write the video
-    env.viewer.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
+    env.camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
     print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')
