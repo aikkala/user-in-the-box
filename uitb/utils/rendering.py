@@ -212,9 +212,9 @@ class Camera:
       # http://stackoverflow.com/a/6657284/1461210
       # https://www.khronos.org/opengl/wiki/Depth_Buffer_Precision
       #image = near / (1 - self._depth_buffer * (1 - near / far))
-      depth_image = np.flipud(self._depth_buffer)
+      depth_image = np.flipud(self._depth_buffer).copy()
     if self._rgb:
-      rgb_image = np.flipud(self._rgb_buffer)
+      rgb_image = np.flipud(self._rgb_buffer).copy()
 
     # The first row in the buffer is the bottom row of pixels in the image.
     return rgb_image, depth_image
