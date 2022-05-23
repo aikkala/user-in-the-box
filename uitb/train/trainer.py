@@ -19,10 +19,10 @@ if __name__=="__main__":
     config = yaml.load(stream)
 
   # Build the simulator
-  Simulator.build(config)
+  run_folder = Simulator.build(config)
 
   # Initialise
-  simulator = Simulator.get(config["run_folder"])
+  simulator = Simulator.get(run_folder)
 
   # Get name for this run from config
   name = config.get("run_name", None)

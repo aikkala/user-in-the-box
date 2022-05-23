@@ -9,6 +9,7 @@ import shutil
 import inspect
 import pathlib
 from ruamel.yaml import YAML
+from datetime import datetime
 
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
@@ -49,8 +50,7 @@ class Simulator(gym.Env):
     config["id"] = cls.id
 
     # Save outputs to uitb/outputs if run folder is not defined
-    if "run_folder" not in config:
-      config["run_folder"] = os.path.join(output_path(), config["run_name"])
+    run_folder = os.path.join(output_path(), config["run_name"])
 
     # If 'package_name' is not defined use 'run_name' TODO check that package_name is suitable for a python module
     if "package_name" not in config:
@@ -60,16 +60,16 @@ class Simulator(gym.Env):
     config["gym_name"] = "uitb:" + config["package_name"] + "-v0"
 
     # Initialise a simulator in the run folder
-    cls.initialise(config["run_folder"], config["package_name"])
+    cls.initialise(run_folder, config["package_name"])
 
     # Load task class
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
-    task_cls.clone(config["run_folder"], config["package_name"])
+    task_cls.clone(run_folder, config["package_name"])
     simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
 
     # Load biomechanical model class
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
-    bm_cls.clone(config["run_folder"], config["package_name"])
+    bm_cls.clone(run_folder, config["package_name"])
     bm_cls.insert(simulation)
 
     # Add perception modules
@@ -77,17 +77,17 @@ class Simulator(gym.Env):
     for module_cfg in config["simulation"].get("perception_modules", []):
       module_cls = cls.get_class("perception", module_cfg["cls"])
       module_kwargs = module_cfg.get("kwargs", {})
-      module_cls.clone(config["run_folder"], config["package_name"])
+      module_cls.clone(run_folder, config["package_name"])
       module_cls.insert(simulation, config, **module_kwargs)
       perception_modules[module_cls] = module_kwargs
 
     # Clone also RL library files so the package will be completely standalone
     rl_cls = cls.get_class("rl", config["rl"]["algorithm"])
-    rl_cls.clone(config["run_folder"], config["package_name"])
+    rl_cls.clone(run_folder, config["package_name"])
 
     # TODO read the xml file directly from task.getroot() instead of writing it to a file first; need to input a dict
     #  of assets to mujoco.MjModel.from_xml_path
-    simulation_file = os.path.join(config["run_folder"], config["package_name"], "simulation")
+    simulation_file = os.path.join(run_folder, config["package_name"], "simulation")
     with open(simulation_file+".xml", 'w') as file:
       simulation.write(file, encoding='unicode')
 
@@ -120,10 +120,15 @@ class Simulator(gym.Env):
     # Save the modified model as binary
     mujoco.mj_saveModel(model, simulation_file+".mjcf", None)
 
+    # Input built time into config
+    config["built"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     # Save config
     yaml = YAML()
-    with open(os.path.join(config["run_folder"], "config.yaml"), "w") as stream:
+    with open(os.path.join(run_folder, "config.yaml"), "w") as stream:
       yaml.dump(config, stream)
+
+    return run_folder
 
   @classmethod
   def initialise(cls, run_folder, package_name):
@@ -151,19 +156,20 @@ class Simulator(gym.Env):
                     dirs_exist_ok=True)
 
   @classmethod
-  def get(cls, run_folder, run_parameters=None, package_name=None, use_cloned=True):
-    # TODO make sure simulator has been built before calling this method
+  def get(cls, run_folder, run_parameters=None, use_cloned=True):
 
-    # If package_name is not given just find the folder with an __init__.py file
-    if package_name is None:
-      package_name = []
-      for name in os.listdir(run_folder):
-        if os.path.isdir(os.path.join(run_folder, name)):
-          files = os.listdir(os.path.join(run_folder, name))
-          if "__init__.py" in files:
-            package_name.append(name)
-      assert len(package_name) == 1, "Found zero or multiple packages"
-      package_name = package_name[0]
+    # Read config file
+    config_file = os.path.join(run_folder, "config.yaml")
+    yaml = YAML()
+    try:
+      with open(config_file, "r") as stream:
+        config = yaml.load(stream)
+    except:
+      raise FileNotFoundError(f"Could not open file {config_file}")
+
+    # Make sure the simulator has been built
+    if "built" not in config:
+      raise RuntimeError("Simulator has not been built")
 
     if use_cloned:
       # Make sure run_folder is in path
@@ -171,19 +177,18 @@ class Simulator(gym.Env):
         sys.path.insert(0, run_folder)
 
       # Get Simulator class
-      cls = getattr(importlib.import_module(package_name), "Simulator")
+      gen_cls = getattr(importlib.import_module(config["package_name"]), "Simulator")
     else:
-      pass
+      gen_cls = cls
 
     # Return Simulator object
-    return cls(run_folder, run_parameters=run_parameters)
+    return gen_cls(run_folder, run_parameters=run_parameters)
 
   def __init__(self, run_folder, run_parameters=None):
 
     # Read
     yaml = YAML()
     with open(os.path.join(run_folder, "config.yaml"), "r") as stream:
-      #self.config = dill.load(file)
       self.config = yaml.load(stream)
 
     # Get run parameters: these parameters can be used to override parameters used during training
