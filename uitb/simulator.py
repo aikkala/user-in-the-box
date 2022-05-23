@@ -186,9 +186,10 @@ class Simulator(gym.Env):
 
   def __init__(self, run_folder, run_parameters=None):
 
-    # Read
+    # Read configs
+    self.run_folder = run_folder
     yaml = YAML()
-    with open(os.path.join(run_folder, "config.yaml"), "r") as stream:
+    with open(os.path.join(self.run_folder, "config.yaml"), "r") as stream:
       self.config = yaml.load(stream)
 
     # Get run parameters: these parameters can be used to override parameters used during training
@@ -196,7 +197,7 @@ class Simulator(gym.Env):
     self.run_parameters.update(run_parameters or {})
 
     # Load the mujoco model
-    self.model = mujoco.MjModel.from_binary_path(os.path.join(run_folder, self.config["package_name"], "simulation.mjcf"))
+    self.model = mujoco.MjModel.from_binary_path(os.path.join(self.run_folder, self.config["package_name"], "simulation.mjcf"))
 
     # Initialise data
     self.data = mujoco.MjData(self.model)

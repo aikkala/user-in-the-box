@@ -22,7 +22,7 @@ class PPO(BaseRLModel):
     # Initialise parallel envs
     parallel_envs = make_vec_env(simulator.__class__, n_envs=rl_config["num_workers"],
                                  seed=simulator.config.get("random_seed", None), vec_env_cls=SubprocVecEnv,
-                                 env_kwargs={"run_folder": simulator.config["run_folder"]})
+                                 env_kwargs={"run_folder": simulator.run_folder})
 
     # Add feature and stateful information encoders to policy_kwargs
     encoders = simulator.perception.encoders.copy()
@@ -32,14 +32,14 @@ class PPO(BaseRLModel):
 
     # Initialise model
     self.model = PPO_sb3(rl_config["policy_type"], parallel_envs, verbose=1, policy_kwargs=rl_config["policy_kwargs"],
-                         tensorboard_log=simulator.config["run_folder"], n_steps=rl_config["nsteps"],
+                         tensorboard_log=simulator.run_folder, n_steps=rl_config["nsteps"],
                          batch_size=rl_config["batch_size"], target_kl=rl_config["target_kl"],
                          learning_rate=rl_config["lr"], device=rl_config["device"])
 
 
     # Create a checkpoint callback
     save_freq = rl_config["save_freq"] // rl_config["num_workers"]
-    checkpoint_folder = os.path.join(simulator.config["run_folder"], 'checkpoints')
+    checkpoint_folder = os.path.join(simulator.run_folder, 'checkpoints')
     self.checkpoint_callback = CheckpointCallback(save_freq=save_freq,
                                                   save_path=checkpoint_folder,
                                                   name_prefix='model')
