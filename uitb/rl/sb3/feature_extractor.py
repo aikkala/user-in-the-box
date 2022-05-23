@@ -17,8 +17,8 @@ class FeatureExtractor(BaseFeaturesExtractor):
       if extractor is None:
         extractors[key] = nn.Identity()
       fake_obs_tensor = th.from_numpy(fake_observation[key])[None]
-      if len(extractor._modules) > 0:
-        fake_obs_tensor = fake_obs_tensor.to(next(extractor.parameters()).device)
+      if len(extractors[key]._modules) > 0:
+        fake_obs_tensor = fake_obs_tensor.to(next(extractors[key].parameters()).device)
       total_concat_size += extractors[key](fake_obs_tensor).shape[1]
 
     # Initialise parent class
