@@ -1,6 +1,7 @@
 from ..base import BaseBMModel
 
 import numpy as np
+import mujoco
 
 
 class MoblArmsIndex(BaseBMModel):
@@ -24,3 +25,6 @@ class MoblArmsIndex(BaseBMModel):
           2 * np.min((data.joint('shoulder_elv').qpos,
                       np.pi - data.joint('shoulder_elv').qpos)) / np.pi \
           * data.joint('elv_angle').qpos
+
+      # Do a forward calculation
+      mujoco.mj_forward(model, data)
