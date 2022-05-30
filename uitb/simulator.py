@@ -197,7 +197,11 @@ class Simulator(gym.Env):
     self.run_parameters.update(run_parameters or {})
 
     # Load the mujoco model
-    self.model = mujoco.MjModel.from_binary_path(os.path.join(self.run_folder, self.config["package_name"], "simulation.mjcf"))
+    try:
+      self.model = mujoco.MjModel.from_binary_path(os.path.join(self.run_folder, self.config["package_name"], "simulation.mjcf"))
+    except ValueError:
+      # Sometimes mujoco can't load the mjcf file if it's created on another computer
+      self.model = mujoco.MjModel.from_xml_path(os.path.join(self.run_folder, self.config["package_name"], "simulation.xml"))
 
     # Initialise data
     self.data = mujoco.MjData(self.model)
