@@ -10,6 +10,7 @@ import inspect
 import pathlib
 from ruamel.yaml import YAML
 from datetime import datetime
+import copy
 
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
@@ -52,15 +53,15 @@ class Simulator(gym.Env):
     # Save outputs to uitb/outputs if run folder is not defined
     run_folder = os.path.join(output_path(), config["run_name"])
 
-    # If 'package_name' is not defined use 'run_name' TODO check that package_name is suitable for a python module
+    # If 'package_name' is not defined use 'run_name' TODO check that package_name is suitable for a python package
     if "package_name" not in config:
       config["package_name"] = config["run_name"]
 
     # The name used in gym has a suffix -v0
     config["gym_name"] = "uitb:" + config["package_name"] + "-v0"
 
-    # Initialise a simulator in the run folder
-    cls.initialise(run_folder, config["package_name"])
+    # Create a simulator in the run folder
+    cls._clone(run_folder, config["package_name"])
 
     # Load task class
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
@@ -91,25 +92,14 @@ class Simulator(gym.Env):
     with open(simulation_file+".xml", 'w') as file:
       simulation.write(file, encoding='unicode')
 
-    # Load the mujoco model
-    model = mujoco.MjModel.from_xml_path(simulation_file+".xml")
+    # Get task and bm_model kwargs
+    task_kwargs = config["simulation"]["task"].get("kwargs", {})
+    bm_kwargs = config["simulation"]["bm_model"].get("kwargs", {})
 
-    # Initialise MjData
-    data = mujoco.MjData(model)
-
-    # Add dt to run parameters
-    frame_skip = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
-    run_parameters["dt"] = model.opt.timestep*frame_skip
-
-    # Initialise a rendering context, required for e.g. some vision modules
-    run_parameters["rendering_context"] = Context(model,
-                                                  max_resolution=run_parameters.get("max_resolution", [1280, 960]))
-
-    # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
-    # (e.g. move target to a specific position wrt to a body part)
-    task = task_cls(model, data, **{**config["simulation"]["task"].get("kwargs", {}), **run_parameters})
-    bm_model = bm_cls(model, data, **{**config["simulation"]["bm_model"].get("kwargs", {}), **run_parameters})
-    perception = Perception(model, data, bm_model, perception_modules, run_parameters)
+    # Initialise the simulator
+    model, _, _, _, _ = \
+      cls._initialise(task_cls, task_kwargs, bm_cls, bm_kwargs, perception_modules, simulation_file+".xml",
+                      run_parameters)
 
     # It would be nice to save an xml here in addition to saving a binary model file. But seems like there's only one
     # function to save an xml file: mujoco.mj_saveLastXML, which doesn't work here because we read the original
@@ -131,7 +121,7 @@ class Simulator(gym.Env):
     return run_folder
 
   @classmethod
-  def initialise(cls, run_folder, package_name):
+  def _clone(cls, run_folder, package_name):
 
     # Create the folder
     dst = os.path.join(run_folder, package_name)
@@ -154,6 +144,31 @@ class Simulator(gym.Env):
     # Copy utils
     shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(run_folder, package_name, "utils"),
                     dirs_exist_ok=True)
+
+  @classmethod
+  def _initialise(cls, task_cls, task_kwargs, bm_cls, bm_kwargs, perception_modules, simulation_file, run_parameters):
+
+    # Load the mujoco model
+    model = mujoco.MjModel.from_xml_path(simulation_file)
+
+    # Initialise MjData
+    data = mujoco.MjData(model)
+
+    # Add frame skip and dt to run parameters
+    run_parameters["frame_skip"] = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
+    run_parameters["dt"] = model.opt.timestep*run_parameters["frame_skip"]
+
+    # Initialise a rendering context, required for e.g. some vision modules
+    run_parameters["rendering_context"] = Context(model,
+                                                  max_resolution=run_parameters.get("max_resolution", [1280, 960]))
+
+    # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
+    # (e.g. move target to a specific position wrt to a body part)
+    task = task_cls(model, data, **{**task_kwargs, **run_parameters})
+    bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters})
+    perception = Perception(model, data, bm_model, perception_modules, run_parameters)
+
+    return model, data, task, bm_model, perception
 
   @classmethod
   def get(cls, run_folder, run_parameters=None, use_cloned=True):
@@ -187,76 +202,58 @@ class Simulator(gym.Env):
   def __init__(self, run_folder, run_parameters=None):
 
     # Read configs
-    self.run_folder = run_folder
+    self._run_folder = run_folder
     yaml = YAML()
-    with open(os.path.join(self.run_folder, "config.yaml"), "r") as stream:
-      self.config = yaml.load(stream)
+    with open(os.path.join(self._run_folder, "config.yaml"), "r") as stream:
+      self._config = yaml.load(stream)
 
     # Get run parameters: these parameters can be used to override parameters used during training
-    self.run_parameters = self.config["simulation"]["run_parameters"].copy()
-    self.run_parameters.update(run_parameters or {})
+    self._run_parameters = self._config["simulation"]["run_parameters"].copy()
+    self._run_parameters.update(run_parameters or {})
 
-    # Load the mujoco model
-    try:
-      self.model = mujoco.MjModel.from_binary_path(os.path.join(self.run_folder, self.config["package_name"], "simulation.mjcf"))
-    except ValueError:
-      # Sometimes mujoco can't load the mjcf file if it's created on another computer
-      self.model = mujoco.MjModel.from_xml_path(os.path.join(self.run_folder, self.config["package_name"], "simulation.xml"))
+    simulation_file = os.path.join(self._run_folder, self._config["package_name"], "simulation.xml")
 
-    # Initialise data
-    self.data = mujoco.MjData(self.model)
+    # Get task class and kwargs
+    task_cls = self.get_class("tasks", self._config["simulation"]["task"]["cls"])
+    task_kwargs = self._config["simulation"]["task"].get("kwargs", {})
 
-    # Get frame skip
-    self.frame_skip = int(1 / (self.model.opt.timestep * self.run_parameters["action_sample_freq"]))
+    # Get bm class and kwargs
+    bm_cls = self.get_class("bm_models", self._config["simulation"]["bm_model"]["cls"])
+    bm_kwargs = self._config["simulation"]["bm_model"].get("kwargs", {})
 
-    # Add dt to run parameters so it's easier to pass to models
-    self.run_parameters["dt"] = self.dt
-
-    # Initialise a rendering context, required for e.g. some vision modules
-    self.run_parameters["rendering_context"] = Context(self.model,
-                                                       max_resolution=self.run_parameters.get("max_resolution", [1280, 960]))
-
-    # Initialise task object
-    task_cls = self.get_class("tasks", self.config["simulation"]["task"]["cls"])
-    self.task = task_cls(self.model, self.data,
-                         **{**self.config["simulation"]["task"].get("kwargs", {}), **self.run_parameters})
-
-    # Initialise bm_model object
-    bm_cls = self.get_class("bm_models", self.config["simulation"]["bm_model"]["cls"])
-    self.bm_model = bm_cls(self.model, self.data,
-                           **{**self.config["simulation"]["bm_model"].get("kwargs", {}), **self.run_parameters})
-
-    # Initialise perception object
+    # Initialise perception modules
     perception_modules = {}
-    for module_cfg in self.config["simulation"].get("perception_modules", []):
+    for module_cfg in self._config["simulation"].get("perception_modules", []):
       module_cls = self.get_class("perception", module_cfg["cls"])
       module_kwargs = module_cfg.get("kwargs", {})
       perception_modules[module_cls] = module_kwargs
-    self.perception = Perception(self.model, self.data, self.bm_model, perception_modules, self.run_parameters)
+
+    # Initialise simulation
+    self._model, self._data, self.task, self.bm_model, self.perception = \
+      self._initialise(task_cls, task_kwargs, bm_cls, bm_kwargs, perception_modules, simulation_file, self._run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
-    self.action_space = self.initialise_action_space()
+    self.action_space = self._initialise_action_space()
 
     # Set observation space
-    self.observation_space = self.initialise_observation_space()
+    self.observation_space = self._initialise_observation_space()
 
     # Collect some episode statistics
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
     # Initialise viewer
-    self.camera = Camera(self.run_parameters["rendering_context"], self.model, self.data, camera_id='for_testing',
-                         dt=self.dt)
+    self._camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
+                         dt=self._run_parameters["dt"])
 
     # Get callbacks
     #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
 
-  def initialise_action_space(self):
+  def _initialise_action_space(self):
     num_actuators = self.bm_model.nu + self.perception.nu
     actuator_limits = np.ones((num_actuators,2)) * np.array([-1.0, 1.0])
-    self.action_space = spaces.Box(low=np.float32(actuator_limits[:, 0]), high=np.float32(actuator_limits[:, 1]))
-    return self.action_space
+    return spaces.Box(low=np.float32(actuator_limits[:, 0]), high=np.float32(actuator_limits[:, 1]))
 
-  def initialise_observation_space(self):
+  def _initialise_observation_space(self):
     observation = self.get_observation()
     obs_dict = dict()
     for module in self.perception.perception_modules:
@@ -270,22 +267,22 @@ class Simulator(gym.Env):
   def step(self, action):
 
     # Set control for the bm model
-    self.bm_model.set_ctrl(self.model, self.data, action[:self.bm_model.nu])
+    self.bm_model.set_ctrl(self._model, self._data, action[:self.bm_model.nu])
 
     # Set control for perception modules (e.g. eye movements)
-    self.perception.set_ctrl(self.model, self.data, action[self.bm_model.nu:])
+    self.perception.set_ctrl(self._model, self._data, action[self.bm_model.nu:])
 
     # Advance the simulation
-    mujoco.mj_step(self.model, self.data, nstep=self.frame_skip)
+    mujoco.mj_step(self._model, self._data, nstep=self._run_parameters["frame_skip"])
 
     # Update bm model (e.g. update constraints)
-    self.bm_model.update(self.model, self.data)
+    self.bm_model.update(self._model, self._data)
 
     # Update perception modules
-    self.perception.update(self.model, self.data)
+    self.perception.update(self._model, self._data)
 
     # Update environment
-    reward, finished, info = self.task.update(self.model, self.data)
+    reward, finished, info = self.task.update(self._model, self._data)
 
     # Add an effort cost to reward
     #reward -= self.bm_model.effort_term.get(self)
@@ -298,10 +295,10 @@ class Simulator(gym.Env):
   def get_observation(self):
 
     # Get observation from perception
-    observation = self.perception.get_observation(self.model, self.data)
+    observation = self.perception.get_observation(self._model, self._data)
 
     # Add any stateful information that is required
-    stateful_information = self.task.get_stateful_information(self.model, self.data)
+    stateful_information = self.task.get_stateful_information(self._model, self._data)
     if stateful_information is not None:
       observation["stateful_information"] = stateful_information
 
@@ -310,26 +307,40 @@ class Simulator(gym.Env):
   def reset(self):
 
     # Reset sim
-    mujoco.mj_resetData(self.model, self.data)
+    mujoco.mj_resetData(self._model, self._data)
 
     # Reset all models
-    self.bm_model.reset(self.model, self.data)
-    self.perception.reset(self.model, self.data)
-    self.task.reset(self.model, self.data)
+    self.bm_model.reset(self._model, self._data)
+    self.perception.reset(self._model, self._data)
+    self.task.reset(self._model, self._data)
 
     # Do a forward so everything will be set
-    mujoco.mj_forward(self.model, self.data)
+    mujoco.mj_forward(self._model, self._data)
 
     return self.get_observation()
 
   #def callback(self, callback_name, num_timesteps):
   #  self.callbacks[callback_name].update(num_timesteps)
 
-  @property
-  def dt(self):
-    return self.model.opt.timestep * self.frame_skip
+#  @property
+#  def dt(self):
+#    return self.model.opt.timestep * self.run_parameters["frame_skip"]
+
+  def get_config(self):
+    return copy.deepcopy(self._config)
+
+  def get_run_parameters(self):
+    # Context cannot be deep copied
+    exclude = {"rendering_context"}
+    run_params = {k: copy.deepcopy(self._run_parameters[k]) for k in self._run_parameters.keys() - exclude}
+    run_params["rendering_context"] = self._run_parameters["rendering_context"]
+    return run_params
+
+  def get_run_folder(self):
+    return self._run_folder
 
   def get_state(self):
+    # TODO fix this
     state = {"step": self.steps, "timestep": self.data.time,
              "qpos": self.data.qpos[self.independent_joints].copy(),
              "qvel": self.data.qvel[self.independent_joints].copy(),
