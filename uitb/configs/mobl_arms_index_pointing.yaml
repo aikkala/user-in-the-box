@@ -4,7 +4,7 @@ simulation:
   bm_model:
     cls: "MoblArmsIndex"
     kwargs:
-      shoulder_variant: "none"
+      shoulder_variant: "patch-v1"
   task:
     cls: "Pointing"
     kwargs:
@@ -20,6 +20,10 @@ simulation:
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
         end_effector: "hand_2distph"
+  effort_model:
+    cls: "Neural"
+    kwargs:
+      weight: 1e-4
   run_parameters:
     action_sample_freq: 20
 
@@ -42,6 +46,6 @@ rl:
   device: "cuda"
   num_workers: 10
   nsteps: 4000
-  batch_size: 500
+  batch_size: 1000
   target_kl: 1.0
   save_freq: 5_000_000
