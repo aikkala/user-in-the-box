@@ -19,3 +19,6 @@ class Composite(BaseEffortModel):
 
   def reset(self):
     pass
+
+  def update(self):
+    pass

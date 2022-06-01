@@ -291,6 +291,9 @@ class Simulator(gym.Env):
     # Add an effort cost to reward
     reward -= self.effort_model.cost(self._model, self._data)
 
+    # Update effort model (e.g. reduce max force output)
+    self.effort_model.update(self._model, self._data)
+
     # Get observation
     obs = self.get_observation()
 
@@ -317,6 +320,7 @@ class Simulator(gym.Env):
     self.bm_model.reset(self._model, self._data)
     self.perception.reset(self._model, self._data)
     self.task.reset(self._model, self._data)
+    self.effort_model.reset(self._model, self._data)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self._model, self._data)

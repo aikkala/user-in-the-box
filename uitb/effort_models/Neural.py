@@ -14,3 +14,6 @@ class Neural(BaseEffortModel):
 
   def reset(self):
     pass
+
+  def update(self):
+    pass

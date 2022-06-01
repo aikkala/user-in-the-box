@@ -18,6 +18,10 @@ class BaseEffortModel(ABC):
   def reset(self):
     pass
 
+  @abstractmethod
+  def update(self):
+    pass
+
   @classmethod
   def clone(cls, run_folder, package_name):
 
