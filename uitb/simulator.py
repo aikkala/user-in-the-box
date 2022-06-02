@@ -74,17 +74,19 @@ class Simulator(gym.Env):
     bm_cls.insert(simulation)
 
     # Add perception modules
-    perception_modules = {}
     for module_cfg in config["simulation"].get("perception_modules", []):
       module_cls = cls.get_class("perception", module_cfg["cls"])
       module_kwargs = module_cfg.get("kwargs", {})
       module_cls.clone(run_folder, config["package_name"])
       module_cls.insert(simulation, config, **module_kwargs)
-      perception_modules[module_cls] = module_kwargs
 
     # Clone also RL library files so the package will be completely standalone
     rl_cls = cls.get_class("rl", config["rl"]["algorithm"])
     rl_cls.clone(run_folder, config["package_name"])
+
+    # Clone effort model
+    effort_cls = cls.get_class("effort_models", config["simulation"].get("effort_model", {"cls": "Zero"})["cls"])
+    effort_cls.clone(run_folder, config["package_name"])
 
     # TODO read the xml file directly from task.getroot() instead of writing it to a file first; need to input a dict
     #  of assets to mujoco.MjModel.from_xml_path
@@ -92,14 +94,9 @@ class Simulator(gym.Env):
     with open(simulation_file+".xml", 'w') as file:
       simulation.write(file, encoding='unicode')
 
-    # Get task and bm_model kwargs
-    task_kwargs = config["simulation"]["task"].get("kwargs", {})
-    bm_kwargs = config["simulation"]["bm_model"].get("kwargs", {})
-
     # Initialise the simulator
-    model, _, _, _, _ = \
-      cls._initialise(task_cls, task_kwargs, bm_cls, bm_kwargs, perception_modules, simulation_file+".xml",
-                      run_parameters)
+    model, _, _, _, _, _ = \
+      cls._initialise(config, run_folder, run_parameters)
 
     # It would be nice to save an xml here in addition to saving a binary model file. But seems like there's only one
     # function to save an xml file: mujoco.mj_saveLastXML, which doesn't work here because we read the original
@@ -146,7 +143,30 @@ class Simulator(gym.Env):
                     dirs_exist_ok=True)
 
   @classmethod
-  def _initialise(cls, task_cls, task_kwargs, bm_cls, bm_kwargs, perception_modules, simulation_file, run_parameters):
+  def _initialise(cls, config, run_folder, run_parameters):
+
+    # Get task class and kwargs
+    task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
+    task_kwargs = config["simulation"]["task"].get("kwargs", {})
+
+    # Get bm class and kwargs
+    bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
+    bm_kwargs = config["simulation"]["bm_model"].get("kwargs", {})
+
+    # Get effort class and kwargs; use Zero by default
+    effort_cfg = config["simulation"].get("effort_model", {"cls": "Zero", "kwargs": {}})
+    effort_cls = cls.get_class("effort_models", effort_cfg["cls"])
+    effort_kwargs = effort_cfg.get("kwargs", {})
+
+    # Initialise perception modules
+    perception_modules = {}
+    for module_cfg in config["simulation"].get("perception_modules", []):
+      module_cls = cls.get_class("perception", module_cfg["cls"])
+      module_kwargs = module_cfg.get("kwargs", {})
+      perception_modules[module_cls] = module_kwargs
+
+    # Get xml file
+    simulation_file = os.path.join(run_folder, config["package_name"], "simulation.xml")
 
     # Load the mujoco model
     model = mujoco.MjModel.from_xml_path(simulation_file)
@@ -167,8 +187,9 @@ class Simulator(gym.Env):
     task = task_cls(model, data, **{**task_kwargs, **run_parameters})
     bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters})
     perception = Perception(model, data, bm_model, perception_modules, run_parameters)
+    effort_model = effort_cls(bm_model, **{**effort_kwargs, **run_parameters})
 
-    return model, data, task, bm_model, perception
+    return model, data, task, bm_model, perception, effort_model
 
   @classmethod
   def get(cls, run_folder, run_parameters=None, use_cloned=True):
@@ -211,26 +232,9 @@ class Simulator(gym.Env):
     self._run_parameters = self._config["simulation"]["run_parameters"].copy()
     self._run_parameters.update(run_parameters or {})
 
-    simulation_file = os.path.join(self._run_folder, self._config["package_name"], "simulation.xml")
-
-    # Get task class and kwargs
-    task_cls = self.get_class("tasks", self._config["simulation"]["task"]["cls"])
-    task_kwargs = self._config["simulation"]["task"].get("kwargs", {})
-
-    # Get bm class and kwargs
-    bm_cls = self.get_class("bm_models", self._config["simulation"]["bm_model"]["cls"])
-    bm_kwargs = self._config["simulation"]["bm_model"].get("kwargs", {})
-
-    # Initialise perception modules
-    perception_modules = {}
-    for module_cfg in self._config["simulation"].get("perception_modules", []):
-      module_cls = self.get_class("perception", module_cfg["cls"])
-      module_kwargs = module_cfg.get("kwargs", {})
-      perception_modules[module_cls] = module_kwargs
-
     # Initialise simulation
-    self._model, self._data, self.task, self.bm_model, self.perception = \
-      self._initialise(task_cls, task_kwargs, bm_cls, bm_kwargs, perception_modules, simulation_file, self._run_parameters)
+    self._model, self._data, self.task, self.bm_model, self.perception, self.effort_model = \
+      self._initialise(self._config, self._run_folder, self._run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
     self.action_space = self._initialise_action_space()
@@ -285,7 +289,10 @@ class Simulator(gym.Env):
     reward, finished, info = self.task.update(self._model, self._data)
 
     # Add an effort cost to reward
-    #reward -= self.bm_model.effort_term.get(self)
+    reward -= self.effort_model.cost(self._model, self._data)
+
+    # Update effort model (e.g. reduce max force output)
+    self.effort_model.update(self._model, self._data)
 
     # Get observation
     obs = self.get_observation()
@@ -313,6 +320,7 @@ class Simulator(gym.Env):
     self.bm_model.reset(self._model, self._data)
     self.perception.reset(self._model, self._data)
     self.task.reset(self._model, self._data)
+    self.effort_model.reset(self._model, self._data)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self._model, self._data)
