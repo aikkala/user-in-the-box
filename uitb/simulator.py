@@ -78,7 +78,7 @@ class Simulator(gym.Env):
       module_cls = cls.get_class("perception", module_cfg["cls"])
       module_kwargs = module_cfg.get("kwargs", {})
       module_cls.clone(run_folder, config["package_name"])
-      module_cls.insert(simulation, config, **module_kwargs)
+      module_cls.insert(simulation, **module_kwargs)
 
     # Clone also RL library files so the package will be completely standalone
     rl_cls = cls.get_class("rl", config["rl"]["algorithm"])
@@ -98,13 +98,14 @@ class Simulator(gym.Env):
     model, _, _, _, _, _ = \
       cls._initialise(config, run_folder, run_parameters)
 
-    # It would be nice to save an xml here in addition to saving a binary model file. But seems like there's only one
-    # function to save an xml file: mujoco.mj_saveLastXML, which doesn't work here because we read the original
-    # task and bm_model xml files. I've tried to read again the task_file with mujoco.MjModel.from_xml_path(task_file)
-    # and then call mujoco.mj_saveLastXML(task_file, model) but it doesn't save the changes into the model (like
-    # setting target-plane to 55cm in front of and 10cm to the right of the biomechanical model's shoulder)
+    # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
+    # mujoco only is able to save the latest loaded xml file (which is either the task or bm model xml files which are
+    # are read in their __init__ functions), hence we need to read the file we've generated again before saving the
+    # modified model
+    mujoco.MjModel.from_xml_path(simulation_file+".xml")
+    mujoco.mj_saveLastXML(simulation_file+".xml", model)
 
-    # Save the modified model as binary
+    # Save the modified model also as binary for faster loading
     mujoco.mj_saveModel(model, simulation_file+".mjcf", None)
 
     # Input built time into config
