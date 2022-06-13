@@ -13,7 +13,7 @@ class BasicWithEndEffectorPosition(BaseModule):
     self.independent_joints = None
 
   @staticmethod
-  def insert(task, config, **kwargs):
+  def insert(task, **kwargs):
     pass
 
   def get_observation_space_params(self):

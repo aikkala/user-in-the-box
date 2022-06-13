@@ -28,7 +28,7 @@ class BaseModule(ABC):
 
   @staticmethod
   @abstractmethod
-  def insert(simulation, config, **kwargs):
+  def insert(simulation, **kwargs):
     pass
 
   @abstractmethod
@@ -75,8 +75,10 @@ class BaseModule(ABC):
     modality = os.path.join(dst, src.parent.stem)
     os.makedirs(modality, exist_ok=True)
 
-    # Copy the encoders file
-    shutil.copyfile(os.path.join(src.parent, "encoders.py"), os.path.join(modality, "encoders.py"))
+    # Copy the encoders file (if it exists)
+    encoders_file = os.path.join(src.parent, "encoders.py")
+    if os.path.isfile(encoders_file):
+      shutil.copyfile(encoders_file, os.path.join(modality, "encoders.py"))
 
     # Create an __init__.py file with the relevant import
     modules = cls.__module__.split(".")

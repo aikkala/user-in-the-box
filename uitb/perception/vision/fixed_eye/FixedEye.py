@@ -63,7 +63,7 @@ class FixedEye(BaseModule):
     super().__init__(model, data, bm_model, **kwargs)
 
   @staticmethod
-  def insert(simulation, config, **kwargs):
+  def insert(simulation, **kwargs):
 
     assert "pos" in kwargs, "pos needs to be defined for this perception module"
     assert "quat" in kwargs, "quat needs to be defined for this perception module"
