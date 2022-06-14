@@ -36,8 +36,11 @@ class BaseModule(ABC):
     pass
 
   @abstractmethod
+  def _get_observation_range(self):
+    return {"low": None, "high": None}
+
   def get_observation_space_params(self):
-    return {"low": None, "high": None, "shape": None}
+    return {**self._get_observation_range(), "shape": self.observation_shape}
 
   def reset(self, model, data):
     pass

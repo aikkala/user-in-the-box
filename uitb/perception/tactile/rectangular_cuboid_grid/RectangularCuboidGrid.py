@@ -97,8 +97,8 @@ class RectangularCuboidGrid(BaseModule):
       obs[idx] = data.sensor(sensor).data
     return obs
 
-  def get_observation_space_params(self):
-    return {"low": 0, "high": float('inf'), "shape": (4,)}
+  def _get_observation_range(self):
+    return {"low": 0, "high": float('inf')}
 
   def reset(self, model, data):
     pass

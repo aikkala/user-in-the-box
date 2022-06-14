@@ -16,8 +16,8 @@ class BasicWithEndEffectorPosition(BaseModule):
   def insert(task, **kwargs):
     pass
 
-  def get_observation_space_params(self):
-    return {"low": -float('inf'), "high": float('inf'), "shape": self.observation_shape}
+  def _get_observation_range(self):
+    return {"low": -float('inf'), "high": float('inf')}
 
   def get_observation(self, model, data):
 

@@ -123,8 +123,8 @@ class FixedEye(BaseModule):
 
     return obs
 
-  def get_observation_space_params(self):
-    return {"low": -1, "high": 1, "shape": self.observation_shape}
+  def _get_observation_range(self):
+    return {"low": -1, "high": 1}
 
   def reset(self, model, data):
     if self._buffer is not None:
