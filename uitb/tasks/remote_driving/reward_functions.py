@@ -4,72 +4,56 @@ import numpy as np
 
 class BaseFunction(ABC):
   @abstractmethod
-  def get(self, dist):
+  def get(self, ee_joystick, car_target, info, model, data):
     pass
   @abstractmethod
-  def __repr__(self):
-    pass
   def reset(self):
     pass
-  def get_min(self):
-    return 0
 
 class NegativeExpDistance(BaseFunction):
 
-  def __init__(self, k=3, shift=-1, scale=0.1):
-    self.k = k
-    self.shift = shift
-    self.scale = scale
+  def __init__(self, joystick_specs=None, target_specs=None):
 
-  def get(self, dist):
-    return (np.exp(-dist*self.k) + self.shift)*self.scale
+    # Default parameters for joystick related components
+    self.joystick_specs = {"k": 3, "shift": -1, "scale": 1,
+                           "bonus": 0, "bonus_active": False, "bonus_onetime": False}
+    # Update parameters if needed
+    if joystick_specs is not None:
+      self.joystick_specs.update(joystick_specs)
+    self.joystick_bonus_active = self.joystick_specs["bonus_active"]
 
-  def get_min(self):
-    return self.shift*self.scale
+    # Default parameters for target related components
+    self.target_specs = {"k": 3, "shift": -1, "scale": 0.1,
+                         "bonus": 8, "bonus_active": True, "bonus_onetime": True}
+    # Update parameters if needed
+    if target_specs is not None:
+      self.target_specs.update(target_specs)
+    self.target_bonus_active = self.target_specs["bonus_active"]
 
-  def __repr__(self):
-    return "NegativeExpDistance"
+  def get(self, dist_ee_joystick, dist_car_target, info, model, data):
 
-class NegativeDistance(BaseFunction):
+    cost = lambda dist, specs: (np.exp(-dist*specs["k"]) + specs["shift"])*specs["scale"]
 
-  def __init__(self, scale=1):
-    self.scale = scale
+    # Distance between end-effector and joystick
+    reward = cost(dist_ee_joystick, self.joystick_specs)
 
-  def get(self, dist):
-    return -dist*self.scale
+    # Distance between car and target
+    reward += cost(dist_car_target, self.target_specs)
 
-  def __repr__(self):
-    return "NegativeDistance"
+    # Bonus for hitting joystick
+    if self.joystick_bonus_active and info["end_effector_at_joystick"]:
+      reward += self.joystick_specs["bonus"]
+      if self.joystick_specs["bonus_onetime"]:
+        self.joystick_bonus_active = False
 
-class RewardBonus(BaseFunction):
+    # Bonus for hitting target
+    if self.target_bonus_active and info["inside_target"]:
+      reward += self.target_specs["bonus"]
+      if self.target_specs["bonus_onetime"]:
+        self.target_bonus_active = False
 
-  def __init__(self, bonus=8, onetime=False):
-    self.bonus = bonus
-
-    self.onetime = onetime
-    self.active = True
-
-  def get(self, get_bonus):
-    if get_bonus and self.active:
-      if self.onetime:
-        self.active = False
-      return self.bonus
-    else:
-      return 0
+    return reward
 
   def reset(self):
-    self.active = True
-
-  def __repr__(self):
-    return "RewardBonus"
-
-class NoBonus(BaseFunction):
-
-  def __init__(self, **kwargs):
-    pass
-
-  def get(self, get_bonus):
-    return 0
-
-  def __repr__(self):
-    return "NoBonus"
+    self.joystick_bonus_active = self.joystick_specs["bonus_active"]
+    self.target_bonus_active = self.target_specs["bonus_active"]
