@@ -6,6 +6,7 @@ import mujoco
 import numpy as np
 import xml.etree.ElementTree as ET
 import pathlib
+import importlib
 
 from ..utils.functions import parent_path
 
@@ -87,6 +88,11 @@ class BaseTask(ABC):
     if os.path.isdir(os.path.join(src, "assets")):
       shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
                       dirs_exist_ok=True)
+
+  @classmethod
+  def get_reward_function(cls, specs, module_name="reward_functions"):
+    module = importlib.import_module(".".join(cls.__module__.split(".")[:-1]) + f".{module_name}")
+    return getattr(module, specs["cls"])(**specs.get("kwargs", {}))
 
   def _get_body_xvelp_xvelr(self, model, data, bodyname):
     # TODO: test this reimplementation of mujoco-py
