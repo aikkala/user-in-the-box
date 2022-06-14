@@ -12,8 +12,8 @@ class Neural(BaseEffortModel):
   def cost(self, model, data):
     return self._weight * np.sum(data.ctrl ** 2)
 
-  def reset(self):
+  def reset(self, model, data):
     pass
 
-  def update(self):
+  def update(self, model, data):
     pass

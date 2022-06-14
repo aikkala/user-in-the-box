@@ -58,9 +58,9 @@ class CumulativeFatigue(BaseEffortModel):
 
     return self._weight*effort
 
-  def reset(self):
+  def reset(self, model, data):
     self._MA = None
     self._MR = None
 
-  def update(self):
+  def update(self, model, data):
     pass

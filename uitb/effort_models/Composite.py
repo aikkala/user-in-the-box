@@ -17,8 +17,8 @@ class Composite(BaseEffortModel):
                     * data.qfrc_inverse[self._bm_model.independent_joints] ** 2)
     return self._weight * (energy + 0.05 * angle_acceleration)
 
-  def reset(self):
+  def reset(self, model, data):
     pass
 
-  def update(self):
+  def update(self, model, data):
     pass

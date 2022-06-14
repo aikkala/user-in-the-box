@@ -15,11 +15,11 @@ class BaseEffortModel(ABC):
     pass
 
   @abstractmethod
-  def reset(self):
+  def reset(self, model, data):
     pass
 
   @abstractmethod
-  def update(self):
+  def update(self, model, data):
     pass
 
   @classmethod
