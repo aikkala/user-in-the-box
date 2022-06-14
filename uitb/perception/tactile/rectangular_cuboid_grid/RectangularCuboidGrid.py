@@ -94,7 +94,7 @@ class RectangularCuboidGrid(BaseModule):
   def get_observation(self, model, data):
     obs = np.zeros(len(self.sensors),)
     for idx, sensor in enumerate(self.sensors):
-      obs[idx] = data.sensor(sensor).data
+      obs[idx] = data.sensor(sensor).data / 100
     return obs
 
   def _get_observation_range(self):
