@@ -5,6 +5,10 @@ simulation:
     cls: "MoblArmsIndex"
     kwargs:
       shoulder_variant: "patch-v1"
+      effort_model:
+        cls: "Neural"
+        kwargs:
+          weight: 1e-5
   task:
     cls: "RemoteDriving"
     kwargs:

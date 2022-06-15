@@ -12,7 +12,7 @@ class MoblArmsIndex(BaseBMModel):
     # Set shoulder variant
     self.shoulder_variant = kwargs.get("shoulder_variant", "patch-v1")
 
-  def update(self, model, data):
+  def _update(self, model, data):
 
     # Update shoulder equality constraints
     if self.shoulder_variant.startswith("patch"):
@@ -28,3 +28,7 @@ class MoblArmsIndex(BaseBMModel):
 
       # Do a forward calculation
       mujoco.mj_forward(model, data)
+
+  @classmethod
+  def get_floor(cls):
+    return None

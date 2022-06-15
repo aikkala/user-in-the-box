@@ -84,10 +84,6 @@ class Simulator(gym.Env):
     rl_cls = cls.get_class("rl", config["rl"]["algorithm"])
     rl_cls.clone(run_folder, config["package_name"])
 
-    # Clone effort model
-    effort_cls = cls.get_class("effort_models", config["simulation"].get("effort_model", {"cls": "Zero"})["cls"])
-    effort_cls.clone(run_folder, config["package_name"])
-
     # TODO read the xml file directly from task.getroot() instead of writing it to a file first; need to input a dict
     #  of assets to mujoco.MjModel.from_xml_path
     simulation_file = os.path.join(run_folder, config["package_name"], "simulation")
@@ -95,7 +91,7 @@ class Simulator(gym.Env):
       simulation.write(file, encoding='unicode')
 
     # Initialise the simulator
-    model, _, _, _, _, _ = \
+    model, _, _, _, _ = \
       cls._initialise(config, run_folder, run_parameters)
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
@@ -154,11 +150,6 @@ class Simulator(gym.Env):
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
     bm_kwargs = config["simulation"]["bm_model"].get("kwargs", {})
 
-    # Get effort class and kwargs; use Zero by default
-    effort_cfg = config["simulation"].get("effort_model", {"cls": "Zero", "kwargs": {}})
-    effort_cls = cls.get_class("effort_models", effort_cfg["cls"])
-    effort_kwargs = effort_cfg.get("kwargs", {})
-
     # Initialise perception modules
     perception_modules = {}
     for module_cfg in config["simulation"].get("perception_modules", []):
@@ -188,9 +179,8 @@ class Simulator(gym.Env):
     task = task_cls(model, data, **{**task_kwargs, **run_parameters})
     bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters})
     perception = Perception(model, data, bm_model, perception_modules, run_parameters)
-    effort_model = effort_cls(bm_model, **{**effort_kwargs, **run_parameters})
 
-    return model, data, task, bm_model, perception, effort_model
+    return model, data, task, bm_model, perception
 
   @classmethod
   def get(cls, run_folder, run_parameters=None, use_cloned=True):
@@ -234,7 +224,7 @@ class Simulator(gym.Env):
     self._run_parameters.update(run_parameters or {})
 
     # Initialise simulation
-    self._model, self._data, self.task, self.bm_model, self.perception, self.effort_model = \
+    self._model, self._data, self.task, self.bm_model, self.perception = \
       self._initialise(self._config, self._run_folder, self._run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
@@ -280,7 +270,7 @@ class Simulator(gym.Env):
     # Advance the simulation
     mujoco.mj_step(self._model, self._data, nstep=self._run_parameters["frame_skip"])
 
-    # Update bm model (e.g. update constraints)
+    # Update bm model (e.g. update constraints); updates also effort model
     self.bm_model.update(self._model, self._data)
 
     # Update perception modules
@@ -290,10 +280,7 @@ class Simulator(gym.Env):
     reward, finished, info = self.task.update(self._model, self._data)
 
     # Add an effort cost to reward
-    reward -= self.effort_model.cost(self._model, self._data)
-
-    # Update effort model (e.g. reduce max force output)
-    self.effort_model.update(self._model, self._data)
+    reward -= self.bm_model.get_effort_cost(self._model, self._data)
 
     # Get observation
     obs = self.get_observation()
@@ -321,7 +308,6 @@ class Simulator(gym.Env):
     self.bm_model.reset(self._model, self._data)
     self.perception.reset(self._model, self._data)
     self.task.reset(self._model, self._data)
-    self.effort_model.reset(self._model, self._data)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self._model, self._data)
@@ -330,10 +316,6 @@ class Simulator(gym.Env):
 
   #def callback(self, callback_name, num_timesteps):
   #  self.callbacks[callback_name].update(num_timesteps)
-
-#  @property
-#  def dt(self):
-#    return self.model.opt.timestep * self.run_parameters["frame_skip"]
 
   def get_config(self):
     return copy.deepcopy(self._config)
