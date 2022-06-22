@@ -94,7 +94,7 @@ class FixedEye(BaseModule):
       assert eye_body is not None, f"Body with name {body} was not found"
       eye_body.append(eye)
 
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
 
     # Get rgb and depth arrays
     rgb, depth = self._camera.render()

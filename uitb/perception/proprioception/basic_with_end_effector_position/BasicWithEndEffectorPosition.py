@@ -19,7 +19,7 @@ class BasicWithEndEffectorPosition(BaseModule):
   def _get_observation_range(self):
     return {"low": -float('inf'), "high": float('inf')}
 
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
 
     # Normalise qpos
     jnt_range = model.jnt_range[self.bm_model.independent_joints]

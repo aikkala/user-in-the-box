@@ -32,7 +32,7 @@ class BaseModule(ABC):
     pass
 
   @abstractmethod
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
     pass
 
   @abstractmethod
@@ -140,8 +140,8 @@ class Perception:
     for module in self.perception_modules:
       module.update(model, data)
 
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
     observations = {}
     for module in self.perception_modules:
-      observations[module.modality] = module.get_observation(model, data)
+      observations[module.modality] = module.get_observation(model, data, info)
     return observations

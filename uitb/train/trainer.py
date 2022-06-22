@@ -22,7 +22,7 @@ if __name__=="__main__":
   run_folder = Simulator.build(config)
 
   # Initialise
-  simulator = Simulator.get(run_folder)
+  simulator = Simulator.get(run_folder, use_cloned=True)
 
   # Get name for this run from config
   name = config.get("run_name", None)
@@ -35,7 +35,7 @@ if __name__=="__main__":
     config["package_name"] = name.replace("-", "_")
 
   # Initialise wandb
-  run = wandb.init(project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
+  run = wandb.init(mode="disabled", project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
 
   # Initialise RL model
   rl_cls = simulator.get_class("rl", config["rl"]["algorithm"])

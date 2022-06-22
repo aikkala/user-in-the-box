@@ -47,7 +47,7 @@ class BaseTask(ABC):
 
   @abstractmethod
   def reset(self, model, data):
-    pass
+    return dict()
 
   def get_stateful_information(self, model, data):
     return None
@@ -75,6 +75,7 @@ class BaseTask(ABC):
     base_file = pathlib.Path(__file__)
     shutil.copyfile(base_file, os.path.join(dst, base_file.name))
 
+    # Create an __init__.py file with the relevant import
     # Create an __init__.py file with the relevant import
     modules = cls.__module__.split(".")
     with open(os.path.join(dst, "__init__.py"), "w") as file:

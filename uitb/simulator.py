@@ -283,14 +283,14 @@ class Simulator(gym.Env):
     reward -= self.bm_model.get_effort_cost(self._model, self._data)
 
     # Get observation
-    obs = self.get_observation()
+    obs = self.get_observation(info)
 
     return obs, reward, finished, info
 
-  def get_observation(self):
+  def get_observation(self, info=None):
 
     # Get observation from perception
-    observation = self.perception.get_observation(self._model, self._data)
+    observation = self.perception.get_observation(self._model, self._data, info)
 
     # Add any stateful information that is required
     stateful_information = self.task.get_stateful_information(self._model, self._data)
@@ -307,12 +307,12 @@ class Simulator(gym.Env):
     # Reset all models
     self.bm_model.reset(self._model, self._data)
     self.perception.reset(self._model, self._data)
-    self.task.reset(self._model, self._data)
+    info = self.task.reset(self._model, self._data)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self._model, self._data)
 
-    return self.get_observation()
+    return self.get_observation(info)
 
   #def callback(self, callback_name, num_timesteps):
   #  self.callbacks[callback_name].update(num_timesteps)
