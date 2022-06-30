@@ -69,7 +69,7 @@ class DistanceRewardComponent(BaseRewardComponent):
   def reward(self):
     if self._condition_fct(self.model, self.data):
       distance = np.linalg.norm(self._end_effector_pos - self._target_pos, ord=self._norm)
-      return self._weight * np.max((distance, self._target_size)) ** (2 if self._squared_norm else 1)
+      return - self._weight * np.max((distance, self._target_size)) ** (2 if self._squared_norm else 1)
     else:
       return self._condition_fallback
 
