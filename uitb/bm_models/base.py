@@ -65,8 +65,8 @@ class BaseBMModel(ABC):
     self._independent_joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
                                for joint_name in self._independent_joint_names]
 
-    # Get the effort model; some models might need to know dt
-    self._effort_model = self.get_effort_model(kwargs.get("effort_model", {"cls": "Zero"}), dt=kwargs["dt"])
+    # # Get the effort model; some models might need to know dt
+    # self._effort_model = self.get_effort_model(kwargs.get("effort_model", {"cls": "Zero"}), dt=kwargs["dt"])
 
     # If the model has a floor/ground, it should be defined so we can ignore it when cloning
     #self._floor = kwargs.get("floor", None)
@@ -77,10 +77,10 @@ class BaseBMModel(ABC):
 
   def update(self, model, data):
     self._update(model, data)
-    self._effort_model.update(model, data)
+    #self._effort_model.update(model, data)
 
-  def get_effort_cost(self, model, data):
-    return self._effort_model.cost(model, data)
+  # def get_effort_cost(self, model, data):
+  #   return self._effort_model.cost(model, data)
 
   @classmethod
   def get_xml_file(cls):
@@ -148,12 +148,12 @@ class BaseBMModel(ABC):
     shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
                     dirs_exist_ok=True)
 
-    # Copy effort models
-    shutil.copyfile(os.path.join(base_file.parent, "effort_models.py"), os.path.join(dst, "effort_models.py"))
+    # # Copy effort models
+    # shutil.copyfile(os.path.join(base_file.parent, "effort_models.py"), os.path.join(dst, "effort_models.py"))
 
-  def get_effort_model(self, specs, dt):
-    module = importlib.import_module(".".join(BaseBMModel.__module__.split(".")[:-1]) + ".effort_models")
-    return getattr(module, specs["cls"])(self, **{**specs.get("kwargs", {}), **{"dt": dt}})
+  # def get_effort_model(self, specs, dt):
+  #   module = importlib.import_module(".".join(BaseBMModel.__module__.split(".")[:-1]) + ".effort_models")
+  #   return getattr(module, specs["cls"])(self, **{**specs.get("kwargs", {}), **{"dt": dt}})
 
   def set_ctrl(self, model, data, action):
     data.ctrl[self._motor_actuators] = np.clip(self._motor_smooth_avg + action[:self._nm], 0, 1)
@@ -183,8 +183,8 @@ class BaseBMModel(ABC):
     # Reset smoothed average of motor actuator activation
     self._motor_smooth_avg = np.zeros((self._nm,))
 
-    # Some effort models may be stateful and need to be reset
-    self._effort_model.reset(model, data)
+    # # Some effort models may be stateful and need to be reset
+    # self._effort_model.reset(model, data)
 
     # Finally update whatever needs to be updated
     self.update(model, data)

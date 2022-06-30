@@ -5,11 +5,6 @@ simulation:
     cls: "MoblArmsIndex"
     kwargs:
       shoulder_variant: "patch-v1"
-  task:
-    cls: "Pointing"
-    kwargs:
-      end_effector: "hand_2distph"
-      shoulder: "humphant"
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
@@ -20,10 +15,19 @@ simulation:
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
         end_effector: "hand_2distph"
-  effort_model:
-    cls: "Neural"
+  task:
+    cls: "Pointing"
     kwargs:
-      weight: 1e-4
+      end_effector: "hand_2distph"
+      shoulder: "humphant"
+  reward_components:
+    - cls: "Distance"
+      kwargs:
+        end_effector: ["geom", "hand_2distph"]
+        target: ["geom", "target"]
+    - cls: "Effort"
+      kwargs:
+        weight: 1e-4
   run_parameters:
     action_sample_freq: 20
 

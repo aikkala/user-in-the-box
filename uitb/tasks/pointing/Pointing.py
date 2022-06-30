@@ -1,7 +1,7 @@
 import numpy as np
 import mujoco
 
-from .reward_functions import NegativeExpDistanceWithHitBonus
+#from .reward_functions import NegativeExpDistanceWithHitBonus
 from ..base import BaseTask
 
 class Pointing(BaseTask):
@@ -9,8 +9,8 @@ class Pointing(BaseTask):
   def __init__(self, model, data, end_effector, shoulder, **kwargs):
     super().__init__(model, data, **kwargs)
 
-    # This task requires an end-effector to be defined TODO could be either body or geom, or why not a site
-    self.end_effector = end_effector
+    # This task requires an end-effector to be defined (default object type: "geom")
+    self.end_effector = ["geom", end_effector] if isinstance(end_effector, str) else end_effector
 
     # Also a shoulder that is used to define the location of target plane
     self.shoulder = shoulder
@@ -38,7 +38,7 @@ class Pointing(BaseTask):
 
     # Define a default reward function
     #if self.reward_function is None:
-    self.reward_function = NegativeExpDistanceWithHitBonus(k=10)
+    #self.reward_function = NegativeExpDistanceWithHitBonus(k=10)
 
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
@@ -72,7 +72,7 @@ class Pointing(BaseTask):
     info = {"termination": False, "target_spawned": False}
 
     # Get end-effector position
-    ee_position = data.geom(self.end_effector).xpos
+    ee_position = getattr(data, self.end_effector[0])(self.end_effector[1]).xpos
 
     # Distance to target
     dist = np.linalg.norm(self.target_position - (ee_position - self.target_origin))
@@ -119,12 +119,12 @@ class Pointing(BaseTask):
 
     # Calculate reward; note, inputting distance to surface into reward function, hence distance can be negative if
     # fingertip is inside target
-    reward = self.reward_function.get(self, dist-self.target_radius, info)
+    #reward = self.reward_function.get(self, dist-self.target_radius, info)
 
     # Add an effort cost to reward
     #reward -= self.effort_term.get(self)
 
-    return reward, finished, info
+    return finished, info
 
   def get_state(self):
     state = super().get_state()

@@ -2,7 +2,7 @@ import numpy as np
 import mujoco
 import xml.etree.ElementTree as ET
 
-from .reward_functions import NegativeExpDistanceWithHitBonus
+#from .reward_functions import NegativeExpDistanceWithHitBonus
 from ..base import BaseTask
 
 
@@ -19,6 +19,7 @@ class ChoiceReaction(BaseTask):
     # Get buttons
     self.buttons = [f"button-{idx}" for idx in range(4)]
     self.current_button = self.buttons[0]
+    self.current_button_pos = data.geom(self.current_button).xpos
 
     # Use early termination if target is not hit in time
     self.steps_since_last_hit = 0
@@ -30,8 +31,8 @@ class ChoiceReaction(BaseTask):
     self.max_trials = kwargs.get('max_trials', 10)
     self.targets_hit = 0
 
-    # Define a default reward function
-    self.reward_function = NegativeExpDistanceWithHitBonus()
+    # # Define a default reward function
+    # self.reward_function = NegativeExpDistanceWithHitBonus()
 
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
@@ -111,15 +112,15 @@ class ChoiceReaction(BaseTask):
 
     # Get end-effector position and target position
     ee_position = data.geom(self.end_effector).xpos
-    target_position = data.geom(self.current_button).xpos
+    self.current_button_pos = data.geom(self.current_button).xpos
 
-    # Distance to target
-    dist = np.linalg.norm(target_position - ee_position)
+    # # Distance to target
+    # dist = np.linalg.norm(target_position - ee_position)
 
-    # Calculate reward
-    reward = self.reward_function.get(self, dist, info)
+    # # Calculate reward
+    # reward = self.reward_function.get(self, dist, info)
 
-    return reward, finished, info
+    return finished, info
 
   def choose_button(self, model, data):
 

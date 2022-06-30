@@ -9,15 +9,6 @@ simulation:
         cls: "Neural"
         kwargs:
           weight: 1e-5
-  task:
-    cls: "RemoteDriving"
-    kwargs:
-      end_effector: "hand_2distph"
-      car_velocity_threshold: 0
-      episode_length_seconds: 10
-      episode_length_seconds_extra_time: 0
-      reward_function:
-        cls: "NegativeExpDistance"
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
@@ -33,6 +24,23 @@ simulation:
       kwargs:
         geom: "hand_2distph"
         resolution: [0, 1, 2]
+  task:
+    cls: "RemoteDriving"
+    kwargs:
+      end_effector: "hand_2distph"
+      car_velocity_threshold: 0
+      episode_length_seconds: 10
+      episode_length_seconds_extra_time: 0
+  reward_components:
+    - cls: "Distance"
+      kwargs:
+        end_effector: ["task", "dist_ee_to_joystick"]
+    - cls: "Distance"
+      kwargs:
+        end_effector: ["task", "dist_car_to_target"]
+    - cls: "Effort"
+      kwargs:
+        weight: 1e-4
   run_parameters:
     action_sample_freq: 20
 

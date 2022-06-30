@@ -40,7 +40,8 @@ class Simulator(gym.Env):
     # Make sure required things are defined in config
     assert "simulation" in config, "Simulation specs (simulation) must be defined in config"
     assert "bm_model" in config["simulation"], "Biomechanical model (bm_model) must be defined in config"
-    assert "task" in config["simulation"], "task (task) must be defined in config"
+    assert "task" in config["simulation"], "Task (task) must be defined in config"
+    assert "reward_components" in config["simulation"], "Reward (reward_components) must be defined in config"
 
     assert "run_parameters" in config["simulation"], "Run parameters (run_parameters) must be defined in config"
     run_parameters = config["simulation"]["run_parameters"].copy()
@@ -68,6 +69,16 @@ class Simulator(gym.Env):
     task_cls.clone(run_folder, config["package_name"])
     simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
 
+    # Add main reward file (needs to be called before loading reward component classes below!)
+    reward_cls = cls.get_class("rewards", "Reward")
+    reward_cls.clone(run_folder, config["package_name"])
+
+    # Load reward components classes
+    for component_cfg in config["simulation"].get("reward_components", []):
+      reward_component_cls = cls.get_class("rewards", component_cfg["cls"])
+      #reward_kwargs = component_cfg.get("kwargs", {})
+      reward_component_cls.clone(run_folder, config["package_name"])
+
     # Load biomechanical model class
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
     bm_cls.clone(run_folder, config["package_name"])
@@ -90,8 +101,9 @@ class Simulator(gym.Env):
     with open(simulation_file+".xml", 'w') as file:
       simulation.write(file, encoding='unicode')
 
+
     # Initialise the simulator
-    model, _, _, _, _ = \
+    model, _, _, _, _, _ = \
       cls._initialise(config, run_folder, run_parameters)
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
@@ -146,6 +158,12 @@ class Simulator(gym.Env):
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
     task_kwargs = config["simulation"]["task"].get("kwargs", {})
 
+    # Get (default) reward class, reward component classes and kwargs
+    reward_cls = cls.get_class("rewards", "Reward")
+    reward_component_infos = []
+    for component_cfg in config["simulation"].get("reward_components", []):
+      reward_component_infos.append((cls.get_class("rewards", component_cfg["cls"]), component_cfg.get("kwargs", {})))
+
     # Get bm class and kwargs
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
     bm_kwargs = config["simulation"]["bm_model"].get("kwargs", {})
@@ -179,8 +197,11 @@ class Simulator(gym.Env):
     task = task_cls(model, data, **{**task_kwargs, **run_parameters})
     bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters})
     perception = Perception(model, data, bm_model, perception_modules, run_parameters)
+    reward = reward_cls()
+    for reward_component_cls, reward_kwargs in reward_component_infos:
+      reward.add_component(reward_component_cls(model, data, bm_model, perception_modules, task, run_parameters, **reward_kwargs))
 
-    return model, data, task, bm_model, perception
+    return model, data, task, bm_model, perception, reward
 
   @classmethod
   def get(cls, run_folder, run_parameters=None, use_cloned=True):
@@ -224,7 +245,7 @@ class Simulator(gym.Env):
     self._run_parameters.update(run_parameters or {})
 
     # Initialise simulation
-    self._model, self._data, self.task, self.bm_model, self.perception = \
+    self._model, self._data, self.task, self.bm_model, self.perception, self.reward = \
       self._initialise(self._config, self._run_folder, self._run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
@@ -270,17 +291,20 @@ class Simulator(gym.Env):
     # Advance the simulation
     mujoco.mj_step(self._model, self._data, nstep=self._run_parameters["frame_skip"])
 
-    # Update bm model (e.g. update constraints); updates also effort model
+    # Update bm model (e.g. update constraints)
     self.bm_model.update(self._model, self._data)
 
     # Update perception modules
     self.perception.update(self._model, self._data)
 
     # Update environment
-    reward, finished, info = self.task.update(self._model, self._data)
+    finished, info = self.task.update(self._model, self._data)
 
-    # Add an effort cost to reward
-    reward -= self.bm_model.get_effort_cost(self._model, self._data)
+    # Calculate rewards
+    reward = self.reward.get_reward()
+
+    # # Add an effort cost to reward
+    # reward -= self.bm_model.get_effort_cost(self._model, self._data)
 
     # Get observation
     obs = self.get_observation()

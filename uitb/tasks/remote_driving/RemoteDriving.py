@@ -54,8 +54,8 @@ class RemoteDriving(BaseTask):
     # Minimum distance between car and target is twice the max target halfsize limit
     self.new_target_distance_threshold = 2 * np.max(self.target_halfsize_limit)
 
-    # Get the reward function
-    self.reward_function = self.get_reward_function(kwargs["reward_function"])
+    # # Get the reward function
+    # self.reward_function = self.get_reward_function(kwargs["reward_function"])
 
     # Define target origin, position, and limits
     self.target_origin = np.array([2, 0, 0])
@@ -166,11 +166,11 @@ class RemoteDriving(BaseTask):
       finished = True
       info["termination"] = "time_limit_reached"
 
-    # Calculate reward
-    reward = self.reward_function.get(self.dist_ee_to_joystick, self.dist_car_to_target, info, model, data)
+    # # Calculate reward
+    # reward = self.reward_function.get(self.dist_ee_to_joystick, self.dist_car_to_target, info, model, data)
 
 
-    return reward, finished, info
+    return finished, info
 
   def spawn_car(self, model, data):
     # Choose qpos value of slide joint in x-direction uniformly from joint angle range
@@ -233,8 +233,8 @@ class RemoteDriving(BaseTask):
     self.steps = 0
     self.max_episode_steps_with_extratime = self.max_episode_steps
 
-    # Reset reward function
-    self.reward_function.reset()
+    # # Reset reward function
+    # self.reward_function.reset()
 
     # Spawn a new car location
     self.spawn_car(model, data)
