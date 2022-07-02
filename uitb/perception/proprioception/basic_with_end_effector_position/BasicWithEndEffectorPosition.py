@@ -24,7 +24,7 @@ class BasicWithEndEffectorPosition(BaseModule):
     # Normalise qpos
     jnt_range = model.jnt_range[self.bm_model.independent_joints]
     qpos = data.qpos[self.bm_model.independent_joints].copy()
-    qpos = qpos - jnt_range[:, 0] / (jnt_range[:, 1] - jnt_range[:, 0])
+    qpos = (qpos - jnt_range[:, 0]) / (jnt_range[:, 1] - jnt_range[:, 0])
     qpos = (qpos - 0.5) * 2
 
     # Get qvel, qacc
