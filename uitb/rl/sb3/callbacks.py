@@ -61,7 +61,7 @@ class LinearCurriculum(BaseCallback):
     return self.variable
 
   def update(self, num_timesteps):
-    if num_timesteps > self.start_timestep:
+    if self.end_timestep >= num_timesteps > self.start_timestep:
       self.variable = self.start_value + self.coeff * (num_timesteps - self.start_timestep)
 
   def _on_training_start(self) -> None:

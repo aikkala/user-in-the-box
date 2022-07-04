@@ -46,6 +46,9 @@ class PPO(BaseRLModel):
                                                   save_path=checkpoint_folder,
                                                   name_prefix='model')
 
+    # Get callbacks as a list
+    self.callbacks = [*simulator.callbacks.values()]
+
     # Create an evaluation callback
 #    eval_env = gym.make(rl_config["env_name"], **rl_config["env_kwargs"])
 #    self.eval_callback = EveryNTimesteps(n_steps=rl_config["total_timesteps"]//100, callback=EvalCallback(eval_env, num_eval_episodes=20))
@@ -70,5 +73,5 @@ class PPO(BaseRLModel):
     return config
 
   def learn(self, wandb_callback):
-    #env_callbacks = self.config["env_kwargs"].get("callbacks", [])
-    self.model.learn(total_timesteps=self.total_timesteps, callback=[wandb_callback, self.checkpoint_callback])
+    self.model.learn(total_timesteps=self.total_timesteps,
+                     callback=[wandb_callback, self.checkpoint_callback, *self.callbacks])

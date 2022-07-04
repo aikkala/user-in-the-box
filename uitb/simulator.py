@@ -21,18 +21,29 @@ class Simulator(gym.Env):
 
   id = "uitb:simulator-v0"
 
-  @staticmethod
-  def get_class(modules, cls_str):
+  @classmethod
+  def get_class(cls, *args):
+    # Last element in args should contain the class name (may also contain modules)
     # TODO check for incorrect module names etc
-    src = __name__.split(".")[0]
-    if "." in cls_str:
-      mods = cls_str.split(".")
-      modules += "." + ".".join(mods[:-1])
-      cls_name = mods[-1]
+    modules = ".".join(args[:-1])
+    if "." in args[-1]:
+      splitted = args[-1].split(".")
+      if modules == "":
+        modules = ".".join(splitted[:-1])
+      else:
+        modules += "." + ".".join(splitted[:-1])
+      cls_name = splitted[-1]
     else:
-      cls_name = cls_str
-    module = importlib.import_module(src + "." + modules)
+      cls_name = args[-1]
+    module = cls.get_module(modules)
     return getattr(module, cls_name)
+
+  @classmethod
+  def get_module(cls, *args):
+    # Concatenate given args with a dot in between and import the module
+    src = __name__.split(".")[0]
+    modules = ".".join(args)
+    return importlib.import_module(src + "." + modules)
 
   @classmethod
   def build(cls, config):
@@ -91,7 +102,7 @@ class Simulator(gym.Env):
       simulation.write(file, encoding='unicode')
 
     # Initialise the simulator
-    model, _, _, _, _ = \
+    model, _, _, _, _, _ = \
       cls._initialise(config, run_folder, run_parameters)
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
@@ -174,13 +185,18 @@ class Simulator(gym.Env):
     run_parameters["rendering_context"] = Context(model,
                                                   max_resolution=run_parameters.get("max_resolution", [1280, 960]))
 
+    # Initialise callbacks
+    callbacks = {}
+    for cb in run_parameters["callbacks"]:
+      callbacks[cb["name"]] = cls.get_class(cb["cls"])(cb["name"], **cb["kwargs"])
+
     # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
     # (e.g. move target to a specific position wrt to a body part)
-    task = task_cls(model, data, **{**task_kwargs, **run_parameters})
-    bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters})
-    perception = Perception(model, data, bm_model, perception_modules, run_parameters)
+    task = task_cls(model, data, **{**task_kwargs, **run_parameters, **callbacks})
+    bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters, **callbacks})
+    perception = Perception(model, data, bm_model, perception_modules, {**run_parameters, **callbacks})
 
-    return model, data, task, bm_model, perception
+    return model, data, task, bm_model, perception, callbacks
 
   @classmethod
   def get(cls, run_folder, run_parameters=None, use_cloned=True):
@@ -224,7 +240,7 @@ class Simulator(gym.Env):
     self._run_parameters.update(run_parameters or {})
 
     # Initialise simulation
-    self._model, self._data, self.task, self.bm_model, self.perception = \
+    self._model, self._data, self.task, self.bm_model, self.perception, self.callbacks = \
       self._initialise(self._config, self._run_folder, self._run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
@@ -239,9 +255,6 @@ class Simulator(gym.Env):
     # Initialise viewer
     self._camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
                          dt=self._run_parameters["dt"])
-
-    # Get callbacks
-    #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
 
   def _initialise_action_space(self):
     num_actuators = self.bm_model.nu + self.perception.nu
@@ -314,8 +327,8 @@ class Simulator(gym.Env):
 
     return self.get_observation()
 
-  #def callback(self, callback_name, num_timesteps):
-  #  self.callbacks[callback_name].update(num_timesteps)
+  def callback(self, callback_name, num_timesteps):
+    self.callbacks[callback_name].update(num_timesteps)
 
   def get_config(self):
     return copy.deepcopy(self._config)
