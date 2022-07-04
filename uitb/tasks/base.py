@@ -21,6 +21,8 @@ class BaseTask(ABC):
     # Get action sample freq
     self.action_sample_freq = kwargs["action_sample_freq"]
 
+    # Get dt
+    self.dt = kwargs["dt"]
 
     # Get an rng
     self.rng = np.random.default_rng(kwargs.get("random_seed", None))
