@@ -97,6 +97,9 @@ if __name__=="__main__":
   print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}')
   model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
+  # Set callbacks to match the value used for this training point (if the simulator had any)
+  simulator.update_callbacks(model.num_timesteps)
+
   if args.logging:
 
     # Initialise log
