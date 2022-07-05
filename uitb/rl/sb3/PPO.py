@@ -15,8 +15,8 @@ class PPO(BaseRLModel):
     super().__init__()
 
     rl_config = self.load_config(simulator)
-    run_parameters = simulator.get_run_parameters()
-    run_folder = simulator.get_run_folder()
+    run_parameters = simulator.run_parameters
+    run_folder = simulator.run_folder
 
     # Get total timesteps
     self.total_timesteps = rl_config["total_timesteps"]
@@ -54,7 +54,7 @@ class PPO(BaseRLModel):
 #    self.eval_callback = EveryNTimesteps(n_steps=rl_config["total_timesteps"]//100, callback=EvalCallback(eval_env, num_eval_episodes=20))
 
   def load_config(self, simulator):
-    config = simulator.get_config()["rl"]
+    config = simulator.config["rl"]
 
     # Need to translate strings into classes
     config["policy_type"] = simulator.get_class("rl.sb3", config["policy_type"])

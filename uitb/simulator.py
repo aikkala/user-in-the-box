@@ -192,9 +192,9 @@ class Simulator(gym.Env):
 
     # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
     # (e.g. move target to a specific position wrt to a body part)
-    task = task_cls(model, data, **{**task_kwargs, **run_parameters, **callbacks})
-    bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters, **callbacks})
-    perception = Perception(model, data, bm_model, perception_modules, {**run_parameters, **callbacks})
+    task = task_cls(model, data, **{**task_kwargs, **callbacks, **run_parameters})
+    bm_model = bm_cls(model, data, **{**bm_kwargs, **callbacks, **run_parameters})
+    perception = Perception(model, data, bm_model, perception_modules, {**callbacks, **run_parameters})
 
     return model, data, task, bm_model, perception, callbacks
 
@@ -330,17 +330,20 @@ class Simulator(gym.Env):
   def callback(self, callback_name, num_timesteps):
     self.callbacks[callback_name].update(num_timesteps)
 
-  def get_config(self):
+  @property
+  def config(self):
     return copy.deepcopy(self._config)
 
-  def get_run_parameters(self):
+  @property
+  def run_parameters(self):
     # Context cannot be deep copied
     exclude = {"rendering_context"}
     run_params = {k: copy.deepcopy(self._run_parameters[k]) for k in self._run_parameters.keys() - exclude}
     run_params["rendering_context"] = self._run_parameters["rendering_context"]
     return run_params
 
-  def get_run_folder(self):
+  @property
+  def run_folder(self):
     return self._run_folder
 
   def get_state(self):
