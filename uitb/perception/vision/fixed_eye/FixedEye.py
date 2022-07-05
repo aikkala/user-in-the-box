@@ -119,7 +119,7 @@ class FixedEye(BaseModule):
         self._buffer.appendleft(obs)
 
       # Use latest and oldest observation, and their difference
-      obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=2)
+      obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=0)
 
     return obs
 

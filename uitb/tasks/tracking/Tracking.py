@@ -7,7 +7,7 @@ from .reward_functions import NegativeDistance
 
 class Tracking(BaseTask):
 
-  def __init__(self, model, data, end_effector, shoulder, **kwargs):
+  def __init__(self, model, data, end_effector, shoulder, freq_curriculum, **kwargs):
     super().__init__(model, data, **kwargs)
 
     # This task requires an end-effector to be defined TODO could be either body or geom, or why not a site
@@ -16,25 +16,17 @@ class Tracking(BaseTask):
     # Also a shoulder that is used to define the location of target plane
     self.shoulder = shoulder
 
-    # Time between steps (dt) is needed to generate trajectories
-    assert "dt" in kwargs, "dt needs to be defined for this task"
-    self.dt = kwargs["dt"]
-
-    # Get action sample freq
-    action_sample_freq = kwargs["action_sample_freq"]
-
     # Define episode length
     episode_length_seconds = kwargs.get('episode_length_seconds', 4)
-    self.max_episode_steps = kwargs.get('max_episode_steps', action_sample_freq*episode_length_seconds)
+    self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq*episode_length_seconds)
     self.steps = 0
 
     # Define some limits for target movement speed
     self.min_frequency = 0.0
     self.max_frequency = 0.5
-    self.freq_curriculum = kwargs.get('freq_curriculum', lambda : 1.0)
+    self.freq_curriculum = freq_curriculum
 
     # Define a default reward function
-    #if self.reward_function is None:
     self.reward_function = NegativeDistance()
 
     # Target radius
@@ -44,16 +36,14 @@ class Tracking(BaseTask):
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
 
-    # Define plane where targets will move: 0.55m in front of and 0.1m to the right of shoulder, or the "humphant" body.
-    # Note that this body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
-    self.target_origin = data.body(self.shoulder).xpos(self.shoulder).copy() + np.array([0.55, -0.1, 0])
+    # Define plane where targets will move: 0.55m in front of and 0.1m to the right of shoulder.
+    # Note that the body is not fixed but moves with the shoulder, so the model is assumed to be in initial position
+    self.target_origin = data.body(self.shoulder).xpos + np.array([0.55, -0.1, 0])
     self.target_position = self.target_origin.copy()
     self.target_limits_y = np.array([-0.3, 0.3])
     self.target_limits_z = np.array([-0.3, 0.3])
 
     # Update plane location
-    self.target_plane_geom_idx = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, "target-plane")
-    self.target_plane_body_idx = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "target-plane")
     model.geom("target-plane").size = np.array([0.005,
                                                 (self.target_limits_y[1] - self.target_limits_y[0])/2,
                                                 (self.target_limits_z[1] - self.target_limits_z[0])/2])
@@ -92,9 +82,6 @@ class Tracking(BaseTask):
     # fingertip is inside target
     reward = self.reward_function.get(self, dist-self.target_radius, info)
 
-    # Add an effort cost to reward
-    #reward -= self.effort_term.get(self)
-
     # Update target location
     self.update_target_location(model, data)
 
@@ -118,7 +105,7 @@ class Tracking(BaseTask):
 
   def generate_sine_wave(self, limits, num_components=5, min_amplitude=1, max_amplitude=5):
 
-    max_frequency = self.min_frequency + (self.max_frequency-self.min_frequency) * self.freq_curriculum()
+    max_frequency = self.min_frequency + (self.max_frequency-self.min_frequency) * self.freq_curriculum.value()
 
     # Generate a sine wave with multiple components
     t = np.arange(self.max_episode_steps+1) * self.dt
