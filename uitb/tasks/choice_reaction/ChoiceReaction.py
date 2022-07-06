@@ -13,31 +13,33 @@ class ChoiceReaction(BaseTask):
 
     # This task requires an end-effector and shoulder to be defined
     assert end_effector[0] == "geom", "end-effector must be a geom because contacts are between geoms"
-    self.end_effector = end_effector[1]
-    self.shoulder = shoulder
+    self._end_effector = end_effector[1]
+    self._shoulder = shoulder
 
     # Get buttons
-    self.buttons = [f"button-{idx}" for idx in range(4)]
-    self.current_button = self.buttons[0]
+    self._buttons = [f"button-{idx}" for idx in range(4)]
+    self._current_button = self._buttons[0]
 
     # Use early termination if target is not hit in time
-    self.steps_since_last_hit = 0
-    self.max_steps_without_hit = self.action_sample_freq*4
-    self.steps = 0
+    self._steps_since_last_hit = 0
+    self._max_steps_without_hit = self._action_sample_freq*4
 
     # Define a maximum number of button presses
-    self.trial_idx = 0
-    self.max_trials = kwargs.get('max_trials', 10)
-    self.targets_hit = 0
+    self._trial_idx = 0
+    self._max_trials = kwargs.get('max_trials', 10)
+    self._targets_hit = 0
+
+    # Used for logging states
+    self._info = {"target_hit": False, "new_button_generated": False, "finished": False, "termination": False}
 
     # Define a default reward function
-    self.reward_function = NegativeExpDistanceWithHitBonus()
+    self._reward_function = NegativeExpDistanceWithHitBonus()
 
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
 
     # Get shoulder position
-    shoulder_pos = getattr(data, self.shoulder[0])(self.shoulder[1]).xpos.copy()
+    shoulder_pos = getattr(data, self._shoulder[0])(self._shoulder[1]).xpos.copy()
 
     # Update button positions
     model.body("button-0").pos = shoulder_pos + [0.41, -0.07, -0.15]
@@ -72,83 +74,90 @@ class ChoiceReaction(BaseTask):
 
     return tree
 
-  def update(self, model, data):
+  def _update(self, model, data):
 
+    # Set defaults
     finished = False
-    info = {"termination": False, "new_button_generated": False}
+    self._info["new_button_generated"] = False
 
     # Check if the correct button has been pressed with suitable force
-    force = data.sensor(self.current_button).data
+    force = data.sensor(self._current_button).data
 
     if 50 > force > 25:
-      info["target_hit"] = True
-      self.trial_idx += 1
-      self.targets_hit += 1
-      self.steps_since_last_hit = 0
-      self.choose_button(model, data)
-      info["new_button_generated"] = True
+      self._info["target_hit"] = True
+      self._trial_idx += 1
+      self._targets_hit += 1
+      self._steps_since_last_hit = 0
+      self._choose_button(model, data)
+      self._info["new_button_generated"] = True
 
     else:
 
-      info["target_hit"] = False
+      self._info["target_hit"] = False
 
       # Check if time limit has been reached
-      self.steps_since_last_hit += 1
-      if self.steps_since_last_hit >= self.max_steps_without_hit:
+      self._steps_since_last_hit += 1
+      if self._steps_since_last_hit >= self._max_steps_without_hit:
         # Choose a new button
-        self.steps_since_last_hit = 0
-        self.trial_idx += 1
-        self.choose_button(model, data)
-        info["new_button_generated"] = True
+        self._steps_since_last_hit = 0
+        self._trial_idx += 1
+        self._choose_button(model, data)
+        self._info["new_button_generated"] = True
 
     # Check if max number trials reached
-    if self.trial_idx >= self.max_trials:
+    if self._trial_idx >= self._max_trials:
       finished = True
-      info["termination"] = "max_trials_reached"
-
-    # Increase counter
-    self.steps += 1
+      self._info["termination"] = "max_trials_reached"
 
     # Get end-effector position and target position
-    ee_position = data.geom(self.end_effector).xpos
-    target_position = data.geom(self.current_button).xpos
+    ee_position = data.geom(self._end_effector).xpos
+    target_position = data.geom(self._current_button).xpos
 
     # Distance to target
     dist = np.linalg.norm(target_position - ee_position)
 
     # Calculate reward
-    reward = self.reward_function.get(self, dist, info)
+    reward = self._reward_function.get(self, dist, self._info.copy())
 
-    return reward, finished, info
+    return reward, finished, self._info.copy()
 
-  def choose_button(self, model, data):
+  def _choose_button(self, model, data):
 
     # Choose a new button randomly, but don't choose the same button as previous one
     while True:
-      new_button = self.rng.choice(self.buttons)
-      if new_button != self.current_button:
-        self.current_button = new_button
+      new_button = self._rng.choice(self._buttons)
+      if new_button != self._current_button:
+        self._current_button = new_button
         break
 
     # Set color of screen
-    model.geom("screen").rgba = model.geom(self.current_button).rgba
+    model.geom("screen").rgba = model.geom(self._current_button).rgba
 
     mujoco.mj_forward(model, data)
 
-  def reset(self, model, data):
+  def _get_state(self, model, data):
+    state = dict()
+    state["current_button"] = self._current_button
+    state["trial_idx"] = self._trial_idx
+    state["targets_hit"] = self._targets_hit
+    state.update(self._info)
+    return state
+
+  def _reset(self, model, data):
 
     # Reset counters
-    self.steps_since_last_hit = 0
-    self.steps = 0
-    self.trial_idx = 0
-    self.targets_hit = 0
+    self._steps_since_last_hit = 0
+    self._trial_idx = 0
+    self._targets_hit = 0
+
+    self._info = {"target_hit": False, "new_button_generated": False, "finished": False, "termination": False}
 
     # Choose a new button
-    self.choose_button(model, data)
+    self._choose_button(model, data)
 
   def get_stateful_information(self, model, data):
     # Time features
-    targets_hit = -1.0 + 2*(self.trial_idx/self.max_trials)
+    targets_hit = -1.0 + 2*(self._trial_idx/self._max_trials)
     return np.array([targets_hit])
 
   def get_stateful_information_space_params(self):

@@ -10,67 +10,70 @@ class RemoteDriving(BaseTask):
   def __init__(self, model, data, end_effector, **kwargs):
     super().__init__(model, data, **kwargs)
 
-    self.end_effector = end_effector
+    # TODO currently works only with 'geom' type of end_effector
+    self._end_effector = end_effector
 
     # Define names
-    self.gamepad_body = "gamepad"
-    self.joystick_geom = "thumb-stick-1"
-    self.joystick_joint = "thumb-stick-1:rot-x"
-    self.car_body = "car"
-    self.car_joint = "car"
-    self.engine_back_joint = "axis-back:rot-x"
-    self.engine_front_joint = "axis-front:rot-x"
-    self.wheels = [f"wheel{i}" for i in range(1, 5)]
-    self.target = "target"
+    self._gamepad_body = "gamepad"
+    self._joystick_geom = "thumb-stick-1"
+    self._joystick_joint = "thumb-stick-1:rot-x"
+    self._car_body = "car"
+    self._car_joint = "car"
+    self._engine_back_joint = "axis-back:rot-x"
+    self._engine_front_joint = "axis-front:rot-x"
+    self._wheels = [f"wheel{i}" for i in range(1, 5)]
+    self._target = "target"
 
     # Define joystick parameters
-    self.throttle_factor = 50
+    self._throttle_factor = 25
 
     # Define episode length
     episode_length_seconds = kwargs.get('episode_length_seconds', 4)
-    self.max_episode_steps = kwargs.get('max_episode_steps', self.action_sample_freq * episode_length_seconds)
-    self.steps = 0
+    self._max_episode_steps = kwargs.get('max_episode_steps', self._action_sample_freq * episode_length_seconds)
 
     # Episodes can be extended if joystick is touched
     episode_length_seconds_extratime = kwargs.get('episode_length_seconds_extratime', 6)
-    self.max_episode_steps_extratime = kwargs.get('max_episode_steps_extratime',
-                                                  self.action_sample_freq * episode_length_seconds_extratime)
-    self.max_episode_steps_with_extratime = self.max_episode_steps  # extra time only applies if joystick is touched
+    self._max_episode_steps_extratime = kwargs.get('max_episode_steps_extratime',
+                                                   self._action_sample_freq * episode_length_seconds_extratime)
+    self._max_episode_steps_with_extratime = self._max_episode_steps  # extra time only applies if joystick is touched
 
     # Measure whether contact between end-effector and joystick exists
-    self.ee_at_joystick = False
+    self._ee_at_joystick = False
 
     # Measure distances between end-effector and joystick, and between car and target area
-    self.dist_ee_to_joystick = 0
-    self.dist_car_to_target = 0
+    self._dist_ee_to_joystick = 0
+    self._dist_car_to_target = 0
 
     # Terminal velocity -- car needs to stay inside target area (i.e., velocity in x-direction needs to fall below some threshold)
-    self.car_velocity_threshold = kwargs.get('car_velocity_threshold', 0.1)
+    self._car_velocity_threshold = kwargs.get('car_velocity_threshold', 0.1)
 
     # Halfsize limits for target
-    self.target_halfsize_limit = kwargs.get('target_halfsize_limit', np.array([0.15, 0.5]))
-    self.target_halfsize = self.target_halfsize_limit[0]
+    self._target_halfsize_limit = kwargs.get('target_halfsize_limit', np.array([0.15, 0.5]))
+    self._target_halfsize = self._target_halfsize_limit[0]
 
     # Minimum distance between car and target is twice the max target halfsize limit
-    self.new_target_distance_threshold = 2 * np.max(self.target_halfsize_limit)
+    self._new_target_distance_threshold = 2 * np.max(self._target_halfsize_limit)
+
+    # For logging
+    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False}
 
     # Get the reward function
-    self.reward_function = self.get_reward_function(kwargs["reward_function"])
+    self._reward_function = self._get_reward_function(kwargs["reward_function"])
 
     # Define target origin, position, and limits
-    self.target_origin = np.array([2, 0, 0])
-    self.target_position = 1000 * self.target_origin.copy()
-    self.target_limits = np.array([-2, 2])  # -y-direction
+    self._target_origin = np.array([2, 0, 0])
+    self._target_position = 1000 * self._target_origin.copy()
+    self._target_limits = np.array([-2, 2])  # -y-direction
 
     # Define car position
-    self.car_position = None
+    self._car_position = None
 
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
 
     # Update plane location
-    model.geom("target-plane").size = np.array([0.15, (self.target_limits[1] - self.target_limits[0]) / 2, 0.005])
-    model.body("target-plane").pos = self.target_origin
+    model.geom("target-plane").size = np.array([0.15, (self._target_limits[1] - self._target_limits[0]) / 2, 0.005])
+    model.body("target-plane").pos = self._target_origin
 
     # Reset camera position and angle TODO need to rethink camera implementations
     model.camera("for_testing").pos = np.array([-2, 0, 2.5])
@@ -100,144 +103,134 @@ class RemoteDriving(BaseTask):
 
     return tree
 
-  def update_car_dynamics(self, model, data):
+  def _update_car_dynamics(self, model, data):
     """
     Sets the speed of the car based on the joystick state.
     Info: Negative throttle_control values result in forward motion, positive values in backward motion.
     """
-    throttle_control = data.joint(self.joystick_joint).qpos
-    throttle = throttle_control * self.throttle_factor
-    data.joint(self.engine_back_joint).qfrc_applied = throttle
-    data.joint(self.engine_front_joint).qfrc_applied = throttle
+    throttle_control = data.joint(self._joystick_joint).qpos
+    if np.abs(throttle_control) < 1e-3:
+      throttle_control = 0
+    throttle = throttle_control * self._throttle_factor
+    data.joint(self._engine_back_joint).qfrc_applied = throttle
+    data.joint(self._engine_front_joint).qfrc_applied = throttle
 
-  def update(self, model, data):
+  def _update(self, model, data):
 
+    # Set defaults
     finished = False
-    info = {"termination": False, "extra_time_given": False}
+    self._info = {"extra_time_given": False}
 
     # Update car dynamics
-    self.update_car_dynamics(model, data)
+    self._update_car_dynamics(model, data)
 
     # Max distance between front/back wheel and center of target
-    self.dist_car_to_target = np.abs(max([data.body("wheel1").xpos[1], data.body("wheel3").xpos[1]] - data.body("target").xpos[1]))
+    self._dist_car_to_target = np.abs(max([data.body("wheel1").xpos[1], data.body("wheel3").xpos[1]] - data.body("target").xpos[1]))
 
     # Contact between end-effector and joystick
     end_effector_joystick_contact = [contact for contact in data.contact if {contact.geom1, contact.geom2} ==
-                                     {mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self.end_effector),
-                                      mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self.joystick_geom)}]
+                                     {mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._end_effector),
+                                      mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._joystick_geom)}]
     assert len(end_effector_joystick_contact) >= 1
-    self.dist_ee_to_joystick = end_effector_joystick_contact[0].dist
-
-    # Increase counter
-    self.steps += 1
+    self._dist_ee_to_joystick = end_effector_joystick_contact[0].dist
 
     # Check if hand is kept at joystick
-    if self.dist_ee_to_joystick <= 1e-3:
-      if not self.end_effector_at_joystick:
+    if self._dist_ee_to_joystick <= 1e-3:
+      if not self._end_effector_at_joystick:
         # # Provide extra time that is reset whenever joystick is touched:
         # self.max_episode_steps_with_extratime = self.steps + self.max_episode_steps_extratime
 
         # # Provide (constant) extra time if joystick is touched at least once within regular time:
-        self.max_episode_steps_with_extratime = self.max_episode_steps + self.max_episode_steps_extratime
-        info["extra_time_given"] = True
+        self._max_episode_steps_with_extratime = self._max_episode_steps + self._max_episode_steps_extratime
+        self._info["extra_time_given"] = True
 
-      self.end_effector_at_joystick = True
+      self._end_effector_at_joystick = True
     else:
-      self.end_effector_at_joystick = False
-    info["end_effector_at_joystick"] = self.end_effector_at_joystick
+      self._end_effector_at_joystick = False
+    self._info["end_effector_at_joystick"] = self._end_effector_at_joystick
 
     # Check if car has reached target
-    if self.dist_car_to_target <= self.target_halfsize:  # dist < self.target_radius:
-      # self.steps_inside_target += 1
-      info["inside_target"] = True
+    if self._dist_car_to_target <= self.target_halfsize:
+      self._info["inside_target"] = True
     else:
-      # self.steps_inside_target = 0
-      info["inside_target"] = False
+      self._info["inside_target"] = False
 
     # Check if target is inside target area with (close to) zero velocity
-    if info["inside_target"] and np.abs(data.body(self.car_body).cvel[4]) <= self.car_velocity_threshold:
+    if self._info["inside_target"] and np.abs(data.body(self._car_body).cvel[4]) <= self._car_velocity_threshold:
       finished = True
-      info["target_hit"] = True
+      self._info["target_hit"] = True
     else:
-      info["target_hit"] = False
+      self._info["target_hit"] = False
 
     # Check if time limit has been reached
-    if self.steps >= self.max_episode_steps_with_extratime:
+    if self._steps >= self._max_episode_steps_with_extratime:
       finished = True
-      info["termination"] = "time_limit_reached"
+      self._info["termination"] = "time_limit_reached"
 
     # Calculate reward
-    reward = self.reward_function.get(self.dist_ee_to_joystick, self.dist_car_to_target, info, model, data)
+    reward = self._reward_function.get(self._dist_ee_to_joystick, self._dist_car_to_target, self._info.copy(),
+                                       model, data)
 
+    return reward, finished, self._info.copy()
 
-    return reward, finished, info
-
-  def spawn_car(self, model, data):
+  def _spawn_car(self, model, data):
     # Choose qpos value of slide joint in x-direction uniformly from joint angle range
-    new_car_qpos = self.rng.uniform(*model.joint(self.car_joint).range)
+    new_car_qpos = self._rng.uniform(*model.joint(self._car_joint).range)
 
-    data.joint(self.car_joint).qpos = new_car_qpos
+    data.joint(self._car_joint).qpos = new_car_qpos
     mujoco.mj_forward(model, data)
 
     # Get car position
-    self.car_position = data.body(self.car_body).xpos.copy()
+    self.car_position = data.body(self._car_body).xpos.copy()
 
-  def spawn_target(self, model, data):
+  def _spawn_target(self, model, data):
 
     # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
     for _ in range(10):
-      target_rel = self.rng.uniform(*self.target_limits)
+      target_rel = self._rng.uniform(*self._target_limits)
       # negative sign required, since y goes to left but car looks to the right
       new_position =  np.array([0, -target_rel, 0])
-      distance = np.linalg.norm(self.car_position - (new_position + self.target_origin))
-      if distance > self.new_target_distance_threshold:
+      distance = np.linalg.norm(self.car_position - (new_position + self._target_origin))
+      if distance > self._new_target_distance_threshold:
         break
     self.target_position = new_position
 
     # Set location
-    model.body("target").pos = self.target_origin + self.target_position
+    model.body("target").pos = self._target_origin + self._target_position
 
     # Sample target half-size
-    self.target_halfsize = self.rng.uniform(*self.target_halfsize_limit)
+    self.target_halfsize = self._rng.uniform(*self._target_halfsize_limit)
 
     # Set target half-size
-    model.geom("target").size[0] = self.target_halfsize
+    model.geom("target").size[0] = self._target_halfsize
 
     mujoco.mj_forward(model, data)
 
-  def get_state(self):
-    state = super().get_state()
-    state["joystick_xpos"] = self.data.geom(self.joystick_geom).xpos.copy()
-    state["joystick_xmat"] = self.data.geom(self.joystick_geom).xmat.reshape((3, 3)).copy()
-    joystick_xvelp, joystick_xvelr = self._get_geom_xvelp_xvelr(self.model, self.data, self.joystick_geom)
-    state["joystick_xvelp"] = joystick_xvelp
-    state["joystick_xvelr"] = joystick_xvelr
-    state["end_effector_at_joystick"] = False
-    state["dist_ee_to_joystick"] = self.dist_ee_to_joystick
-
-    state["car_xpos"] = self.data.body(self.car_body).xpos.copy()
-    state["car_xmat"] = self.data.body(self.car_body).xmat.reshape((3, 3)).copy()
-    car_xvelp, car_xvelr = self._get_body_xvelp_xvelr(self.model, self.data, self.car_body)
-    state["car_xvelp"] = car_xvelp
-    state["car_xvelr"] = car_xvelr
-    state["target_position"] = self.target_origin.copy() + self.target_position.copy()
-    state["target_radius"] = self.target_halfsize
-    state["target_hit"] = False
-    state["inside_target"] = False
-    state["dist_car_to_target"] = self.dist_car_to_target
+  def _get_state(self, model, data):
+    state = dict()
+    state["joystick_xpos"] = data.geom(self._joystick_geom).xpos.copy()
+    state["joystick_xmat"] = data.geom(self._joystick_geom).xmat.copy()
+    state["dist_ee_to_joystick"] = self._dist_ee_to_joystick
+    state["car_xpos"] = data.body(self._car_body).xpos.copy()
+    state["car_xmat"] = data.body(self._car_body).xmat.copy()
+    state["car_cvel"] = data.body("car").cvel.copy()
+    state["target_position"] = self._target_origin.copy() + self._target_position.copy()
+    state["target_radius"] = self._target_halfsize
+    state["dist_car_to_target"] = self._dist_car_to_target
+    state.update(self._info)
     return state
 
-  def reset(self, model, data):
+  def _reset(self, model, data):
 
     # Reset counters
-    self.steps = 0
-    self.max_episode_steps_with_extratime = self.max_episode_steps
+    self._max_episode_steps_with_extratime = self._max_episode_steps
+    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False}
 
     # Reset reward function
-    self.reward_function.reset()
+    self._reward_function.reset()
 
     # Spawn a new car location
-    self.spawn_car(model, data)
+    self._spawn_car(model, data)
 
     # Spawn a new target location (depending on current car location)
-    self.spawn_target(model, data)
+    self._spawn_target(model, data)

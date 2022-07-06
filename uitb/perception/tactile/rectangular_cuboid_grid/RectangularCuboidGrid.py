@@ -10,8 +10,8 @@ class RectangularCuboidGrid(BaseModule):
 
   def __init__(self, model, data, bm_model, geom, resolution, margin=0.001, **kwargs):
 
-    self.geom = geom
-    self.resolution = resolution
+    self._geom = geom
+    self._resolution = resolution
 
     # Get geom position and quat (transform quat into scalar-last format)
     geom_pos = model.geom(geom).pos.copy()
@@ -44,8 +44,8 @@ class RectangularCuboidGrid(BaseModule):
 
     # Set positions and sizes
     site_size = geom_size / resolution
-    self.sites = []
-    self.sensors = []
+    self._sites = []
+    self._sensors = []
     for i, midpoint in enumerate(itertools.product(midpoints[0], midpoints[1], midpoints[2])):
       site_name = f"{geom}-site-{i}"
       site_in_body = np.matmul(T_geom, np.concatenate([midpoint, np.array([1])]))
@@ -53,11 +53,10 @@ class RectangularCuboidGrid(BaseModule):
       model.site(site_name).size = site_size
       model.site(site_name).quat = model.geom(geom).quat.copy()  # Copy the original geom quat in scalar-first format
 
-      self.sites.append(site_name)
-      self.sensors.append(f"{geom}-touch-{i}")
+      self._sites.append(site_name)
+      self._sensors.append(f"{geom}-touch-{i}")
 
     super().__init__(model, data, bm_model, **kwargs)
-
 
   @staticmethod
   def insert(simulation, **kwargs):
@@ -92,19 +91,10 @@ class RectangularCuboidGrid(BaseModule):
       sensors.append(ET.Element("touch", name=f"{kwargs['geom']}-touch-{i}", site=site_name))
 
   def get_observation(self, model, data):
-    obs = np.zeros(len(self.sensors),)
-    for idx, sensor in enumerate(self.sensors):
+    obs = np.zeros(len(self._sensors),)
+    for idx, sensor in enumerate(self._sensors):
       obs[idx] = data.sensor(sensor).data / 100
     return obs
 
   def _get_observation_range(self):
     return {"low": 0, "high": float('inf')}
-
-  def reset(self, model, data):
-    pass
-
-  def update(self, model, data):
-    pass
-
-  def set_ctrl(self, model, data, action):
-    pass

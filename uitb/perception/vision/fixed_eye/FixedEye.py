@@ -4,7 +4,6 @@ import mujoco
 from collections import deque
 
 from ...base import BaseModule
-from ....utils.functions import parent_path
 from ....utils.rendering import Camera
 from ..encoders import small_cnn
 
@@ -14,6 +13,7 @@ class FixedEye(BaseModule):
                **kwargs):
     """
     A simple eye model using a fixed camera.
+
     Args:
       model: A MjModel object of the simulation
       data: A MjData object of the simulation
@@ -25,6 +25,7 @@ class FixedEye(BaseModule):
       channels (optional): Which channels to use; 0-2 refer to RGB, 3 is depth. Default value is None, which means that all channels are used (i.e. same as channels=[0,1,2,3])
       buffer (optional): Defines a buffer of given length (in seconds) that is utilized to include prior observations
       **kwargs (optional): Keyword args that may be used
+
     Raises:
       KeyError: If "rendering_context" is not given (included in kwargs)
     """
@@ -126,10 +127,10 @@ class FixedEye(BaseModule):
   def _get_observation_range(self):
     return {"low": -1, "high": 1}
 
-  def reset(self, model, data):
+  def _reset(self, model, data):
     if self._buffer is not None:
       self._buffer.clear()
 
   @property
   def encoder(self):
-    return small_cnn(observation_shape=self.observation_shape, out_features=256)
+    return small_cnn(observation_shape=self._observation_shape, out_features=256)
