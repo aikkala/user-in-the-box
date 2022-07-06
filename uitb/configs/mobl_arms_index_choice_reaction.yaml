@@ -19,7 +19,11 @@ simulation:
         quat: "0.583833 0.399104 -0.399421 -0.583368"
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
-        end_effector: "hand_2distph"
+        end_effector: ["geom", "hand_2distph"]
+  effort_model:
+    cls: "Neural"
+    kwargs:
+      weight: 1e-4
   run_parameters:
     action_sample_freq: 20
 
@@ -42,6 +46,6 @@ rl:
   device: "cuda"
   num_workers: 10
   nsteps: 4000
-  batch_size: 500
+  batch_size: 1000
   target_kl: 1.0
   save_freq: 5_000_000

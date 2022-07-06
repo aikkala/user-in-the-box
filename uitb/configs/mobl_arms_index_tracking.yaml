@@ -8,8 +8,8 @@ simulation:
   task:
     cls: "Tracking"
     kwargs:
-      end_effector: "hand_2distph"
-      shoulder: "humphant"
+      end_effector: ["geom", "hand_2distph"]
+      shoulder: ["body", "humphant"]
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
@@ -20,7 +20,7 @@ simulation:
         quat: "0.583833 0.399104 -0.399421 -0.583368"
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
-        end_effector: "hand_2distph"
+        end_effector: ["geom", "hand_2distph"]
   effort_model:
     cls: "Neural"
     kwargs:
