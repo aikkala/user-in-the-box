@@ -11,7 +11,7 @@ simulation:
       end_effector: "hand_2distph"
       car_velocity_threshold: 0
       episode_length_seconds: 10
-      episode_length_seconds_extra_time: 0
+      episode_length_seconds_extratime: 0
       reward_function:
         cls: "NegativeExpDistance"
   perception_modules:
