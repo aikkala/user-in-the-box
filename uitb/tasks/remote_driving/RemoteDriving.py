@@ -6,6 +6,10 @@ from ..base import BaseTask
 
 
 class RemoteDriving(BaseTask):
+  """ A task where the goal is to control a remote driving car via a joystick and move the car to a target area.
+
+  Authors: Florian Fischer, Markus Klar, Aleksi Ikkala
+  """
 
   def __init__(self, model, data, end_effector, **kwargs):
     super().__init__(model, data, **kwargs)
@@ -14,15 +18,14 @@ class RemoteDriving(BaseTask):
     self._end_effector = end_effector
 
     # Define names
-    self._gamepad_body = "gamepad"
     self._joystick_geom = "thumb-stick-1"
     self._joystick_joint = "thumb-stick-1:rot-x"
     self._car_body = "car"
     self._car_joint = "car"
     self._engine_back_joint = "axis-back:rot-x"
     self._engine_front_joint = "axis-front:rot-x"
-    self._wheels = [f"wheel{i}" for i in range(1, 5)]
     self._target = "target"
+    self._target_joint = "target"
 
     # Define joystick parameters
     self._throttle_factor = 25
@@ -32,9 +35,8 @@ class RemoteDriving(BaseTask):
     self._max_episode_steps = kwargs.get('max_episode_steps', self._action_sample_freq * episode_length_seconds)
 
     # Episodes can be extended if joystick is touched
-    episode_length_seconds_extratime = kwargs.get('episode_length_seconds_extratime', 6)
-    self._max_episode_steps_extratime = kwargs.get('max_episode_steps_extratime',
-                                                   self._action_sample_freq * episode_length_seconds_extratime)
+    extratime_length_seconds = kwargs.get('extratime_length_seconds', 6)
+    self._extratime = self._action_sample_freq * extratime_length_seconds
     self._max_episode_steps_with_extratime = self._max_episode_steps  # extra time only applies if joystick is touched
 
     # Measure whether contact between end-effector and joystick exists
@@ -44,36 +46,26 @@ class RemoteDriving(BaseTask):
     self._dist_ee_to_joystick = 0
     self._dist_car_to_target = 0
 
-    # Terminal velocity -- car needs to stay inside target area (i.e., velocity in x-direction needs to fall below some threshold)
+    # Terminal velocity -- car needs to stay inside target area (i.e., velocity in x-direction needs to fall below
+    # some threshold)
     self._car_velocity_threshold = kwargs.get('car_velocity_threshold', 0.1)
 
-    # Halfsize limits for target
-    self._target_halfsize_limit = kwargs.get('target_halfsize_limit', np.array([0.15, 0.5]))
-    self._target_halfsize = self._target_halfsize_limit[0]
+    # Set target size
+    self._target_halfsize = kwargs.get('target_halfsize', 0.4)
+    model.geom(self._target).size = np.array([0.3, self._target_halfsize, 0.5])
 
-    # Minimum distance between car and target is twice the max target halfsize limit
-    self._new_target_distance_threshold = 2 * np.max(self._target_halfsize_limit)
+    # Minimum distance between car and target is one meter (when sampling new positions)
+    self._new_target_distance_threshold = 1
 
     # For logging
-    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False}
+    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False,
+                  "extratime_given": False}
 
     # Get the reward function
     self._reward_function = self._get_reward_function(kwargs["reward_function"])
 
-    # Define target origin, position, and limits
-    self._target_origin = np.array([2, 0, 0])
-    self._target_position = 1000 * self._target_origin.copy()
-    self._target_limits = np.array([-2, 2])  # -y-direction
-
-    # Define car position
-    self._car_position = None
-
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
-
-    # Update plane location
-    model.geom("target-plane").size = np.array([0.15, (self._target_limits[1] - self._target_limits[0]) / 2, 0.005])
-    model.body("target-plane").pos = self._target_origin
 
     # Reset camera position and angle TODO need to rethink camera implementations
     model.camera("for_testing").pos = np.array([-2, 0, 2.5])
@@ -119,13 +111,14 @@ class RemoteDriving(BaseTask):
 
     # Set defaults
     finished = False
-    self._info = {"extra_time_given": False}
+    self._info = {"extratime_given": False}
 
     # Update car dynamics
     self._update_car_dynamics(model, data)
 
     # Max distance between front/back wheel and center of target
-    self._dist_car_to_target = np.abs(max([data.body("wheel1").xpos[1], data.body("wheel3").xpos[1]] - data.body("target").xpos[1]))
+    self._dist_car_to_target = max(np.abs([data.body("wheel1").xpos[1], data.body("wheel3").xpos[1]]
+                                          - data.body("target").xpos[1]))
 
     # Contact between end-effector and joystick
     end_effector_joystick_contact = [contact for contact in data.contact if {contact.geom1, contact.geom2} ==
@@ -136,21 +129,16 @@ class RemoteDriving(BaseTask):
 
     # Check if hand is kept at joystick
     if self._dist_ee_to_joystick <= 1e-3:
-      if not self._end_effector_at_joystick:
-        # # Provide extra time that is reset whenever joystick is touched:
-        # self.max_episode_steps_with_extratime = self.steps + self.max_episode_steps_extratime
-
-        # # Provide (constant) extra time if joystick is touched at least once within regular time:
-        self._max_episode_steps_with_extratime = self._max_episode_steps + self._max_episode_steps_extratime
-        self._info["extra_time_given"] = True
-
-      self._end_effector_at_joystick = True
+      # Provide (constant) extra time if joystick is touched at least once within regular time:
+      if not self._info["extratime_given"]:
+        self._max_episode_steps_with_extratime = self._max_episode_steps + self._extratime
+        self._info["extratime_given"] = True
+      self._info["end_effector_at_joystick"] = True
     else:
-      self._end_effector_at_joystick = False
-    self._info["end_effector_at_joystick"] = self._end_effector_at_joystick
+      self._info["end_effector_at_joystick"] = False
 
     # Check if car has reached target
-    if self._dist_car_to_target <= self.target_halfsize:
+    if self._dist_car_to_target <= self._target_halfsize:
       self._info["inside_target"] = True
     else:
       self._info["inside_target"] = False
@@ -180,29 +168,18 @@ class RemoteDriving(BaseTask):
     data.joint(self._car_joint).qpos = new_car_qpos
     mujoco.mj_forward(model, data)
 
-    # Get car position
-    self.car_position = data.body(self._car_body).xpos.copy()
-
   def _spawn_target(self, model, data):
 
     # Sample a location; try 10 times then give up (if e.g. self.new_target_distance_threshold is too big)
     for _ in range(10):
-      target_rel = self._rng.uniform(*self._target_limits)
+      new_target = self._rng.uniform(*model.joint(self._car_joint).range)
       # negative sign required, since y goes to left but car looks to the right
-      new_position =  np.array([0, -target_rel, 0])
-      distance = np.linalg.norm(self.car_position - (new_position + self._target_origin))
+      distance = np.abs(data.joint(self._car_joint).qpos - new_target)
       if distance > self._new_target_distance_threshold:
         break
-    self.target_position = new_position
 
     # Set location
-    model.body("target").pos = self._target_origin + self._target_position
-
-    # Sample target half-size
-    self.target_halfsize = self._rng.uniform(*self._target_halfsize_limit)
-
-    # Set target half-size
-    model.geom("target").size[0] = self._target_halfsize
+    data.joint(self._target_joint).qpos = new_target
 
     mujoco.mj_forward(model, data)
 
@@ -213,9 +190,9 @@ class RemoteDriving(BaseTask):
     state["dist_ee_to_joystick"] = self._dist_ee_to_joystick
     state["car_xpos"] = data.body(self._car_body).xpos.copy()
     state["car_xmat"] = data.body(self._car_body).xmat.copy()
-    state["car_cvel"] = data.body("car").cvel.copy()
-    state["target_position"] = self._target_origin.copy() + self._target_position.copy()
-    state["target_radius"] = self._target_halfsize
+    state["car_cvel"] = data.body(self._car_body).cvel.copy()
+    state["target_position"] = data.body(self._target).xpos.copy()
+    state["target_halfsize"] = self._target_halfsize
     state["dist_car_to_target"] = self._dist_car_to_target
     state.update(self._info)
     return state
@@ -224,7 +201,8 @@ class RemoteDriving(BaseTask):
 
     # Reset counters
     self._max_episode_steps_with_extratime = self._max_episode_steps
-    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False}
+    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False,
+                  "extratime_given": False}
 
     # Reset reward function
     self._reward_function.reset()

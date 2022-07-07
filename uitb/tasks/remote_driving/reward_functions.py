@@ -24,7 +24,7 @@ class NegativeExpDistance(BaseFunction):
 
     # Default parameters for target related components
     self.target_specs = {"k": 3, "shift": -1, "scale": 0.1,
-                         "bonus": 8, "bonus_active": True, "bonus_onetime": True}
+                         "bonus": 8, "bonus_active": True, "bonus_onetime": False}
     # Update parameters if needed
     if target_specs is not None:
       self.target_specs.update(target_specs)
@@ -46,7 +46,7 @@ class NegativeExpDistance(BaseFunction):
       if self.joystick_specs["bonus_onetime"]:
         self.joystick_bonus_active = False
 
-    # Bonus for hitting target
+    # Bonus for being inside target
     if self.target_bonus_active and info["inside_target"]:
       reward += self.target_specs["bonus"]
       if self.target_specs["bonus_onetime"]:
