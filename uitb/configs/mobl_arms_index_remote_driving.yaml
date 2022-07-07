@@ -53,8 +53,8 @@ rl:
       threshold: 0.8
   total_timesteps: 200_000_000
   device: "cuda"
-  num_workers: 1
-  nsteps: 400
-  batch_size: 100
+  num_workers: 10
+  nsteps: 4000
+  batch_size: 1000
   target_kl: 1.0
   save_freq: 5_000_000
