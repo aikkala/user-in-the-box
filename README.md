@@ -74,3 +74,18 @@ One can use the script [uitb/test/evaluator.py](https://github.com/aikkala/user-
 
 
 ## Troubleshooting
+
+## Cite
+TBD
+
+## Contributors
+Aleksi Ikkala
+Florian Fischer
+Markus Klar
+Arthur Fleig
+Miroslav Bachinski
+Andrew Howes
+Perttu Hämäläinen
+Jörg Müller
+Roderick Murray-Smith
+Antti Oulasvirta
