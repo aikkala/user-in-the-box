@@ -17,7 +17,7 @@ simulation:
         channels: [2]
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
-        end_effector: "hand_2distph"
+        end_effector: ["geom", "hand_2distph"]
   run_parameters:
     action_sample_freq: 20
 
@@ -38,7 +38,7 @@ rl:
       threshold: 0.8
   total_timesteps: 100_000_000
   device: "cuda"
-  num_workers: 10
+  num_workers: 6
   nsteps: 4000
   batch_size: 1000
   target_kl: 1.0

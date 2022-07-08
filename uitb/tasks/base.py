@@ -84,7 +84,7 @@ class BaseTask(ABC):
   @abstractmethod
   def _reset(self, model, data):
     """ Resets the task/environment. """
-    pass
+    return dict()
 
 
   ############ The methods below are overwritable but often don't need to be overwritten ############
@@ -213,7 +213,7 @@ class BaseTask(ABC):
   def reset(self, model, data):
     """ Resets the number of steps taken and the task/environment. """
     self._steps = 0
-    self._reset(model, data)
+    return self._reset(model, data)
 
   @final
   def get_state(self, model, data):

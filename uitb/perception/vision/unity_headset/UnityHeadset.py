@@ -1,13 +1,11 @@
-import xml.etree.ElementTree as ET
 import numpy as np
 import mujoco
 from collections import deque
 import cv2
 
 from ...base import BaseModule
-from ....utils.functions import parent_path
-from ....utils.rendering import Camera
 from ..encoders import small_cnn
+
 
 class UnityHeadset(BaseModule):
 
@@ -87,17 +85,14 @@ class UnityHeadset(BaseModule):
         self._buffer.appendleft(obs)
 
       # Use latest and oldest observation, and their difference
-      obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=2)
+      obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=0)
 
     return obs
 
-  def _get_observation_range(self):
-    return {"low": -1, "high": 1}
-
-  def reset(self, model, data):
+  def _reset(self, model, data):
     if self._buffer is not None:
       self._buffer.clear()
 
   @property
   def encoder(self):
-    return small_cnn(observation_shape=self.observation_shape, out_features=256)
+    return small_cnn(observation_shape=self._observation_shape, out_features=256)
