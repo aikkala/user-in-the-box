@@ -16,14 +16,14 @@ def natural_sort(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def grab_pip_image(env):
+def grab_pip_image(simulator):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
 
   # Grab images
-  img, _ = env.camera.render()
+  img, _ = simulator._camera.render()
 
   ocular_img = None
-  for module in env.perception.perception_modules:
+  for module in simulator.perception.perception_modules:
     if module.modality == "vision":
       # TODO would be better to have a class function that returns "human-viewable" rendering of the observation;
       #  e.g. in case the vision model has two cameras, or returns a combination of rgb + depth images etc.
@@ -40,8 +40,8 @@ def grab_pip_image(env):
       resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 
     # Embed ocular image into free image
-    i = env.camera.height - resample_height
-    j = env.camera.width - resample_width
+    i = simulator._camera.height - resample_height
+    j = simulator._camera.width - resample_width
     img[i:, j:] = resampled_img
 
   return img
@@ -81,10 +81,10 @@ if __name__=="__main__":
   # Use deterministic actions?
   deterministic = False
 
-  # Initialise environment
-  env = Simulator.get(args.run_folder, run_parameters=run_params)
+  # Initialise simulator
+  simulator = Simulator.get(args.run_folder, run_parameters=run_params)
 
-  print(f"run parameters are: {env.run_parameters}")
+  print(f"run parameters are: {simulator.run_parameters}")
 
   # Load latest model if filename not given
   if args.checkpoint is not None:
@@ -97,10 +97,13 @@ if __name__=="__main__":
   print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}')
   model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
+  # Set callbacks to match the value used for this training point (if the simulator had any)
+  simulator.update_callbacks(model.num_timesteps)
+
   if args.logging:
 
     # Initialise log
-    state_logger = StateLogger(args.num_episodes, keys=env.get_state().keys())
+    state_logger = StateLogger(args.num_episodes, keys=simulator.get_state().keys())
 
     # Actions are logged separately to make things easier
     action_logger = ActionLogger(args.num_episodes)
@@ -111,16 +114,16 @@ if __name__=="__main__":
   for episode_idx in range(args.num_episodes):
 
     # Reset environment
-    obs = env.reset()
+    obs = simulator.reset()
     done = False
     reward = 0
 
     if args.logging:
-      state = env.get_state()
+      state = simulator.get_state()
       state_logger.log(episode_idx, state)
 
     if args.record:
-      imgs.append(grab_pip_image(env))
+      imgs.append(grab_pip_image(simulator))
 
     # Loop until episode ends
     while not done:
@@ -129,22 +132,22 @@ if __name__=="__main__":
       action, _states = model.predict(obs, deterministic=deterministic)
 
       # Take a step
-      obs, r, done, info = env.step(action)
+      obs, r, done, info = simulator.step(action)
       reward += r
 
       if args.logging:
         action_logger.log(episode_idx, {"step": state["step"], "timestep": state["timestep"], "action": action.copy(),
-                                        "ctrl": env.sim.data.ctrl.copy(), "reward": r})
-        state = env.get_state()
+                                        "ctrl": simulator.sim.data.ctrl.copy(), "reward": r})
+        state = simulator.get_state()
         state.update(info)
         state_logger.log(episode_idx, state)
 
       if args.record and not done:
-        imgs.append(grab_pip_image(env))
+        imgs.append(grab_pip_image(simulator))
 
-    #print(f"Episode {episode_idx}: {env.get_episode_statistics_str()}")
+    #print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
 
-    #episode_statistics = env.get_episode_statistics()
+    #episode_statistics = simulator.get_episode_statistics()
     #for key in episode_statistics:
     #  statistics[key].append(episode_statistics[key])
 
@@ -160,5 +163,5 @@ if __name__=="__main__":
 
   if args.record:
     # Write the video
-    env.camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
+    simulator._camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
     print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')

@@ -18,24 +18,46 @@ from .utils.functions import output_path, parent_path
 
 
 class Simulator(gym.Env):
+  """
+  The Simulator class contains functionality to build a standalone Python package from a config file. The built package
+   integrates a biomechanical model, a task model, and a perception model into one simulator that implements a gym.Env
+   interface.
+  """
 
-  id = "uitb:simulator-v0"
+  # May be useful for later, the three digit number suffix is of format X.Y.Z where X is a major version.
+  id = "uitb:simulator-v100"
 
-  @staticmethod
-  def get_class(modules, cls_str):
+  @classmethod
+  def get_class(cls, *args):
+    """ Returns a class from given strings. The last element in args should contain the class name. """
     # TODO check for incorrect module names etc
-    src = __name__.split(".")[0]
-    if "." in cls_str:
-      mods = cls_str.split(".")
-      modules += "." + ".".join(mods[:-1])
-      cls_name = mods[-1]
+    modules = ".".join(args[:-1])
+    if "." in args[-1]:
+      splitted = args[-1].split(".")
+      if modules == "":
+        modules = ".".join(splitted[:-1])
+      else:
+        modules += "." + ".".join(splitted[:-1])
+      cls_name = splitted[-1]
     else:
-      cls_name = cls_str
-    module = importlib.import_module(src + "." + modules)
+      cls_name = args[-1]
+    module = cls.get_module(modules)
     return getattr(module, cls_name)
 
   @classmethod
+  def get_module(cls, *args):
+    """ Returns a module from given strings. """
+    src = __name__.split(".")[0]
+    modules = ".".join(args)
+    return importlib.import_module(src + "." + modules)
+
+  @classmethod
   def build(cls, config):
+    """ Builds a simulator based on a config. TODO: The config may be a dict (parsed from YAML) or a YAML file
+
+    Args:
+      config: A dict containing configuration information. See example configs in folder uitb/configs/
+    """
 
     # Make sure required things are defined in config
     assert "simulation" in config, "Simulation specs (simulation) must be defined in config"
@@ -91,7 +113,7 @@ class Simulator(gym.Env):
       simulation.write(file, encoding='unicode')
 
     # Initialise the simulator
-    model, _, _, _, _ = \
+    model, _, _, _, _, _ = \
       cls._initialise(config, run_folder, run_parameters)
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
@@ -116,6 +138,12 @@ class Simulator(gym.Env):
 
   @classmethod
   def _clone(cls, run_folder, package_name):
+    """ Create a folder for the simulator being built, and copy or create relevant files.
+
+    Args:
+       run_folder: Location of the simulator.
+       package_name: Name of the simulator (which is a python package).
+    """
 
     # Create the folder
     dst = os.path.join(run_folder, package_name)
@@ -141,6 +169,13 @@ class Simulator(gym.Env):
 
   @classmethod
   def _initialise(cls, config, run_folder, run_parameters):
+    """ Initialise a simulator -- i.e., create a MjModel, MjData, and initialise all necessary variables.
+
+    Args:
+        config: A config dict.
+        run_folder: Location of the simulator.
+        run_parameters: Important run time variables that may also be used to override parameters.
+    """
 
     # Get task class and kwargs
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
@@ -174,16 +209,29 @@ class Simulator(gym.Env):
     run_parameters["rendering_context"] = Context(model,
                                                   max_resolution=run_parameters.get("max_resolution", [1280, 960]))
 
+    # Initialise callbacks
+    callbacks = {}
+    for cb in run_parameters.get("callbacks", []):
+      callbacks[cb["name"]] = cls.get_class(cb["cls"])(cb["name"], **cb["kwargs"])
+
     # Now initialise the actual classes; model and data are input to the inits so that stuff can be modified if needed
     # (e.g. move target to a specific position wrt to a body part)
-    task = task_cls(model, data, **{**task_kwargs, **run_parameters})
-    bm_model = bm_cls(model, data, **{**bm_kwargs, **run_parameters})
-    perception = Perception(model, data, bm_model, perception_modules, run_parameters)
+    task = task_cls(model, data, **{**task_kwargs, **callbacks, **run_parameters})
+    bm_model = bm_cls(model, data, **{**bm_kwargs, **callbacks, **run_parameters})
+    perception = Perception(model, data, bm_model, perception_modules, {**callbacks, **run_parameters})
 
-    return model, data, task, bm_model, perception
+    return model, data, task, bm_model, perception, callbacks
 
   @classmethod
   def get(cls, run_folder, run_parameters=None, use_cloned=True):
+    """ Returns a Simulator that is located in given folder.
+
+    Args:
+      run_folder: Location of the simulator.
+      run_parameters: Can be used to override parameters.
+      use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
+        cloned/copied during building phase.
+    """
 
     # Read config file
     config_file = os.path.join(run_folder, "config.yaml")
@@ -212,6 +260,12 @@ class Simulator(gym.Env):
     return gen_cls(run_folder, run_parameters=run_parameters)
 
   def __init__(self, run_folder, run_parameters=None):
+    """ Initialise a new `Simulator`.
+
+    Args:
+      run_folder: Location of a simulator.
+      run_parameters: Can be used to override parameters during run time.
+    """
 
     # Read configs
     self._run_folder = run_folder
@@ -224,7 +278,7 @@ class Simulator(gym.Env):
     self._run_parameters.update(run_parameters or {})
 
     # Initialise simulation
-    self._model, self._data, self.task, self.bm_model, self.perception = \
+    self._model, self._data, self.task, self.bm_model, self.perception, self.callbacks = \
       self._initialise(self._config, self._run_folder, self._run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
@@ -240,15 +294,14 @@ class Simulator(gym.Env):
     self._camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
                          dt=self._run_parameters["dt"])
 
-    # Get callbacks
-    #self.callbacks = {callback.name: callback for callback in run_parameters.get('callbacks', [])}
-
   def _initialise_action_space(self):
+    """ Initialise action space. """
     num_actuators = self.bm_model.nu + self.perception.nu
     actuator_limits = np.ones((num_actuators,2)) * np.array([-1.0, 1.0])
     return spaces.Box(low=np.float32(actuator_limits[:, 0]), high=np.float32(actuator_limits[:, 1]))
 
   def _initialise_observation_space(self):
+    """ Initialise observation space. """
     observation = self.get_observation()
     obs_dict = dict()
     for module in self.perception.perception_modules:
@@ -260,6 +313,12 @@ class Simulator(gym.Env):
     return spaces.Dict(obs_dict)
 
   def step(self, action):
+    """ Step simulation forward with given actions.
+
+    Args:
+      action: Actions sampled from a policy. Limited to range [-1, 1].
+    """
+
 
     # Set control for the bm model
     self.bm_model.set_ctrl(self._model, self._data, action[:self.bm_model.nu])
@@ -288,6 +347,11 @@ class Simulator(gym.Env):
     return obs, reward, finished, info
 
   def get_observation(self, info=None):
+    """ Returns an observation from the perception model.
+
+    Returns:
+      A dict with observations from individual perception modules. May also contain stateful information from a task.
+    """
 
     # Get observation from perception
     observation = self.perception.get_observation(self._model, self._data, info)
@@ -300,6 +364,7 @@ class Simulator(gym.Env):
     return observation
 
   def reset(self):
+    """ Reset the simulator and return an observation. """
 
     # Reset sim
     mujoco.mj_resetData(self._model, self._data)
@@ -314,32 +379,58 @@ class Simulator(gym.Env):
 
     return self.get_observation(info)
 
-  #def callback(self, callback_name, num_timesteps):
-  #  self.callbacks[callback_name].update(num_timesteps)
+  def callback(self, callback_name, num_timesteps):
+    """ Update a callback -- may be useful during training, e.g. for curriculum learning. """
+    self.callbacks[callback_name].update(num_timesteps)
 
-  def get_config(self):
+  def update_callbacks(self, num_timesteps):
+    """ Update all callbacks. """
+    for callback_name in self.callbacks:
+      self.callback(callback_name, num_timesteps)
+
+  @property
+  def config(self):
+    """ Return config. """
     return copy.deepcopy(self._config)
 
-  def get_run_parameters(self):
+  @property
+  def run_parameters(self):
+    """ Return run parameters. """
     # Context cannot be deep copied
     exclude = {"rendering_context"}
     run_params = {k: copy.deepcopy(self._run_parameters[k]) for k in self._run_parameters.keys() - exclude}
     run_params["rendering_context"] = self._run_parameters["rendering_context"]
     return run_params
 
-  def get_run_folder(self):
+  @property
+  def run_folder(self):
+    """ Return run folder. """
     return self._run_folder
 
   def get_state(self):
-    # TODO fix this
-    state = {"step": self.steps, "timestep": self.data.time,
-             "qpos": self.data.qpos[self.independent_joints].copy(),
-             "qvel": self.data.qvel[self.independent_joints].copy(),
-             "qacc": self.data.qacc[self.independent_joints].copy(),
-             "act": self.data.act.copy(),
-             "fingertip_xpos": self.data.get_geom_xpos(self.fingertip).copy(),
-             "fingertip_xmat": self.data.get_geom_xmat(self.fingertip).copy(),
-             "fingertip_xvelp": self.data.get_geom_xvelp(self.fingertip).copy(),
-             "fingertip_xvelr": self.data.get_geom_xvelr(self.fingertip).copy(),
-             "termination": False}
+    """ Return a state of the simulator / individual components (biomechanical model, perception model, task).
+
+    This function is used for logging/evaluation purposes, not for RL training.
+
+    Returns:
+      A dict with one float or numpy vector per keyword.
+    """
+
+    # Get time, qpos, qvel, qacc, act, ctrl of the current simulation
+    state = {"timestep": self._data.time,
+             "qpos": self._data.qpos.copy(),
+             "qvel": self._data.qvel.copy(),
+             "qacc": self._data.qacc.copy(),
+             "act": self._data.act.copy(),
+             "ctrl": self._data.ctrl.copy()}
+
+    # Add state from the task
+    state.update(self.task.get_state(self._model, self._data))
+
+    # Add state from the biomechanical model
+    state.update(self.bm_model.get_state(self._model, self._data))
+
+    # Add state from the perception model
+    state.update(self.perception.get_state(self._model, self._data))
+
     return state

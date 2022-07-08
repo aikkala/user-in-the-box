@@ -7,6 +7,7 @@ import inspect
 import mujoco
 from abc import ABC, abstractmethod
 import importlib
+from typing import final
 
 from ..utils.functions import parent_path
 from ..utils import element_tree as ETutils
@@ -15,6 +16,13 @@ from ..utils import element_tree as ETutils
 class BaseBMModel(ABC):
 
   def __init__(self, model, data, **kwargs):
+    """Initializes a new `BaseBMModel`.
+
+    Args:
+      model: Mujoco model instance of the simulator.
+      data: Mujoco data instance of the simulator.
+      **kwargs: Many keywords that should be documented somewhere
+    """
 
     # Initialise mujoco model of the biomechanical model, easier to manipulate things
     bm_model = mujoco.MjModel.from_xml_path(self.get_xml_file())
@@ -68,64 +76,107 @@ class BaseBMModel(ABC):
     # Get the effort model; some models might need to know dt
     self._effort_model = self.get_effort_model(kwargs.get("effort_model", {"cls": "Zero"}), dt=kwargs["dt"])
 
-    # If the model has a floor/ground, it should be defined so we can ignore it when cloning
-    #self._floor = kwargs.get("floor", None)
 
+  ############ The methods below you should definitely overwrite as they are important ############
+
+  @classmethod
   @abstractmethod
-  def _update(self, model, data):
+  def _get_floor(cls):
+    """ If there's a floor in the bm_model.xml file it should be defined here.
+
+    Returns:
+      * None if there is no floor in the file
+      * A dict like {"tag": "geom", "name": "name-of-the-geom"}, where "tag" indicates what kind of element the floor
+      is, and "name" is the name of the element.
+    """
     pass
 
-  def update(self, model, data):
-    self._update(model, data)
-    self._effort_model.update(model, data)
 
-  def get_effort_cost(self, model, data):
-    return self._effort_model.cost(model, data)
+  ############ The methods below are overwritable but often don't need to be overwritten ############
+
+  def _reset(self, model, data):
+    """ Resets the biomechanical model. """
+
+    # Randomly sample qpos, qvel, act around zero values
+    nq = len(self._independent_joints)
+    qpos = self._rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
+    qvel = self._rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
+    act = self._rng.uniform(low=np.zeros((self._na,)), high=np.ones((self._na,)))
+
+    # Set qpos and qvel
+    data.qpos[self._dependent_joints] = 0
+    data.qpos[self._independent_joints] = qpos
+    data.qvel[self._dependent_joints] = 0
+    data.qvel[self._independent_joints] = qvel
+    data.act[self._muscle_actuators] = act
+
+    # Reset smoothed average of motor actuator activation
+    self._motor_smooth_avg = np.zeros((self._nm,))
+
+  def _update(self, model, data):
+    """ Update the biomechanical model after a step has been taken in the simulator. """
+    pass
+
+  def _get_state(self, model, data):
+    """ Return the state of the biomechanical model. These states are used only for logging/evaluation, not for RL
+    training
+
+    Args:
+      model: Mujoco model instance of the simulator.
+      data: Mujoco data instance of the simulator.
+
+    Returns:
+      A dict where each key should have a float or a numpy vector as their value
+    """
+    return dict()
+
+  def set_ctrl(self, model, data, action):
+    """ Set control values for the biomechanical model.
+
+    Args:
+      model: Mujoco model instance of the simulator.
+      data: Mujoco data instance of the simulator.
+      action: Action values between [-1, 1]
+
+    """
+    data.ctrl[self._motor_actuators] = np.clip(self._motor_smooth_avg + action[:self._nm], 0, 1)
+    data.ctrl[self._muscle_actuators] = np.clip(data.act[self._muscle_actuators] + action[self._nm:], 0, 1)
+
+    # Update smoothed online estimate of motor actuation
+    self._motor_smooth_avg = (1 - self._motor_alpha) * self._motor_smooth_avg \
+                             + self._motor_alpha * data.ctrl[self._motor_actuators]
 
   @classmethod
   def get_xml_file(cls):
+    """ Overwrite this method if you want to call the mujoco xml file something other than 'bm_model.xml'. """
     return os.path.join(parent_path(inspect.getfile(cls)), "bm_model.xml")
 
-  @classmethod
-  @abstractmethod
-  def get_floor(cls):
-    pass
+  def get_effort_model(self, specs, dt):
+    """ Returns an initialised object of the effort model class.
 
-  @classmethod
-  def insert(cls, task_tree):
+    Overwrite this method if you want to define your effort models somewhere else. But note that in that case you need
+    to overwrite the 'clone' method as well since it assumes the effort models are defined in
+    uitb.bm_models.effort_models.
 
-    # Parse xml file
-    bm_tree = ET.parse(cls.get_xml_file())
-    bm_root = bm_tree.getroot()
+    Args:
+      specs: Specifications of the effort model, in format of
+        {"cls": "name-of-class", "kwargs": {"kw1": value1, "kw2": value2}}}
+      dt: Elapsed time between two consecutive simulation steps
 
-    # Get task root
-    task_root = task_tree.getroot()
-
-    # Add defaults
-    ETutils.copy_or_append("default", bm_root, task_root)
-
-    # Add assets, except skybox
-    ETutils.copy_children("asset", bm_root, task_root, exclude={"tag": "texture", "attrib": "type", "name": "skybox"})
-
-    # Add bodies, except floor/ground
-    if cls.get_floor() is not None:
-      ETutils.copy_children("worldbody", bm_root, task_root,
-                   exclude={"tag": cls.get_floor().tag, "attrib": "name",
-                            "name": cls.get_floor().attrib.get("name", None)})
-    else:
-      ETutils.copy_children("worldbody", bm_root, task_root)
-
-    # Add tendons
-    ETutils.copy_children("tendon", bm_root, task_root)
-
-    # Add actuators
-    ETutils.copy_children("actuator", bm_root, task_root)
-
-    # Add equality constraints
-    ETutils.copy_children("equality", bm_root, task_root)
+    Returns:
+       An instance of a class that inherits from the uitb.bm_models.effort_models.BaseEffortModel class
+    """
+    module = importlib.import_module(".".join(BaseBMModel.__module__.split(".")[:-1]) + ".effort_models")
+    return getattr(module, specs["cls"])(self, **{**specs.get("kwargs", {}), **{"dt": dt}})
 
   @classmethod
   def clone(cls, run_folder, package_name):
+    """ Clones (i.e. copies) the relevant python files into a new location.
+
+    Args:
+       run_folder: Location of the simulator.
+       package_name: Name of the simulator (which is a python package)
+    """
 
     # Create 'bm_models' folder
     dst = os.path.join(run_folder, package_name, "bm_models")
@@ -151,48 +202,81 @@ class BaseBMModel(ABC):
     # Copy effort models
     shutil.copyfile(os.path.join(base_file.parent, "effort_models.py"), os.path.join(dst, "effort_models.py"))
 
-  def get_effort_model(self, specs, dt):
-    module = importlib.import_module(".".join(BaseBMModel.__module__.split(".")[:-1]) + ".effort_models")
-    return getattr(module, specs["cls"])(self, **{**specs.get("kwargs", {}), **{"dt": dt}})
+  @classmethod
+  def insert(cls, simulator_tree):
+    """ Inserts the biomechanical model into the simulator by integrating the xml files together.
 
-  def set_ctrl(self, model, data, action):
-    data.ctrl[self._motor_actuators] = np.clip(self._motor_smooth_avg + action[:self._nm], 0, 1)
-    data.ctrl[self._muscle_actuators] = np.clip(data.act[self._muscle_actuators] + action[self._nm:], 0, 1)
+     Args:
+       simulator_tree: An `xml.etree.ElementTree` containing the parsed simulator xml file
+    """
 
-    # Update smoothed online estimate of motor actuation
-    self._motor_smooth_avg = (1-self._motor_alpha)*self._motor_smooth_avg \
-                            + self._motor_alpha*data.ctrl[self._motor_actuators]
+    # Parse xml file
+    bm_tree = ET.parse(cls.get_xml_file())
+    bm_root = bm_tree.getroot()
 
+    # Get simulator root
+    simulator_root = simulator_tree.getroot()
+
+    # Add defaults
+    ETutils.copy_or_append("default", bm_root, simulator_root)
+
+    # Add assets, except skybox
+    ETutils.copy_children("asset", bm_root, simulator_root,
+                          exclude={"tag": "texture", "attrib": "type", "name": "skybox"})
+
+    # Add bodies, except floor/ground  TODO this might not be currently working
+    if cls._get_floor() is not None:
+      floor = cls._get_floor()
+      ETutils.copy_children("worldbody", bm_root, simulator_root,
+                            exclude={"tag": floor["tag"], "attrib": "name", "name": floor["name"]})
+    else:
+      ETutils.copy_children("worldbody", bm_root, simulator_root)
+
+    # Add tendons
+    ETutils.copy_children("tendon", bm_root, simulator_root)
+
+    # Add actuators
+    ETutils.copy_children("actuator", bm_root, simulator_root)
+
+    # Add equality constraints
+    ETutils.copy_children("equality", bm_root, simulator_root)
+
+
+  ############ The methods below you should not overwrite ############
+
+  @final
+  def update(self, model, data):
+    """ Updates the biomechanical model and effort model. """
+    self._update(model, data)
+    self._effort_model.update(model, data)
+
+  @final
   def reset(self, model, data):
-
-    # TODO add kwargs for setting initial positions
-
-    # Randomly sample qpos, qvel, act
-    nq = len(self._independent_joints)
-    qpos = self._rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
-    qvel = self._rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
-    act = self._rng.uniform(low=np.zeros((self._na,)), high=np.ones((self._na,)))
-
-    # Set qpos and qvel
-    data.qpos[self._dependent_joints] = 0
-    data.qpos[self._independent_joints] = qpos
-    data.qvel[self._dependent_joints] = 0
-    data.qvel[self._independent_joints] = qvel
-    data.act[self._muscle_actuators] = act
-
-    # Reset smoothed average of motor actuator activation
-    self._motor_smooth_avg = np.zeros((self._nm,))
-
-    # Some effort models may be stateful and need to be reset
+    """ Resets the biomechanical model and effort model. """
+    self._reset(model, data)
     self._effort_model.reset(model, data)
-
-    # Finally update whatever needs to be updated
     self.update(model, data)
 
+  @final
+  def get_state(self, model, data):
+    """ Returns the state of the biomechanical model (as a dict). """
+    state = dict()
+    state.update(self._get_state(model, data))
+    return state
+
+  @final
+  def get_effort_cost(self, model, data):
+    """ Returns effort cost from the effort model. """
+    return self._effort_model.cost(model, data)
+
   @property
+  @final
   def independent_joints(self):
+    """ Returns indices of independent joints. """
     return self._independent_joints.copy()
 
   @property
+  @final
   def nu(self):
+    """ Returns number of actuators (both muscle and motor). """
     return self._nu

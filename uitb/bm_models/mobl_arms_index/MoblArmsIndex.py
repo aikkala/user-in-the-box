@@ -30,5 +30,5 @@ class MoblArmsIndex(BaseBMModel):
       mujoco.mj_forward(model, data)
 
   @classmethod
-  def get_floor(cls):
+  def _get_floor(cls):
     return None

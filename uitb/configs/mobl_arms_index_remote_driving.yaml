@@ -4,20 +4,11 @@ simulation:
   bm_model:
     cls: "MoblArmsIndex"
     kwargs:
-      shoulder_variant: "patch-v1"
-      effort_model:
-        cls: "Neural"
-        kwargs:
-          weight: 1e-5
+      shoulder_variant: "none"
   task:
     cls: "RemoteDriving"
     kwargs:
       end_effector: "hand_2distph"
-      car_velocity_threshold: 0
-      episode_length_seconds: 10
-      episode_length_seconds_extra_time: 0
-      reward_function:
-        cls: "NegativeExpDistance"
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
@@ -28,11 +19,15 @@ simulation:
         quat: "0.583833 0.399104 -0.399421 -0.583368"
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
-        end_effector: "hand_2distph"
+        end_effector: ["geom", "hand_2distph"]
     - cls: "tactile.RectangularCuboidGrid"
       kwargs:
         geom: "hand_2distph"
         resolution: [0, 1, 2]
+  effort_model:
+    cls: "Neural"
+    kwargs:
+      weight: 1e-4
   run_parameters:
     action_sample_freq: 20
 
