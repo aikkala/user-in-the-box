@@ -29,6 +29,7 @@ class FixedEye(BaseModule):
     Raises:
       KeyError: If "rendering_context" is not given (included in kwargs)
     """
+    super().__init__(model, data, bm_model, **kwargs)
 
     self._model = model
     self._data = data
@@ -60,8 +61,6 @@ class FixedEye(BaseModule):
       assert "dt" in kwargs, "dt must be defined in order to include prior observations"
       maxlen = 1 + int(buffer/kwargs["dt"])
       self._buffer = deque(maxlen=maxlen)
-
-    super().__init__(model, data, bm_model, **kwargs)
 
   @staticmethod
   def insert(simulation, **kwargs):
@@ -123,9 +122,6 @@ class FixedEye(BaseModule):
       obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=0)
 
     return obs
-
-  def _get_observation_range(self):
-    return {"low": -1, "high": 1}
 
   def _reset(self, model, data):
     if self._buffer is not None:

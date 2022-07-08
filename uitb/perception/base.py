@@ -32,8 +32,18 @@ class BaseModule(ABC):
     # Get modality  TODO this modality layer is somewhat unnecessary and may be removed in the future
     self._modality = parent_path(inspect.getfile(self.__class__)).parent.stem
 
-    # Get observation shape
-    self._observation_shape = self.get_observation(model, data).shape
+    # Observation shape will be set later
+    self._observation_shape = None
+
+  def __init_subclass__(cls, *args, **kwargs):
+    """ Define a new __init__ method with a hook that automatically sets observation shape after a child instance
+    has been initialised. This is only for convenience, otherwise we would need to set the observation shape separately
+    in each child class constructor, or after a a child of BaseModule has been initialised."""
+    super().__init_subclass__(*args, **kwargs)
+    def init_with_hook(self, model, data, bm_model, init=cls.__init__, **init_kwargs):
+      init(self, model, data, bm_model, **init_kwargs)
+      self._observation_shape = self.get_observation(model, data).shape
+    cls.__init__ = init_with_hook
 
 
   ############ The methods below you should definitely overwrite as they are important ############
@@ -57,17 +67,6 @@ class BaseModule(ABC):
         property 'encoder' must be implemented.
     """
     pass
-
-  @abstractmethod
-  def _get_observation_range(self):
-    """ Return limits for the observations.
-
-    Returns:
-        A dict with format {"low": float-or-array, "high": float-or-array} where the values indicate lowest and highest
-          values the observation can have. The values can be floats or numpy arrays -- if arrays, they must have the
-          same shape as the returned observation from method 'get_observation'
-    """
-    return {"low": None, "high": None}
 
 
   ############ The methods below are overwritable but often don't need to be overwritten ############
@@ -104,6 +103,18 @@ class BaseModule(ABC):
     """ An encoder (typically a PyTorch neural network) that maps the observations from higher dimensional arrays into
     vectors. """
     return None
+
+  def _get_observation_range(self):
+    """ Return limits for the observations. These limits aren't currently used for anything (AFAIK, not in gym or
+    stable-baselines3; only to initialise the observation space required by gym.Env), so let's just use a default of
+    -inf to inf. Overwrite this method to use different ranges.
+
+    Returns:
+        A dict with format {"low": float-or-array, "high": float-or-array} where the values indicate lowest and highest
+          values the observation can have. The values can be floats or numpy arrays -- if arrays, they must have the
+          same shape as the returned observation from method 'get_observation'
+    """
+    return {"low": float('-inf'), "high": float('inf')}
 
   @classmethod
   def clone(cls, run_folder, package_name):

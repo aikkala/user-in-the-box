@@ -9,6 +9,7 @@ from ...base import BaseModule
 class RectangularCuboidGrid(BaseModule):
 
   def __init__(self, model, data, bm_model, geom, resolution, margin=0.001, **kwargs):
+    super().__init__(model, data, bm_model, **kwargs)
 
     self._geom = geom
     self._resolution = resolution
@@ -56,8 +57,6 @@ class RectangularCuboidGrid(BaseModule):
       self._sites.append(site_name)
       self._sensors.append(f"{geom}-touch-{i}")
 
-    super().__init__(model, data, bm_model, **kwargs)
-
   @staticmethod
   def insert(simulation, **kwargs):
 
@@ -95,6 +94,3 @@ class RectangularCuboidGrid(BaseModule):
     for idx, sensor in enumerate(self._sensors):
       obs[idx] = data.sensor(sensor).data / 100
     return obs
-
-  def _get_observation_range(self):
-    return {"low": 0, "high": float('inf')}

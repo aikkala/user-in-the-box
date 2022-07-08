@@ -18,17 +18,14 @@ class BasicWithEndEffectorPosition(BaseModule):
         element is the name of the element
       kwargs: may contain "rng" seed
     """
+    super().__init__(model, data, bm_model, **kwargs)
     if not isinstance(end_effector, list) and len(end_effector) != 2:
       raise RuntimeError("end_effector must be a list of size two")
     self._end_effector = end_effector
-    super().__init__(model, data, bm_model, **kwargs)
 
   @staticmethod
   def insert(task, **kwargs):
     pass
-
-  def _get_observation_range(self):
-    return {"low": -float('inf'), "high": float('inf')}
 
   def get_observation(self, model, data):
 

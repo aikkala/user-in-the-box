@@ -47,8 +47,22 @@ class BaseTask(ABC):
     self._joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
                    for joint_name in self._joint_names]
 
+    # Shape of stateful information will be set later
+    self._stateful_information_shape = None
+
     # Keep track of simulated steps
     self._steps = 0
+
+  def __init_subclass__(cls, *args, **kwargs):
+    """ Define a new __init__ method with a hook that automatically sets stateful information shape after a child
+    instance has been initialised. This is only for convenience, otherwise we would need to set the stateful information
+    shape separately in each child class constructor, or after a a child of BaseTask has been initialised."""
+    super().__init_subclass__(*args, **kwargs)
+    def init_with_hook(self, model, data, init=cls.__init__, **init_kwargs):
+      init(self, model, data, **init_kwargs)
+      stateful_information = self.get_stateful_information(model, data)
+      self._stateful_information_shape = None if stateful_information is None else stateful_information.shape
+    cls.__init__ = init_with_hook
 
 
   ############ The methods below you should definitely overwrite as they are important ############
@@ -90,16 +104,17 @@ class BaseTask(ABC):
     """
     return None
 
-  def get_stateful_information_space_params(self):
-    """ If 'get_stateful_information' returns a numpy array, then this method must return observation space params.
+  def _get_stateful_information_range(self):
+    """ Return limits for stateful information. These limits aren't currently used for anything (AFAIK, not in gym or
+    stable-baselines3; only to initialise the observation space required by gym.Env), so let's just use a default of
+    -inf to inf. Overwrite this method to use different ranges.
 
     Returns:
-      * None if 'get_stateful_information' returns None
-      * A dict of format {"high": float-or-numpy-array, "low": float-or-numpy-array,
-      "shape": get_stateful_information().shape}
-
+        A dict with format {"low": float-or-array, "high": float-or-array} where the values indicate lowest and highest
+          values the observation can have. The values can be floats or numpy arrays -- if arrays, they must have the
+          same shape as the returned observation from method 'get_observation'
     """
-    return None
+    return {"low": float('-inf'), "high": float('inf')}
 
   @property
   def stateful_information_encoder(self):
@@ -205,3 +220,11 @@ class BaseTask(ABC):
     state = {"steps": self._steps}
     state.update(self._get_state(model, data))
     return state
+
+  @final
+  def get_stateful_information_space_params(self):
+    """ Returns stateful information space parameters. """
+    if self._stateful_information_shape is None:
+      return None
+    else:
+      return {**self._get_stateful_information_range(), "shape": self._stateful_information_shape}

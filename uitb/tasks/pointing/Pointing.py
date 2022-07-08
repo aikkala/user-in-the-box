@@ -179,6 +179,3 @@ class Pointing(BaseTask):
     targets_hit = -1.0 + 2*(self._trial_idx/self._max_trials)
     dwell_time = -1.0 + 2 * np.min([1.0, self._steps_inside_target / self._dwell_threshold])
     return np.array([dwell_time, targets_hit])
-
-  def get_stateful_information_space_params(self):
-    return {"low": -1, "high": 1, "shape": (2,)}

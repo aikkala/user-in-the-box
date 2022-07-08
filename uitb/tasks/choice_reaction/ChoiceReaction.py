@@ -159,6 +159,3 @@ class ChoiceReaction(BaseTask):
     # Time features
     targets_hit = -1.0 + 2*(self._trial_idx/self._max_trials)
     return np.array([targets_hit])
-
-  def get_stateful_information_space_params(self):
-    return {"low": -1, "high": 1, "shape": (1,)}
