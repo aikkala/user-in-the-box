@@ -9,11 +9,6 @@ simulation:
     cls: "RemoteDriving"
     kwargs:
       end_effector: "hand_2distph"
-      car_velocity_threshold: 0
-      episode_length_seconds: 10
-      extratime_length_seconds: 0
-      reward_function:
-        cls: "NegativeExpDistance"
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:

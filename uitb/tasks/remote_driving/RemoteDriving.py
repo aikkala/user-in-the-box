@@ -48,7 +48,7 @@ class RemoteDriving(BaseTask):
 
     # Terminal velocity -- car needs to stay inside target area (i.e., velocity in x-direction needs to fall below
     # some threshold)
-    self._car_velocity_threshold = kwargs.get('car_velocity_threshold', 0.1)
+    self._car_velocity_threshold = kwargs.get('car_velocity_threshold', 0.0)
 
     # Set target size
     self._target_halfsize = kwargs.get('target_halfsize', 0.4)
@@ -62,7 +62,8 @@ class RemoteDriving(BaseTask):
                   "extratime_given": False}
 
     # Get the reward function
-    self._reward_function = self._get_reward_function(kwargs["reward_function"])
+    default_reward_fn = {"cls": "PositiveExpDistance"}
+    self._reward_function = self._get_reward_function(kwargs.get("reward_function", default_reward_fn))
 
     # Do a forward step so stuff like geom and body positions are calculated
     mujoco.mj_forward(model, data)
@@ -82,9 +83,16 @@ class RemoteDriving(BaseTask):
     tree = ET.parse(cls.get_xml_file())
     root = tree.getroot()
 
-    # Add contact
+    # Add contacts
     root.find("contact").append(ET.Element('pair', geom1="thumb-stick-1", geom2=task_kwargs["end_effector"],
                                            margin="100", gap="100"))
+    root.find("contact").append(ET.Element('pair', geom1="thumb-stick-2", geom2=task_kwargs["end_effector"]))
+    root.find("contact").append(ET.Element('pair', geom1="controller-base", geom2=task_kwargs["end_effector"]))
+    root.find("contact").append(ET.Element('pair', geom1="d-pad", geom2=task_kwargs["end_effector"]))
+    root.find("contact").append(ET.Element('pair', geom1="button-1", geom2=task_kwargs["end_effector"]))
+    root.find("contact").append(ET.Element('pair', geom1="button-2", geom2=task_kwargs["end_effector"]))
+    root.find("contact").append(ET.Element('pair', geom1="button-3", geom2=task_kwargs["end_effector"]))
+    root.find("contact").append(ET.Element('pair', geom1="button-4", geom2=task_kwargs["end_effector"]))
 
     # Add touch sensor
     thumb_stick_1 = root.find(".//body[@name='thumb-stick-1']")

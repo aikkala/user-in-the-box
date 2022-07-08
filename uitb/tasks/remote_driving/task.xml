@@ -27,7 +27,7 @@
         <body name="target" pos="2 0 0">
             <geom name="target" type="box" pos="0.0 0.0 0.0" size="0.5 0.3 0.5" rgba=" 0 .9 0 0.5" gap="100"
                   margin="-100"/>
-            <joint name="target" limited="true" type="slide" axis="0 -1 0" range="-2.5 2.5"/>
+            <joint name="target" limited="true" type="slide" stiffness="0" axis="0 -1 0" range="-2.5 2.5"/>
         </body>
         <body name="ground_body">
             <geom name="ground" type="plane" pos="0 0 0" size="10 10 1" rgba=" .25 .26 .25 1"/>
@@ -90,10 +90,10 @@
             </body>
 
             <body name="controller-base" pos="0 0 0.025">
-                <geom type="mesh" mesh="controller_body" rgba="0.749 0.749 0.749 1"/>
+                <geom name="controller-base" type="mesh" mesh="controller_body" rgba="0.749 0.749 0.749 1"/>
             </body>
             <body name="d-pad" pos="-0.004 0.00675 0.0442">
-                <geom type="mesh" mesh="d_pad" mass="1" rgba="0 0 0 1"/>
+                <geom name="d-pad" type="mesh" mesh="d_pad" mass="1" rgba="0 0 0 1"/>
                 <joint type="hinge" name="d_pad:rot-x" axis="1 0 0" limited="true" range="-5 5" damping="10"
                        springref="0" stiffness="500"/>
                 <joint type="hinge" name="d_pad:rot-y" axis="0 1 0" limited="true" range="-5 5" damping="10"
@@ -113,22 +113,22 @@
             </body>
             <body name="control-buttons">
                 <body name="button-1" pos="0.1275 0.01 0.05">
-                    <geom type="mesh" mesh="button" mass="0.0005" rgba="0 1 0 1"/>
+                    <geom name="button-1" type="mesh" mesh="button" mass="0.0005" rgba="0 1 0 1"/>
                     <joint axis="0 0 1" name="button-1:slide-z" type="slide" limited="true" range="-0.0045 0"
                            springref="0" stiffness="0.5" damping="0.5"/>
                 </body>
                 <body name="button-2" pos="0.14375 -0.0025 0.05">
-                    <geom type="mesh" mesh="button" mass="0.0005" rgba="1 1 0 1"/>
+                    <geom name="button-2" type="mesh" mesh="button" mass="0.0005" rgba="1 1 0 1"/>
                     <joint axis="0 0 1" name="button-2:slide-z" type="slide" limited="true" range="-0.0045 0"
                            springref="0" stiffness="0.5" damping="0.5"/>
                 </body>
                 <body name="button-3" pos="0.14186332 0.022052262 0.05">
-                    <geom type="mesh" mesh="button" mass="0.0005" rgba="0 0 1 1"/>
+                    <geom name="button-3" type="mesh" mesh="button" mass="0.0005" rgba="0 0 1 1"/>
                     <joint axis="0 0 1" name="button-3:slide-z" type="slide" limited="true" range="-0.0045 0"
                            springref="0" stiffness="0.5" damping="0.5"/>
                 </body>
                 <body name="button-4" pos="0.15811333 0.009552263 0.05">
-                    <geom type="mesh" mesh="button" mass="0.0005" rgba="1 0 0 1"/>
+                    <geom name="button-4" type="mesh" mesh="button" mass="0.0005" rgba="1 0 0 1"/>
                     <joint axis="0 0 1" name="button-4:slide-z" type="slide" limited="true" range="-0.0045 0"
                            springref="0" stiffness="0.5" damping="0.5"/>
                 </body>
