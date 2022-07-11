@@ -435,7 +435,7 @@
                                                                     <body name="index3" pos="0 0 0">
                                                                         <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001" />
                                                                         <geom name="hand_2distph" type="mesh" mesh="hand_2distph" />
-                                                                        <site name="fingertip" pos="0.024 -0.15 -0.005" type="sphere" rgba="0.1 0.8 0.1 0.0" size="0.01"/>
+                                                                        <site name="fingertip" pos="0.024 -0.149 -0.0065" type="sphere" rgba="0.1 0.8 0.1 0.0" size="0.004"/>
                                                                     </body>
                                                                 </body>
                                                             </body>

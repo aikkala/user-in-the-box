@@ -94,12 +94,13 @@ class RemoteDriving(BaseTask):
     root.find("contact").append(ET.Element('pair', geom1="button-3", geom2=task_kwargs["end_effector"]))
     root.find("contact").append(ET.Element('pair', geom1="button-4", geom2=task_kwargs["end_effector"]))
 
-    # Add touch sensor
+    # Add touch sensor (these could have been already defined in the task.xml file, but maybe leave them here for
+    # demonstration purposes)
     thumb_stick_1 = root.find(".//body[@name='thumb-stick-1']")
-    thumb_stick_1.append(ET.Element('site', name=f'thumb-stick-1', size="0.025", rgba="0.5 0.5 0.5 0.0"))
+    thumb_stick_1.append(ET.Element('site', name='thumb-stick-1', pos="0 0 0.018", size="0.012", rgba="0.5 0.5 0.5 0.0"))
     if root.find('sensor') is None:
       root.append(ET.Element('sensor'))
-    root.find('sensor').append(ET.Element('touch', name=f"thumb-stick-1-sensor", site=f"thumb-stick-1"))
+    root.find('sensor').append(ET.Element('touch', name="thumb-stick-1-sensor", site="thumb-stick-1"))
 
     return tree
 
@@ -129,13 +130,14 @@ class RemoteDriving(BaseTask):
                                           - data.body("target").xpos[1]))
 
     # Contact between end-effector and joystick
-    end_effector_joystick_contact = [contact for contact in data.contact if {contact.geom1, contact.geom2} ==
-                                     {mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._end_effector),
-                                      mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._joystick_geom)}]
-    assert len(end_effector_joystick_contact) >= 1
-    self._dist_ee_to_joystick = end_effector_joystick_contact[0].dist
+    #end_effector_joystick_contact = [contact for contact in data.contact if {contact.geom1, contact.geom2} ==
+    #                                 {mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._end_effector),
+    #                                  mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._joystick_geom)}]
+    #assert len(end_effector_joystick_contact) >= 1
+    #self._dist_ee_to_joystick = end_effector_joystick_contact[0].dist
+    self._dist_ee_to_joystick = np.linalg.norm(data.site("thumb-stick-1").xpos - data.site("fingertip").xpos)
 
-    # Check if hand is kept at joystick
+    # Check if hand is kept at joystick TODO threshold of 1e-3 might not work
     if self._dist_ee_to_joystick <= 1e-3:
       # Provide (constant) extra time if joystick is touched at least once within regular time:
       if not self._info["extratime_given"]:
