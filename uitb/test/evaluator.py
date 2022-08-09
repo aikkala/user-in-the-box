@@ -136,8 +136,8 @@ if __name__=="__main__":
       reward += r
 
       if args.logging:
-        action_logger.log(episode_idx, {"step": state["step"], "timestep": state["timestep"], "action": action.copy(),
-                                        "ctrl": simulator.sim.data.ctrl.copy(), "reward": r})
+        action_logger.log(episode_idx, {"steps": state["steps"], "timestep": state["timestep"], "action": action.copy(),
+                                        "reward": r})
         state = simulator.get_state()
         state.update(info)
         state_logger.log(episode_idx, state)
