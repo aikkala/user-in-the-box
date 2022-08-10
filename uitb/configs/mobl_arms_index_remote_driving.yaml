@@ -1,14 +1,31 @@
-run_name: "mobl_arms_index_remote_driving"
+run_name: "mobl_arms_index_remote_driving_only_target_bonus"
 
 simulation:
   bm_model:
     cls: "MoblArmsIndex"
     kwargs:
-      shoulder_variant: "none"
+      shoulder_variant: "patch-v1"
   task:
     cls: "RemoteDriving"
     kwargs:
       end_effector: "hand_2distph"
+      extratime_length_seconds: 0
+      episode_length_seconds: 10
+      car_velocity_threshold: 0.0
+      reward_function:
+        cls: "NegativeExpDistance"
+        kwargs:
+          joystick_specs:
+            k: 3.0
+            shift: -1.0
+            scale: 1.0
+            bonus_active: False
+          target_specs:
+            k: 3.0
+            shift: -1.0
+            scale: 0.0
+            bonus_active: True
+            bonus: 1.0
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
@@ -48,7 +65,7 @@ rl:
       threshold: 0.8
   total_timesteps: 200_000_000
   device: "cuda"
-  num_workers: 10
+  num_workers: 20
   nsteps: 4000
   batch_size: 1000
   target_kl: 1.0
