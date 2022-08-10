@@ -58,7 +58,7 @@ class RemoteDriving(BaseTask):
     self._new_target_distance_threshold = 1
 
     # For logging
-    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False,
+    self._info = {"target_hit": False, "inside_target": False, "car_moving": False,
                   "extratime_given": False}
 
     # Get the reward function
@@ -79,20 +79,24 @@ class RemoteDriving(BaseTask):
       raise KeyError("Key 'end_effector' is missing from task kwargs. The end-effector must be defined for this "
                      "environment")
 
+    # By default only contact between fingertip and joystick is enabled
+    gamepad_contacts = task_kwargs.get("gamepad_contacts", False);
+
     # Parse xml file
     tree = ET.parse(cls.get_xml_file())
     root = tree.getroot()
 
     # Add contacts
-    root.find("contact").append(ET.Element('pair', geom1="thumb-stick-1", geom2=task_kwargs["end_effector"],
-                                           margin="100", gap="100"))
-    root.find("contact").append(ET.Element('pair', geom1="thumb-stick-2", geom2=task_kwargs["end_effector"]))
-    root.find("contact").append(ET.Element('pair', geom1="controller-base", geom2=task_kwargs["end_effector"]))
-    root.find("contact").append(ET.Element('pair', geom1="d-pad", geom2=task_kwargs["end_effector"]))
-    root.find("contact").append(ET.Element('pair', geom1="button-1", geom2=task_kwargs["end_effector"]))
-    root.find("contact").append(ET.Element('pair', geom1="button-2", geom2=task_kwargs["end_effector"]))
-    root.find("contact").append(ET.Element('pair', geom1="button-3", geom2=task_kwargs["end_effector"]))
-    root.find("contact").append(ET.Element('pair', geom1="button-4", geom2=task_kwargs["end_effector"]))
+    root.find("contact").append(ET.Element('pair', geom1="thumb-stick-1", geom2=task_kwargs["end_effector"]))
+
+    if gamepad_contacts:
+      root.find("contact").append(ET.Element('pair', geom1="thumb-stick-2", geom2=task_kwargs["end_effector"]))
+      root.find("contact").append(ET.Element('pair', geom1="controller-base", geom2=task_kwargs["end_effector"]))
+      root.find("contact").append(ET.Element('pair', geom1="d-pad", geom2=task_kwargs["end_effector"]))
+      root.find("contact").append(ET.Element('pair', geom1="button-1", geom2=task_kwargs["end_effector"]))
+      root.find("contact").append(ET.Element('pair', geom1="button-2", geom2=task_kwargs["end_effector"]))
+      root.find("contact").append(ET.Element('pair', geom1="button-3", geom2=task_kwargs["end_effector"]))
+      root.find("contact").append(ET.Element('pair', geom1="button-4", geom2=task_kwargs["end_effector"]))
 
     # Add touch sensor (these could have been already defined in the task.xml file, but maybe leave them here for
     # demonstration purposes)
@@ -130,22 +134,17 @@ class RemoteDriving(BaseTask):
                                           - data.body("target").xpos[1]))
 
     # Contact between end-effector and joystick
-    #end_effector_joystick_contact = [contact for contact in data.contact if {contact.geom1, contact.geom2} ==
-    #                                 {mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._end_effector),
-    #                                  mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, self._joystick_geom)}]
-    #assert len(end_effector_joystick_contact) >= 1
-    #self._dist_ee_to_joystick = end_effector_joystick_contact[0].dist
     self._dist_ee_to_joystick = np.linalg.norm(data.site("thumb-stick-1").xpos - data.site("fingertip").xpos)
 
-    # Check if hand is kept at joystick TODO threshold of 1e-3 might not work
-    if self._dist_ee_to_joystick <= 1e-3:
+    # Check if car is moving
+    if np.abs(data.body(self._car_body).cvel[4]) > 1e-3:
       # Provide (constant) extra time if joystick is touched at least once within regular time:
       if not self._info["extratime_given"]:
         self._max_episode_steps_with_extratime = self._max_episode_steps + self._extratime
         self._info["extratime_given"] = True
-      self._info["end_effector_at_joystick"] = True
+      self._info["car_moving"] = True
     else:
-      self._info["end_effector_at_joystick"] = False
+      self._info["car_moving"] = False
 
     # Check if car has reached target
     if self._dist_car_to_target <= self._target_halfsize:
@@ -211,7 +210,7 @@ class RemoteDriving(BaseTask):
 
     # Reset counters
     self._max_episode_steps_with_extratime = self._max_episode_steps
-    self._info = {"target_hit": False, "inside_target": False, "end_effector_at_joystick": False,
+    self._info = {"target_hit": False, "inside_target": False, "car_moving": False,
                   "extratime_given": False}
 
     # Reset reward function
