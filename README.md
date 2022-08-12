@@ -7,7 +7,8 @@
 
 ## Video
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/-L2hls8Blyc" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+https://user-images.githubusercontent.com/7627254/184347198-2d7f8852-d50b-457f-8eaa-07720b9522eb.mp4
+[See here for a Youtube version (with subtitles)](https://youtu.be/-L2hls8Blyc)
 
 
 ## Implementation
