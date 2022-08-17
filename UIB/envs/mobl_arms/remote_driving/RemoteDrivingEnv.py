@@ -14,7 +14,7 @@ class RemoteDrivingEnv(FixedEye):
   metadata = {'render.modes': ['human']}
 
   # Model file
-  #xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles.xml")
+  xml_file = os.path.join(project_path(), "envs/mobl_arms/models/variants/mobl_arms_muscles_v2_modified_no_skybox.xml")
 
   # Joystick
   gamepad_body = "gamepad"
