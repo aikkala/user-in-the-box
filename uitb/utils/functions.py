@@ -5,6 +5,8 @@ import sys
 import select
 import numpy as np
 from distutils.dir_util import copy_tree
+import re
+from ruamel.yaml import YAML
 
 
 def parent_path(file):
@@ -14,7 +16,7 @@ def project_path():
   return pathlib.Path(__file__).parent.parent.absolute()
 
 def output_path():
-  return os.path.join(project_path().parent.absolute(), "output")
+  return os.path.join(project_path().parent.absolute(), "simulators")
 
 def strtime():
   return datetime.utcfromtimestamp(datetime.now().timestamp()).strftime('%Y-%m-%dT%H-%M-%SZ')
@@ -29,6 +31,20 @@ def timeout_input(prompt, timeout=30, default=""):
 def sigmoid(x):
   return np.exp(-np.logaddexp(0, -x))
 
+def is_suitable_package_name(name):
+  match = re.match("^[a-z_]*$", name)
+  return match is not None and name[0].isalpha()
+
+def parse_yaml(yaml_file):
+  yaml = YAML()
+  with open(yaml_file, 'r') as stream:
+    parsed = yaml.load(stream)
+  return parsed
+
+def write_yaml(data, file):
+  yaml = YAML()
+  with open(file, "w") as stream:
+    yaml.dump(data, stream)
 
 def img_history(imgs, k=0.9):
 

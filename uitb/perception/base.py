@@ -117,16 +117,16 @@ class BaseModule(ABC):
     return {"low": float('-inf'), "high": float('inf')}
 
   @classmethod
-  def clone(cls, run_folder, package_name):
+  def clone(cls, simulator_folder, package_name):
     """ Clones (i.e. copies) the relevant python files into a new location.
 
     Args:
-       run_folder: Location of the simulator.
+       simulator_folder: Location of the simulator.
        package_name: Name of the simulator (which is a python package)
     """
 
     # Create "perception" folder if needed
-    dst = os.path.join(run_folder, package_name, "perception")
+    dst = os.path.join(simulator_folder, package_name, "perception")
     os.makedirs(dst, exist_ok=True)
 
     # Copy this file and __init__.py
@@ -156,7 +156,7 @@ class BaseModule(ABC):
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(simulator_folder, package_name, "assets"),
                       dirs_exist_ok=True)
 
 

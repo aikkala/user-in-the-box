@@ -154,16 +154,16 @@ class BaseTask(ABC):
     return getattr(module, specs["cls"])(**specs.get("kwargs", {}))
 
   @classmethod
-  def clone(cls, run_folder, package_name):
+  def clone(cls, simulator_folder, package_name):
     """ Clones (i.e. copies) the relevant python files into a new location.
 
     Args:
-       run_folder: Location of the simulator.
+       simulator_folder: Location of the simulator.
        package_name: Name of the simulator (which is a python package)
     """
 
     # Create 'tasks' folder
-    dst = os.path.join(run_folder, package_name, "tasks")
+    dst = os.path.join(simulator_folder, package_name, "tasks")
     os.makedirs(dst, exist_ok=True)
 
     # Copy this file and __init__.py
@@ -182,7 +182,7 @@ class BaseTask(ABC):
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
-      shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
+      shutil.copytree(os.path.join(src, "assets"), os.path.join(simulator_folder, package_name, "assets"),
                       dirs_exist_ok=True)
 
   @classmethod
