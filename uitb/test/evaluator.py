@@ -50,7 +50,7 @@ def grab_pip_image(simulator):
 if __name__=="__main__":
 
   parser = argparse.ArgumentParser(description='Evaluate a policy.')
-  parser.add_argument('run_folder', type=str,
+  parser.add_argument('simulator_folder', type=str,
                       help='the simulation folder')
   parser.add_argument('--checkpoint', type=str, default=None,
                       help='filename of a specific checkpoint (default: None, latest checkpoint is used)')
@@ -67,22 +67,22 @@ if __name__=="__main__":
   args = parser.parse_args()
 
   # Define directories
-  checkpoint_dir = os.path.join(args.run_folder, 'checkpoints')
-  evaluate_dir = os.path.join(args.run_folder, 'evaluate')
+  checkpoint_dir = os.path.join(args.simulator_folder, 'checkpoints')
+  evaluate_dir = os.path.join(args.simulator_folder, 'evaluate')
 
   # Make sure output dir exists
   os.makedirs(evaluate_dir, exist_ok=True)
 
   # Override run parameters
   run_params = dict()
-  run_params["action_sample_freq"] = 100
+  run_params["action_sample_freq"] = 20
   run_params["evaluate"] = True
 
   # Use deterministic actions?
   deterministic = False
 
   # Initialise simulator
-  simulator = Simulator.get(args.run_folder, run_parameters=run_params)
+  simulator = Simulator.get(args.simulator_folder, run_parameters=run_params)
 
   print(f"run parameters are: {simulator.run_parameters}")
 
@@ -136,8 +136,8 @@ if __name__=="__main__":
       reward += r
 
       if args.logging:
-        action_logger.log(episode_idx, {"step": state["step"], "timestep": state["timestep"], "action": action.copy(),
-                                        "ctrl": simulator.sim.data.ctrl.copy(), "reward": r})
+        action_logger.log(episode_idx, {"steps": state["steps"], "timestep": state["timestep"], "action": action.copy(),
+                                        "reward": r})
         state = simulator.get_state()
         state.update(info)
         state_logger.log(episode_idx, state)

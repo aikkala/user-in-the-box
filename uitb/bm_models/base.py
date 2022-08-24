@@ -170,16 +170,16 @@ class BaseBMModel(ABC):
     return getattr(module, specs["cls"])(self, **{**specs.get("kwargs", {}), **{"dt": dt}})
 
   @classmethod
-  def clone(cls, run_folder, package_name):
+  def clone(cls, simulator_folder, package_name):
     """ Clones (i.e. copies) the relevant python files into a new location.
 
     Args:
-       run_folder: Location of the simulator.
+       simulator_folder: Location of the simulator.
        package_name: Name of the simulator (which is a python package)
     """
 
     # Create 'bm_models' folder
-    dst = os.path.join(run_folder, package_name, "bm_models")
+    dst = os.path.join(simulator_folder, package_name, "bm_models")
     os.makedirs(dst, exist_ok=True)
 
     # Copy this file
@@ -196,7 +196,7 @@ class BaseBMModel(ABC):
     shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
 
     # Copy assets
-    shutil.copytree(os.path.join(src, "assets"), os.path.join(run_folder, package_name, "assets"),
+    shutil.copytree(os.path.join(src, "assets"), os.path.join(simulator_folder, package_name, "assets"),
                     dirs_exist_ok=True)
 
     # Copy effort models

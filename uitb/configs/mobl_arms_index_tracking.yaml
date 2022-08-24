@@ -1,10 +1,10 @@
-run_name: "mobl_arms_index_tracking"
+simulator_name: "mobl_arms_index_tracking"
 
 simulation:
   bm_model:
     cls: "MoblArmsIndex"
     kwargs:
-      shoulder_variant: "none"
+      shoulder_variant: "patch-v1"
   task:
     cls: "Tracking"
     kwargs:
@@ -53,7 +53,7 @@ rl:
       threshold: 0.8
   total_timesteps: 100_000_000
   device: "cuda"
-  num_workers: 10
+  num_workers: 20
   nsteps: 4000
   batch_size: 1000
   target_kl: 1.0
