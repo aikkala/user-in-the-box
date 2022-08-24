@@ -14,7 +14,7 @@ import copy
 
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
-from .utils.functions import output_path, parent_path
+from .utils.functions import output_path, parent_path, is_suitable_package_name
 
 
 class Simulator(gym.Env):
@@ -72,49 +72,53 @@ class Simulator(gym.Env):
     # Set simulator id
     config["id"] = cls.id
 
-    # Save outputs to uitb/outputs if run folder is not defined
-    run_folder = os.path.join(output_path(), config["run_name"])
+    # Save generated simulators to uitb/simulators
+    simulator_folder = os.path.join(output_path(), config["simulator_name"])
 
-    # If 'package_name' is not defined use 'run_name' TODO check that package_name is suitable for a python package
+    # If 'package_name' is not defined use 'simulator_name'
     if "package_name" not in config:
-      config["package_name"] = config["run_name"]
+      config["package_name"] = config["simulator_name"]
+    if not is_suitable_package_name(config["package_name"]):
+      raise NameError("Package name defined in the config file (either through 'package_name' or 'simulator_name') is "
+                      "not a suitable Python package name. Use only lower-case letters and underscores instead of "
+                      "spaces.")
 
     # The name used in gym has a suffix -v0
     config["gym_name"] = "uitb:" + config["package_name"] + "-v0"
 
-    # Create a simulator in the run folder
-    cls._clone(run_folder, config["package_name"])
+    # Create a simulator in the simulator folder
+    cls._clone(simulator_folder, config["package_name"])
 
     # Load task class
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
-    task_cls.clone(run_folder, config["package_name"])
+    task_cls.clone(simulator_folder, config["package_name"])
     simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
 
     # Load biomechanical model class
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
-    bm_cls.clone(run_folder, config["package_name"])
+    bm_cls.clone(simulator_folder, config["package_name"])
     bm_cls.insert(simulation)
 
     # Add perception modules
     for module_cfg in config["simulation"].get("perception_modules", []):
       module_cls = cls.get_class("perception", module_cfg["cls"])
       module_kwargs = module_cfg.get("kwargs", {})
-      module_cls.clone(run_folder, config["package_name"])
+      module_cls.clone(simulator_folder, config["package_name"])
       module_cls.insert(simulation, **module_kwargs)
 
     # Clone also RL library files so the package will be completely standalone
     rl_cls = cls.get_class("rl", config["rl"]["algorithm"])
-    rl_cls.clone(run_folder, config["package_name"])
+    rl_cls.clone(simulator_folder, config["package_name"])
 
     # TODO read the xml file directly from task.getroot() instead of writing it to a file first; need to input a dict
     #  of assets to mujoco.MjModel.from_xml_path
-    simulation_file = os.path.join(run_folder, config["package_name"], "simulation")
+    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation")
     with open(simulation_file+".xml", 'w') as file:
       simulation.write(file, encoding='unicode')
 
     # Initialise the simulator
     model, _, _, _, _, _ = \
-      cls._initialise(config, run_folder, run_parameters)
+      cls._initialise(config, simulator_folder, run_parameters)
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
     # mujoco only is able to save the latest loaded xml file (which is either the task or bm model xml files which are
@@ -131,22 +135,22 @@ class Simulator(gym.Env):
 
     # Save config
     yaml = YAML()
-    with open(os.path.join(run_folder, "config.yaml"), "w") as stream:
+    with open(os.path.join(simulator_folder, "config.yaml"), "w") as stream:
       yaml.dump(config, stream)
 
-    return run_folder
+    return simulator_folder
 
   @classmethod
-  def _clone(cls, run_folder, package_name):
+  def _clone(cls, simulator_folder, package_name):
     """ Create a folder for the simulator being built, and copy or create relevant files.
 
     Args:
-       run_folder: Location of the simulator.
+       simulator_folder: Location of the simulator.
        package_name: Name of the simulator (which is a python package).
     """
 
     # Create the folder
-    dst = os.path.join(run_folder, package_name)
+    dst = os.path.join(simulator_folder, package_name)
     os.makedirs(dst, exist_ok=True)
 
     # Copy simulator
@@ -159,21 +163,21 @@ class Simulator(gym.Env):
       file.write("from gym.envs.registration import register\n")
       file.write("import pathlib\n\n")
       file.write("module_folder = pathlib.Path(__file__).parent\n")
-      file.write("run_folder = module_folder.parent\n")
-      file.write("kwargs = {'run_folder': run_folder}\n")
+      file.write("simulator_folder = module_folder.parent\n")
+      file.write("kwargs = {'simulator_folder': simulator_folder}\n")
       file.write("register(id=f'{module_folder.stem}-v0', entry_point=f'{module_folder.stem}.simulator:Simulator', kwargs=kwargs)\n")
 
     # Copy utils
-    shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(run_folder, package_name, "utils"),
+    shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(simulator_folder, package_name, "utils"),
                     dirs_exist_ok=True)
 
   @classmethod
-  def _initialise(cls, config, run_folder, run_parameters):
+  def _initialise(cls, config, simulator_folder, run_parameters):
     """ Initialise a simulator -- i.e., create a MjModel, MjData, and initialise all necessary variables.
 
     Args:
         config: A config dict.
-        run_folder: Location of the simulator.
+        simulator_folder: Location of the simulator.
         run_parameters: Important run time variables that may also be used to override parameters.
     """
 
@@ -193,7 +197,7 @@ class Simulator(gym.Env):
       perception_modules[module_cls] = module_kwargs
 
     # Get xml file
-    simulation_file = os.path.join(run_folder, config["package_name"], "simulation.xml")
+    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation.xml")
 
     # Load the mujoco model
     model = mujoco.MjModel.from_xml_path(simulation_file)
@@ -223,18 +227,18 @@ class Simulator(gym.Env):
     return model, data, task, bm_model, perception, callbacks
 
   @classmethod
-  def get(cls, run_folder, run_parameters=None, use_cloned=True):
+  def get(cls, simulator_folder, run_parameters=None, use_cloned=True):
     """ Returns a Simulator that is located in given folder.
 
     Args:
-      run_folder: Location of the simulator.
+      simulator_folder: Location of the simulator.
       run_parameters: Can be used to override parameters.
       use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
         cloned/copied during building phase.
     """
 
     # Read config file
-    config_file = os.path.join(run_folder, "config.yaml")
+    config_file = os.path.join(simulator_folder, "config.yaml")
     yaml = YAML()
     try:
       with open(config_file, "r") as stream:
@@ -247,9 +251,9 @@ class Simulator(gym.Env):
       raise RuntimeError("Simulator has not been built")
 
     if use_cloned:
-      # Make sure run_folder is in path
-      if run_folder not in sys.path:
-        sys.path.insert(0, run_folder)
+      # Make sure simulator_folder is in path
+      if simulator_folder not in sys.path:
+        sys.path.insert(0, simulator_folder)
 
       # Get Simulator class
       gen_cls = getattr(importlib.import_module(config["package_name"]), "Simulator")
@@ -257,20 +261,20 @@ class Simulator(gym.Env):
       gen_cls = cls
 
     # Return Simulator object
-    return gen_cls(run_folder, run_parameters=run_parameters)
+    return gen_cls(simulator_folder, run_parameters=run_parameters)
 
-  def __init__(self, run_folder, run_parameters=None):
+  def __init__(self, simulator_folder, run_parameters=None):
     """ Initialise a new `Simulator`.
 
     Args:
-      run_folder: Location of a simulator.
+      simulator_folder: Location of a simulator.
       run_parameters: Can be used to override parameters during run time.
     """
 
     # Read configs
-    self._run_folder = run_folder
+    self._simulator_folder = simulator_folder
     yaml = YAML()
-    with open(os.path.join(self._run_folder, "config.yaml"), "r") as stream:
+    with open(os.path.join(self._simulator_folder, "config.yaml"), "r") as stream:
       self._config = yaml.load(stream)
 
     # Get run parameters: these parameters can be used to override parameters used during training
@@ -279,7 +283,7 @@ class Simulator(gym.Env):
 
     # Initialise simulation
     self._model, self._data, self.task, self.bm_model, self.perception, self.callbacks = \
-      self._initialise(self._config, self._run_folder, self._run_parameters)
+      self._initialise(self._config, self._simulator_folder, self._run_parameters)
 
     # Set action space TODO for now we assume all actuators have control signals between [-1, 1]
     self.action_space = self._initialise_action_space()
@@ -403,9 +407,9 @@ class Simulator(gym.Env):
     return run_params
 
   @property
-  def run_folder(self):
-    """ Return run folder. """
-    return self._run_folder
+  def simulator_folder(self):
+    """ Return simulator folder. """
+    return self._simulator_folder
 
   def get_state(self):
     """ Return a state of the simulator / individual components (biomechanical model, perception model, task).

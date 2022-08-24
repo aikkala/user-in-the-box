@@ -19,20 +19,19 @@ if __name__=="__main__":
     config = yaml.load(stream)
 
   # Build the simulator
-  run_folder = Simulator.build(config)
+  simulator_folder = Simulator.build(config)
 
   # Initialise
-  simulator = Simulator.get(run_folder)
+  simulator = Simulator.get(simulator_folder)
 
-  # Get name for this run from config
-  name = config.get("run_name", None)
+  # Get name for this simulator from config
+  name = config.get("simulator_name", None)
 
   if name is None:
     # Ask user to name this run
     name = timeout_input("Give a name for this run. Input empty string or wait for 30 seconds for a random name.",
                          timeout=30, default="")
-    config["run_name"] = name
-    config["package_name"] = name.replace("-", "_")
+    config["simulator_name"] = name.replace("-", "_")
 
   # Initialise wandb
   run = wandb.init(project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())

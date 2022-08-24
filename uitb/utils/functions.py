@@ -5,6 +5,7 @@ import sys
 import select
 import numpy as np
 from distutils.dir_util import copy_tree
+import re
 
 
 def parent_path(file):
@@ -14,7 +15,7 @@ def project_path():
   return pathlib.Path(__file__).parent.parent.absolute()
 
 def output_path():
-  return os.path.join(project_path().parent.absolute(), "output")
+  return os.path.join(project_path().parent.absolute(), "simulators")
 
 def strtime():
   return datetime.utcfromtimestamp(datetime.now().timestamp()).strftime('%Y-%m-%dT%H-%M-%SZ')
@@ -29,6 +30,9 @@ def timeout_input(prompt, timeout=30, default=""):
 def sigmoid(x):
   return np.exp(-np.logaddexp(0, -x))
 
+def is_suitable_package_name(name):
+  match = re.match("^[a-z_]*$", name)
+  return match is not None
 
 def img_history(imgs, k=0.9):
 
