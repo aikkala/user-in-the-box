@@ -33,7 +33,7 @@ def sigmoid(x):
 
 def is_suitable_package_name(name):
   match = re.match("^[a-z_]*$", name)
-  return match is not None
+  return match is not None and name[0].isalpha()
 
 def parse_yaml(yaml_file):
   yaml = YAML()

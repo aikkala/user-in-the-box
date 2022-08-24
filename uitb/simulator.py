@@ -88,7 +88,7 @@ class Simulator(gym.Env):
     if not is_suitable_package_name(config["package_name"]):
       raise NameError("Package name defined in the config file (either through 'package_name' or 'simulator_name') is "
                       "not a suitable Python package name. Use only lower-case letters and underscores instead of "
-                      "spaces.")
+                      "spaces, and the name cannot start with a number.")
 
     # The name used in gym has a suffix -v0
     config["gym_name"] = "uitb:" + config["package_name"] + "-v0"
