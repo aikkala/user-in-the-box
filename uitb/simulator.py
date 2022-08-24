@@ -8,13 +8,12 @@ import importlib
 import shutil
 import inspect
 import pathlib
-from ruamel.yaml import YAML
 from datetime import datetime
 import copy
 
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
-from .utils.functions import output_path, parent_path, is_suitable_package_name
+from .utils.functions import output_path, parent_path, is_suitable_package_name, parse_yaml, write_yaml
 
 
 class Simulator(gym.Env):
@@ -53,11 +52,19 @@ class Simulator(gym.Env):
 
   @classmethod
   def build(cls, config):
-    """ Builds a simulator based on a config. TODO: The config may be a dict (parsed from YAML) or a YAML file
+    """ Builds a simulator based on a config. The input 'config' may be a dict (parsed from YAML) or path to a YAML file
 
     Args:
-      config: A dict containing configuration information. See example configs in folder uitb/configs/
+      config:
+        - A dict containing configuration information. See example configs in folder uitb/configs/
+        - A path to a config file
     """
+
+    # If config is a path to the config file, parse it first
+    if isinstance(config, str):
+      if not os.path.isfile(config):
+        raise FileNotFoundError(f"Given config file {config} does not exist")
+      config = parse_yaml(config)
 
     # Make sure required things are defined in config
     assert "simulation" in config, "Simulation specs (simulation) must be defined in config"
@@ -134,9 +141,7 @@ class Simulator(gym.Env):
     config["built"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     # Save config
-    yaml = YAML()
-    with open(os.path.join(simulator_folder, "config.yaml"), "w") as stream:
-      yaml.dump(config, stream)
+    write_yaml(config, os.path.join(simulator_folder, "config.yaml"))
 
     return simulator_folder
 
@@ -239,10 +244,8 @@ class Simulator(gym.Env):
 
     # Read config file
     config_file = os.path.join(simulator_folder, "config.yaml")
-    yaml = YAML()
     try:
-      with open(config_file, "r") as stream:
-        config = yaml.load(stream)
+      config = parse_yaml(config_file)
     except:
       raise FileNotFoundError(f"Could not open file {config_file}")
 
@@ -271,11 +274,13 @@ class Simulator(gym.Env):
       run_parameters: Can be used to override parameters during run time.
     """
 
-    # Read configs
+    # Make sure simulator exists
+    if not os.path.exists(simulator_folder):
+      raise FileNotFoundError(f"Simulator folder {simulator_folder} does not exists")
     self._simulator_folder = simulator_folder
-    yaml = YAML()
-    with open(os.path.join(self._simulator_folder, "config.yaml"), "r") as stream:
-      self._config = yaml.load(stream)
+
+    # Read config
+    self._config = parse_yaml(os.path.join(self._simulator_folder, "config.yaml"))
 
     # Get run parameters: these parameters can be used to override parameters used during training
     self._run_parameters = self._config["simulation"]["run_parameters"].copy()
