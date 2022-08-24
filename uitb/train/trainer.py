@@ -2,10 +2,10 @@ import sys
 
 import wandb
 from wandb.integration.sb3 import WandbCallback
-from ruamel.yaml import YAML
 
 from uitb.simulator import Simulator
 from uitb.utils.functions import output_path, timeout_input
+
 
 if __name__=="__main__":
 
@@ -13,18 +13,16 @@ if __name__=="__main__":
   assert len(sys.argv) == 2, "You should input only one argument, the path to a config file"
   config_file_path = sys.argv[1]
 
-  # Load a config
-  yaml = YAML()
-  with open(config_file_path, 'r') as stream:
-    config = yaml.load(stream)
-
   # Build the simulator
-  simulator_folder = Simulator.build(config)
+  simulator_folder = Simulator.build(config_file_path)
 
   # Initialise
   simulator = Simulator.get(simulator_folder)
 
-  # Get name for this simulator from config
+  # Get the config
+  config = simulator.config
+
+  # Get simulator name
   name = config.get("simulator_name", None)
 
   if name is None:
