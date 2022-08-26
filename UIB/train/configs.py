@@ -295,7 +295,7 @@ mobl_arms_button_press_uist = {
 }
 
 mobl_arms_remote_driving_uist = {
-  "name": "driving-no-early-termination-no-bonus-inside-target",
+  "name": "driving-model-v2-patch-v1-newest-location-no-termination",
   "model": PPO,
   "total_timesteps": 200_000_000,
   "env_name": "UIB:mobl-arms-remote-driving-v1",
@@ -303,16 +303,16 @@ mobl_arms_remote_driving_uist = {
   "num_workers": 10,
   "device": "cuda",
   "env_kwargs": {"direction": "horizontal",
-                 "action_sample_freq": 20,
                  "shoulder_variant": "patch-v1",
+                 "action_sample_freq": 20,
+                 "car_velocity_threshold": 0.0,
                  "effort_term": effort_terms.Neural(),
                  "episode_length_seconds_extratime": 0,
                  "episode_length_seconds": 10,
-                 "car_velocity_threshold": 0.0,
-                 "reward_function_joystick": driving_rewards.NegativeExpDistance(k=3, shift=-1, scale=1),
-                 "reward_function_target": driving_rewards.NegativeExpDistance(k=3, shift=-1, scale=0.1),
-                 "reward_function_joystick_bonus": driving_rewards.NoBonus(),
-                 "reward_function_target_bonus": driving_rewards.RewardBonus(bonus=8)
+                 "reward_function_joystick": driving_rewards.NegativeExpDistance(shift=-1, scale=1),
+                 "reward_function_target": driving_rewards.NegativeExpDistance(shift=-1, scale=0.1),
+                 "reward_function_joystick_bonus": driving_rewards.RewardBonus(bonus=0.8, onetime=True),
+                 "reward_function_target_bonus": driving_rewards.RewardBonus(bonus=8, onetime=False)
   },
   "policy_type": MultiInputActorCriticPolicyTanhActions,
   "policy_kwargs": {"activation_fn": torch.nn.LeakyReLU,
