@@ -15,6 +15,9 @@ from mujoco_py.modder import TextureModder
 from UIB.utils.logger import StateLogger, ActionLogger
 from UIB.utils.functions import output_path
 
+# Use publication mode (see the function 'set_publication_mode' for explanation of what it does)
+use_publication_mode = False
+
 
 def natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -24,7 +27,8 @@ def natural_sort(l):
 def grab_pip_image(env, modder):
   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
 
-  set_publication_mode(env, modder, True, skybox=True)
+  if use_publication_mode:
+    set_publication_mode(env, modder, True, skybox=True)
 
   # Define image size
   width, height = env.metadata["imagesize"]
@@ -55,11 +59,15 @@ def grab_pip_image(env, modder):
   j = width - resample_width
   img[i:, j:] = resampled_img
 
-  set_publication_mode(env, modder, False, skybox=True)
+  if use_publication_mode:
+    set_publication_mode(env, modder, False, skybox=True)
 
   return img
 
 def set_publication_mode(env, modder, value, skybox=True):
+  # This function only improves the visual aspects of the recorded episodes, like adds a light blue color skybox
+  # (instead of default black), and changes the floor color. This hack makes the code run slower, and there's no point
+  # in using it except for producing visually more pleasing videos.
 
   # Do nothing for remote driving env
   if env.spec._env_name == "mobl-arms-remote-driving":
