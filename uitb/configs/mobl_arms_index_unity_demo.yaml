@@ -1,4 +1,4 @@
-run_name: "mobl_arms_index_unity_demo"
+simulator_name: "mobl_arms_index_unity_demo"
 
 simulation:
   bm_model:

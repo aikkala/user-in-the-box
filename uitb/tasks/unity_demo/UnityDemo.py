@@ -14,7 +14,7 @@ class UnityDemo(BaseTask):
     super().__init__(model, data, **kwargs)
 
     # Start a Unity client
-    self._unity_client = UnityClient(step_size=kwargs["dt"])
+    self._unity_client = UnityClient(step_size=kwargs["dt"], port=5555)
 
     # This task requires an end-effector to be defined
     self._end_effector = end_effector
@@ -33,10 +33,10 @@ class UnityDemo(BaseTask):
   def _update(self, model, data):
 
     # Send end effector position and rotation to unity, get reward and image from camera
-    reward, screenshot_bytes, is_finished = self._unity_client.step(self._create_unity_state(data))
+    reward, image_bytes, is_finished = self._unity_client.step(self._create_unity_state(data))
 
     # Form an image of the received bytes
-    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(screenshot_bytes, dtype=np.uint8), -1), 2)}
+    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(image_bytes, dtype=np.uint8), -1), 2)}
 
     if self._steps >= self._max_steps:
       is_finished = True
@@ -54,12 +54,12 @@ class UnityDemo(BaseTask):
       {"x": 0, "y": 0, "z": 0},  # left controller pos
       {"x": -pos[1], "y": pos[2], "z": pos[0]},  # right controller pos
     ]
-    orientations = [
+    rotations = [
       {"x": 0, "y": 0, "z": 0, "w": 1.0},  # headset rot
       {"x": 0, "y": 0, "z": 0, "w": 1.0},  # left controller rot
       {"x": -quat[0], "y": -quat[2], "z": -quat[1], "w": quat[3]}  # right controller rot
     ]
-    return {"positions": positions, "orientations": orientations}
+    return {"positions": positions, "rotations": rotations}
 
   def _reset(self, model, data):
 
@@ -69,13 +69,13 @@ class UnityDemo(BaseTask):
       {"x": 0, "y": 0, "z": 0},  # left controller pos
       {"x": 0, "y": 0, "z": 0},  # right controller pos
     ]
-    orientations = [
+    rotations = [
       {"x": 0, "y": 0, "z": 0, "w": 1},  # headset rot
       {"x": 0, "y": 0, "z": 0, "w": 1},  # left controller rot
       {"x": 0, "y": 0, "z": 0, "w": 1}  # right controller rot
     ]
 
     # Reset and receive an observation
-    screenshot_bytes = self._unity_client.reset({"positions": positions, "orientations": orientations}, [0]*8)
-    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(screenshot_bytes, dtype=np.uint8), -1), 2)}
+    image_bytes = self._unity_client.reset({"positions": positions, "rotations": rotations}, [0]*8)
+    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(image_bytes, dtype=np.uint8), -1), 2)}
     return info
