@@ -167,6 +167,7 @@ class BaseModule(ABC):
     """ Reset (and update) the perception module. """
     self._reset(model, data)
     self._update(model, data)
+    mujoco.mj_forward(model, data)
 
   @final
   def update(self, model, data):

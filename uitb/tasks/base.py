@@ -213,7 +213,9 @@ class BaseTask(ABC):
   def reset(self, model, data):
     """ Resets the number of steps taken and the task/environment. """
     self._steps = 0
-    return self._reset(model, data)
+    info = self._reset(model, data)
+    mujoco.mj_forward(model, data)
+    return info
 
   @final
   def get_state(self, model, data):

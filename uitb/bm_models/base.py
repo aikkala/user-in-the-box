@@ -256,6 +256,7 @@ class BaseBMModel(ABC):
     self._reset(model, data)
     self._effort_model.reset(model, data)
     self.update(model, data)
+    mujoco.mj_forward(model, data)
 
   @final
   def get_state(self, model, data):
