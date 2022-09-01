@@ -125,7 +125,7 @@ class Simulator(gym.Env):
 
     # Initialise the simulator
     model, _, _, _, _, _ = \
-      cls._initialise(config, simulator_folder, run_parameters)
+      cls._initialise(config, simulator_folder, {**run_parameters, "build": True})
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
     # mujoco only is able to save the latest loaded xml file (which is either the task or bm model xml files which are
@@ -382,9 +382,6 @@ class Simulator(gym.Env):
     self.bm_model.reset(self._model, self._data)
     self.perception.reset(self._model, self._data)
     info = self.task.reset(self._model, self._data)
-
-    # Do a forward so everything will be set
-    mujoco.mj_forward(self._model, self._data)
 
     return self.get_observation(info)
 
