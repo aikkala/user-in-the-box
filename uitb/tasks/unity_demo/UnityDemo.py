@@ -13,8 +13,13 @@ class UnityDemo(BaseTask):
   def __init__(self, model, data, end_effector, **kwargs):
     super().__init__(model, data, **kwargs)
 
-    # Start a Unity client
-    self._unity_client = UnityClient(step_size=kwargs["dt"], port=5555)
+    # Fire up the Unity client if we're really stasrting the simulation and not just building
+    if not kwargs.get("build", False):
+      # Start a Unity client
+      self._unity_client = UnityClient(step_size=kwargs["dt"], port=5555)
+
+      # Wait until app is up and running. Ping the app and receive initial state for resetting
+      self.initial_state = self._unity_client.handshake()
 
     # This task requires an end-effector to be defined
     self._end_effector = end_effector
@@ -32,50 +37,42 @@ class UnityDemo(BaseTask):
 
   def _update(self, model, data):
 
-    # Send end effector position and rotation to unity, get reward and image from camera
-    reward, image_bytes, is_finished = self._unity_client.step(self._create_unity_state(data))
+    info = {}
+    is_finished = False
 
-    # Form an image of the received bytes
-    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(image_bytes, dtype=np.uint8), -1), 2)}
-
+    # Let Unity app know that the episode has terminated
     if self._steps >= self._max_steps:
       is_finished = True
       info["termination"] = "max_steps_reached"
 
-    return reward, is_finished, info
+    # Send end effector position and rotation to unity, get reward and image from camera
+    reward, image_bytes, is_app_finished = self._unity_client.step(self._create_state(data), is_finished)
 
-  def _create_unity_state(self, data):
+    if is_finished and not is_app_finished:
+      raise RuntimeError("User simulation has terminated an episode but Unity app has not")
+
+    # Form an image of the received bytes
+    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(image_bytes, dtype=np.uint8), -1), 2)}
+
+    return reward, is_app_finished, info
+
+  def _create_state(self, data):
     pos = data.body("index3").xpos
     quat = Rotation.from_quat(np.concatenate([data.body("index3").xquat[1:], data.body("index3").xquat[:1]]))
     rotate = Rotation.from_euler('z', 180, degrees=True)
     quat = (quat * rotate).as_quat()
-    positions = [
-      {"x": 0, "y": 1, "z": 0},  # headset pos
-      {"x": 0, "y": 0, "z": 0},  # left controller pos
-      {"x": -pos[1], "y": pos[2], "z": pos[0]},  # right controller pos
-    ]
-    rotations = [
-      {"x": 0, "y": 0, "z": 0, "w": 1.0},  # headset rot
-      {"x": 0, "y": 0, "z": 0, "w": 1.0},  # left controller rot
-      {"x": -quat[0], "y": -quat[2], "z": -quat[1], "w": quat[3]}  # right controller rot
-    ]
-    return {"positions": positions, "rotations": rotations}
+    state = {
+      "headsetPosition": {"x": 0, "y": 1, "z": 0},
+      "leftControllerPosition": {"x": 0, "y": 0, "z": 0},
+      "rightControllerPosition": {"x": -pos[1], "y": pos[2], "z": pos[0]},
+      "headsetRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
+      "leftControllerRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
+      "rightControllerRotation": {"x": -quat[0], "y": -quat[2], "z": -quat[1], "w": quat[3]}
+    }
+    return state
 
   def _reset(self, model, data):
-
-    # Reset unity position and task state
-    positions = [
-      {"x": 0, "y": 1, "z": 0},  # headset pos
-      {"x": 0, "y": 0, "z": 0},  # left controller pos
-      {"x": 0, "y": 0, "z": 0},  # right controller pos
-    ]
-    rotations = [
-      {"x": 0, "y": 0, "z": 0, "w": 1},  # headset rot
-      {"x": 0, "y": 0, "z": 0, "w": 1},  # left controller rot
-      {"x": 0, "y": 0, "z": 0, "w": 1}  # right controller rot
-    ]
-
     # Reset and receive an observation
-    image_bytes = self._unity_client.reset({"positions": positions, "rotations": rotations}, [0]*8)
+    image_bytes = self._unity_client.reset(self._create_state(data))
     info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(image_bytes, dtype=np.uint8), -1), 2)}
     return info
