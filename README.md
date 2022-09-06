@@ -43,8 +43,6 @@ A perception model is composed of a set of perception modules, where each module
 
 A simulator is built according to a _config file_ (in yaml format), which defines which models are selected and integrated together to create the simulator. For examples of such config files see [uitb/configs](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs). In a nutshell, the build process contains two phases. Firstly, the MuJoCo xml file that defines the biomechanical model is integrated into the MuJoCo xml file that defines the interaction task environment, and hence a new standalone MuJoCo xml file is created. Secondly, wrapper classes are called to make sure everything are initialised correctly (e.g. a class inheriting from `BaseTask` might need to move an interaction device to a proper position with respect to a biomechanical model). These initialisations must be defined in the constructors of wrapper classes.
 
-TODO provide a convenience method for building a simulator that takes the path to a config file as input argument.
-
 The simulator is built into folder *[project_path/]simulators/config["simulator_name"]*, which is a standalone package that contains all the necessary codes to run the simulator (given that required Python packages are installed), and hence can be easily shared with others. 
 
 **Note that the simulator name (defined in the config file) should be a valid Python package name (e.g. use underscores instead of dashes).**
@@ -68,23 +66,27 @@ Once a simulator has been built as shown above, you can initialise the simulator
 simulator = Simulator.get(simulator_folder)
 ```
 
-and `simulator` can be run in the same way as any OpenAI Gym environment (i.e. by calling methods `simulator.step(action)`, `simulator.reset()`). In addition to the above initialisation method, one can initialise a simulator with (e.g. if config["simulator_name"] = "mobl_arms_index_pointing") 
+and `simulator` can be run in the same way as any OpenAI Gym environment (i.e. by calling methods `simulator.step(action)`, `simulator.reset()`). **IF** the simulator folder is in Python path, one can also import a simulator with its name, and initialise it with `gym`. E.g. if config["simulator_name"] = "mobl_arms_index_pointing"
 
 ```python
-# Import the simulator and OpenAI Gym
+# Import the simulator
 import mobl_arms_index_pointing
-import gym
 
-# Initialise a simulator
-simulator = gym.make(config["gym_name"])
+# Initialise a simulator with gym
+import gym
+simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 ```
 
-**IF** the simulator folder is in Python path. `config["gym_name"]` is automatically added into the config during building, and is simply `"uitb:" + config["simulator_name"] + "-v0"` to satisfy OpenAI Gym's naming conventions. Alternatively, you can programmatically import a simulator with 
+Note the prefix `uitb:` and suffix `-v0` that must be used to satisfy OpenAI Gym's naming conventions. Alternatively, you can programmatically import a simulator and then initialise with gym
 
 ```python
 # Add simulator_folder to Python path
 import sys
 sys.path.insert(0, simulator_folder)
+
+# Initialise a simulator with gym
+import gym
+simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 ```
 
 
@@ -108,7 +110,9 @@ One can use the script [uitb/test/evaluator.py](https://github.com/aikkala/user-
 
 
 ## Pre-trained simulators
-TODO. These simulators correspond to the ones used in the publications. Note: the software architecture has changed since submission, but these are more or less equivalent. Links to original models used in the publication. Links to new models (MoBL ARMS model used in pointing, tracking, choice reaction, remote driving). These simulators can be created and trained again using the existing config files.
+
+- TODO add links to trained models
+- The simulators that were trained, evaluated, and analysed in our [UIST submission](TODO-add-a-working-link) are found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
 
 
 ## TODO list
