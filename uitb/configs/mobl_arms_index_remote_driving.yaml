@@ -23,7 +23,7 @@ simulation:
           target_specs:
             k: 3.0
             shift: -1.0
-            scale: 0.0
+            scale: 0.1
             bonus_active: True
             bonus: 1.0
   perception_modules:
@@ -53,7 +53,7 @@ rl:
   policy_type: "policies.MultiInputActorCriticPolicyTanhActions"
   policy_kwargs:
     activation_fn: "torch.nn.LeakyReLU"
-    net_arch: [256, 256, 256]
+    net_arch: [256, 256]
     log_std_init: 0.0
     features_extractor_class: "feature_extractor.FeatureExtractor"
     normalize_images: False
@@ -62,7 +62,7 @@ rl:
     kwargs:
       initial_value: 5e-5
       min_value: 1e-7
-      threshold: 0.8
+      threshold: 0.9
   total_timesteps: 200_000_000
   device: "cuda"
   num_workers: 20
