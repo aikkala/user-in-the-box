@@ -1,15 +1,20 @@
-simulator_name: "mobl_arms_index_unity_demo"
+simulator_name: "mobl_arms_unity_demo"
 
 simulation:
   bm_model:
-    cls: "MoblArmsIndex"
+    cls: "MoblArms"
     kwargs:
       shoulder_variant: "none"
   task:
     cls: "UnityDemo"
     kwargs:
-      end_effector: "hand_2distph"
-      shoulder: "humphant"
+      end_effector: "hand"
+      relpose: [0, 1, 0, 0, 0, 0, 0]
+      controller_right_position: [1.0, 0, 1.0] #[0.05, -0.21, 0.39]
+      controller_right_quaternion: [-0.0770075, -0.8572073, -0.1352977, -0.4908768]
+      root_name: "thorax"
+      root_position: [0, 0, 0]
+      root_quaternion: [0.525322, 0, 0.8509035, 0]
   perception_modules:
     - cls: "vision.UnityHeadset"
       kwargs:

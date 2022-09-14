@@ -5,9 +5,15 @@
     <size njmax="1000" nconmax="400"/>
     <asset>
         <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="0.6 0.8 1" width="256" height="256"/>
+        <mesh name="controller-right" file="assets/OculusTouchForQuest2_Right_maybe_correct_scaling.stl"/>
     </asset>
     <worldbody>
         <light name="scene_directional_light" directional="true" castshadow="false" cutoff="4" exponent="20"
                diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5"/>
+        <body pos="0 0 0" name="controller-right">
+        <!--body pos="0 0 0" name="controller-right" euler="0.8988446 1.141445 0.0767945"-->
+            <geom type="mesh" mesh="controller-right" rgba="0.24 0.24 0.24 1.0"/>
+            <!--freejoint name="controller-right"/-->
+        </body>
     </worldbody>
 </mujoco>
