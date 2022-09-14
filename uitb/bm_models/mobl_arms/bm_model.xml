@@ -27,9 +27,9 @@
         <mesh name="sdfast_1seg_hand_fr_c_trapezoid" file="assets/sdfast_1seg_hand_fr_c_trapezoid.stl" />
         <mesh name="sdfast_1seg_hand_fr_c_hamate" file="assets/sdfast_1seg_hand_fr_c_hamate.stl" />
         <mesh name="capitate" file="assets/capitate.stl" />
-        <mesh name="hand_2proxph" file="assets/hand_2proxph_pointing.stl" />
-        <mesh name="hand_2midph" file="assets/hand_2midph_pointing.stl" />
-        <mesh name="hand_2distph" file="assets/hand_2distph_pointing.stl" />
+        <mesh name="hand_2proxph" file="assets/hand_2proxph.stl" />
+        <mesh name="hand_2midph" file="assets/hand_2midph.stl" />
+        <mesh name="hand_2distph" file="assets/hand_2distph.stl" />
         <mesh name="hand_3proxph" file="assets/hand_3proxph.stl" />
         <mesh name="hand_3midph" file="assets/hand_3midph.stl" />
         <mesh name="hand_3distph" file="assets/hand_3distph.stl" />
@@ -435,7 +435,6 @@
                                                                     <body name="index3" pos="0 0 0">
                                                                         <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001" />
                                                                         <geom name="hand_2distph" type="mesh" mesh="hand_2distph" />
-                                                                        <site name="fingertip" pos="0.024 -0.149 -0.0065" type="sphere" rgba="0.1 0.8 0.1 0.0" size="0.004"/>
                                                                     </body>
                                                                 </body>
                                                             </body>
@@ -453,9 +452,6 @@
             </body>
         </body>
     </worldbody>
-    <sensor>
-        <touch name="fingertip" site="fingertip" />
-    </sensor>
     <equality>
         <joint name="sternoclavicular_r2_con" joint1="sternoclavicular_r2" joint2="shoulder_elv" polycoef="0 -0.242001 0 0 0" solimp="0.9999 0.9999 0.001 0.5 2" />
         <joint name="sternoclavicular_r3_con" joint1="sternoclavicular_r3" joint2="shoulder_elv" polycoef="0 0.1025 0 0 0" solimp="0.9999 0.9999 0.001 0.5 2" />
