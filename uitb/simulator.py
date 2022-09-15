@@ -201,11 +201,16 @@ class Simulator(gym.Env):
       module_kwargs = module_cfg.get("kwargs", {})
       perception_modules[module_cls] = module_kwargs
 
-    # Get xml file
-    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation.xml")
+    # Get simulation file
+    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation")
 
-    # Load the mujoco model
-    model = mujoco.MjModel.from_xml_path(simulation_file)
+    # Load the mujoco model; try first with the binary model (faster, contains some parameters that may be lost when
+    # re-saving xml files like body mass). For some reason the binary model fails to load in some situations (like
+    # when the simulator has been built on a different computer)
+    try:
+      model = mujoco.MjModel.from_binary_path(simulation_file + ".mjcf")
+    except: # TODO what was the exception type
+      model = mujoco.MjModel.from_xml_path(simulation_file + ".xml")
 
     # Initialise MjData
     data = mujoco.MjData(model)
