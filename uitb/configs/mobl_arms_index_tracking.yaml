@@ -10,6 +10,7 @@ simulation:
     kwargs:
       end_effector: ["geom", "hand_2distph"]
       shoulder: ["body", "humphant"]
+      episode_length_seconds: 4
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
@@ -33,15 +34,15 @@ simulation:
         kwargs:
           start_value: 0
           end_value: 1
-          start_timestep: 40_000_000
-          end_timestep: 60_000_000
+          start_timestep: 60_000_000
+          end_timestep: 80_000_000
 
 rl:
   algorithm: "PPO"
   policy_type: "policies.MultiInputActorCriticPolicyTanhActions"
   policy_kwargs:
     activation_fn: "torch.nn.LeakyReLU"
-    net_arch: [256, 256, 256]
+    net_arch: [256, 256]
     log_std_init: 0.0
     features_extractor_class: "feature_extractor.FeatureExtractor"
     normalize_images: False
@@ -53,8 +54,8 @@ rl:
       threshold: 0.8
   total_timesteps: 100_000_000
   device: "cuda"
-  num_workers: 20
+  num_workers: 10
   nsteps: 4000
-  batch_size: 1000
+  batch_size: 500
   target_kl: 1.0
   save_freq: 5_000_000
