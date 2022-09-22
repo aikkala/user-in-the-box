@@ -9,12 +9,12 @@ simulation:
     cls: "UnityDemo"
     kwargs:
       end_effector: "hand"
-      relpose: [0, 1, 0, 0, 0, 0, 0]
-      controller_right_position: [1.0, 0, 1.0] #[0.05, -0.21, 0.39]
-      controller_right_quaternion: [-0.0770075, -0.8572073, -0.1352977, -0.4908768]
-      root_name: "thorax"
-      root_position: [0, 0, 0]
-      root_quaternion: [0.525322, 0, 0.8509035, 0]
+      relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
+      controller_right_position: [0.05, -0.21, 0.39]
+      controller_right_quaternion: [-0.0770075, -0.8572073, -0.1352977, -0.4908768]  # -180 60 -18-
+#      root_name: "thorax"
+#      root_position: [0, 0, 0]
+#      root_quaternion: [0.525322, 0, 0.8509035, 0]
   perception_modules:
     - cls: "vision.UnityHeadset"
       kwargs:

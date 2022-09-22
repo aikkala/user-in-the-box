@@ -6,13 +6,13 @@ import xml.etree.ElementTree as ET
 
 from UnityClient import UnityClient
 
-
 from ..base import BaseTask
+from ...utils.transformations import transformation_matrix
 
 
 class UnityDemo(BaseTask):
 
-  def __init__(self, model, data, end_effector, root_name, root_position, root_quaternion, **kwargs):
+  def __init__(self, model, data, end_effector, relpose, **kwargs):
     super().__init__(model, data, **kwargs)
 
     # Fire up the Unity client if we're really stasrting the simulation and not just building
@@ -33,23 +33,26 @@ class UnityDemo(BaseTask):
     # Use early termination if target is not hit in time
     self._max_steps = self._action_sample_freq*10
 
-    # Assumes the bm model is facing towards positive x axis
-    #rotate = Rotation.from_quat(np.array([0.7071068, 0, 0, -0.7071068]))
-    #quat = Rotation.from_quat(model.body(root_name).quat)
-    #quat = (quat * rotate).as_quat()
-    #model.body(root_name).quat = quat
+    # Geom's mass property is not saved when we save the integrated model xml file (would be saved in binary mjcf
+    # though). So let's set it here again just to be sure
+    model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "controller-right")] = 0.503
 
-    # Set root position and orientation
-    #data.body(root_name).xpos = root_position
-    #data.body(root_name).xquat = root_quaternion
+    # Do a forward step so body positions are updated
+    mujoco.mj_forward(model, data)
 
-    # Set camera angle TODO need to rethink how cameras are implemented
+    # 'relpose' is defined with respect to the end-effector. We need to move the controller to the correct position
+    # to make sure there aren't any quick movements in the first timesteps when mujoco starts enforcing the equality
+    # constraint.
+    T1 = transformation_matrix(pos=data.body(self._end_effector).xpos, quat=data.body(self._end_effector).xquat)
+    T2 = transformation_matrix(pos=relpose[:3], quat=relpose[3:])
+    T = np.matmul(T1, np.linalg.inv(T2))
+    model.body("controller-right").pos = T[:3, 3]
+    model.body("controller-right").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
+
+    # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([2.2, -1.8, 0.95])
     model.cam_quat[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array(
       [0.6582, 0.6577, 0.2590, 0.2588])
-    #model.cam_pos[model.camera_name2id('for_testing')] = np.array([-0.8, -0.6, 1.5])
-    #model.cam_quat[model.camera_name2id('for_testing')] = np.array(
-    #  [0.718027, 0.4371043, -0.31987, -0.4371043])
 
   @classmethod
   def initialise(cls, task_kwargs):
@@ -66,18 +69,12 @@ class UnityDemo(BaseTask):
     tree = ET.parse(cls.get_xml_file())
     root = tree.getroot()
 
-    # Modify controller position and orientation
-    controller_right = root.find(".//body[@name='controller-right']")
-    controller_right.attrib["pos"] = np.array2string(np.array(task_kwargs["controller_right_position"]))[1:-1]
-    controller_right.attrib["quat"] = np.array2string(np.array(task_kwargs["controller_right_quaternion"]))[1:-1]
-
     # Add a weld connect
     equality = root.find("equality")
     if equality is None:
       equality = ET.Element("equality")
       root.append(equality)
-    equality.append(ET.Element("weld", name="controller-right-weld", body1="controller-right", body2=end_effector,
-                               relpose=task_kwargs["relpose"], active="false"))
+    equality.append(ET.Element("weld", name="controller-right-weld", body1="controller-right", body2=end_effector, relpose=" ".join([str(x) for x in task_kwargs["relpose"]]), active="true"))
 
     return tree
 
@@ -102,48 +99,42 @@ class UnityDemo(BaseTask):
 
     return reward, is_app_finished, info
 
+  @staticmethod
+  def _transform_to_unity(pos, quat):
+
+    # The coordinate axis needs to be rotated to match the one used in Unity
+    rot = Rotation.from_quat(np.roll(quat, -1))
+    unity_transform = Rotation.from_quat(np.array([0, 0.7071068, 0.7071068, 0]))
+    rot = rot*unity_transform
+
+    # Get the quaternion; quat is in scalar-last format
+    quat = rot.as_quat()
+
+    # Transform from MuJoCo's right hand side coordinate system to Unity's left hand side coordinate system
+    pos = {"x": pos[0], "y": pos[2], "z": pos[1]}
+    quat = {"x": quat[0], "y": quat[2], "z": quat[1], "w": -quat[3]}
+
+    return pos, quat
+
   def _create_state(self, model, data):
-    #model.body("controller-right").pos = np.array([1, 0  , 1.0])
-    #model.body("controller-right").quat = np.array([1, 0, 0, 0])
-    pos = model.body("controller-right").pos
-    quat = Rotation.from_quat(np.concatenate([model.body("controller-right").quat[1:], model.body("controller-right").quat[:1]]))
 
-    #T_controller = np.eye(4)
-    #T_controller[:3, :3] = quat.as_matrix()
-    #T_controller[:3, 3] = pos
+    # Get position and rotation of right controller
+    controller_right_pos, controller_right_quat = \
+      self._transform_to_unity(data.body("controller-right").xpos, data.body("controller-right").xquat)
 
-    #rotate1 = Rotation.from_quat(np.array([0.7071068, 0, 0., 0.7071068]))
-    #T_controller = np.matmul(rotate1, np.linalg.inv(T_controller))
+    # Get position and rotation of headset
+#    headset_pos, headset_quat = \
+#      self._transform_to_unity(data.body("headset").xpos, data.body("headset").xquat)
 
-    #rotate1 = Rotation.from_quat(np.array([0.7071068, 0, 0., 0.7071068]))
-    rotate1 = Rotation.from_quat(np.array([0, 0.7071068, 0.7071068, 0]))
-
-    #pos = np.array([1, 0  , 0.5])
-    #quat = Rotation.from_quat(np.array([0, 0, 0, 1]))
-    #quat = model.body("controller-right").quat
-    quat = quat*rotate1
-    rotate = Rotation.from_matrix(np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]]))
-    #rotate = Rotation.from_quat(np.array([0.7071068, 0, 0.7071068, 0.])).as_matrix()
-    pos = rotate.apply(pos)#np.matmul(rotate, pos)
-    #quat = np.array([1.0, 0.0, 0.0, 0.0])
-    #rot = np.matmul(rotate.as_matrix(), orientation.as_matrix())
-    #rotate = Rotation.from_euler('y', 90, degrees=True)
-    quat = quat*rotate
-
-
-    quat = quat.as_quat()
-    #quat = Rotation.from_matrix(T_controller[:3, :3]).as_quat()
-
-    #quat = Rotation.from_matrix(rot).as_quat()
+    # Create the state
     state = {
       "headsetPosition": {"x": 0, "y": 1, "z": 0},
       "leftControllerPosition": {"x": 0, "y": 0, "z": 0},
-#      "rightControllerPosition": {"x": -pos[1], "y": pos[2], "z": pos[0]},
-      "rightControllerPosition": {"x": pos[0], "y": pos[2], "z": pos[1]},
+      #'"rightControllerPosition": controller_right_pos,
+      "rightControllerPosition": {"x": .08, "y": 0.75, "z": 0.08},
       "headsetRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
       "leftControllerRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
-      #"rightControllerRotation": {"x": 0, "y": 0, "z": 0, "w": 1}
-      "rightControllerRotation": {"x": quat[0], "y": quat[2], "z": quat[1], "w": -quat[3]}
+      "rightControllerRotation": controller_right_quat
     }
     return state
 

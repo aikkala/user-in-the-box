@@ -10,10 +10,9 @@
     <worldbody>
         <light name="scene_directional_light" directional="true" castshadow="false" cutoff="4" exponent="20"
                diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5"/>
-        <body pos="0 0 0" name="controller-right">
-        <!--body pos="0 0 0" name="controller-right" euler="0.8988446 1.141445 0.0767945"-->
-            <geom type="mesh" mesh="controller-right" rgba="0.24 0.24 0.24 1.0"/>
-            <!--freejoint name="controller-right"/-->
+        <body name="controller-right">
+            <geom type="mesh" mesh="controller-right" mass="0.503" rgba="0.24 0.24 0.24 1.0"/>
+            <freejoint name="controller-right"/>
         </body>
     </worldbody>
 </mujoco>
