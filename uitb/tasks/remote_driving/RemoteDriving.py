@@ -8,7 +8,8 @@ from ..base import BaseTask
 class RemoteDriving(BaseTask):
   """ A task where the goal is to control a remote driving car via a joystick and move the car to a target area.
 
-  Authors: Florian Fischer, Markus Klar, Aleksi Ikkala
+  Authors: Florian Fischer, Markus Klar, Aleksi Ikkala; Dominik Ermer, Jannic Herrmann, Lisa Müller and Ferdinand Schäffler (initial model of the gamepad and the car)
+
   """
 
   def __init__(self, model, data, end_effector, **kwargs):

@@ -127,6 +127,10 @@ No currently known issues.
 ## Cite
 TBD
 
+## Acknowledgments
+We would like to thank our students Dominik Ermer, Jannic Herrmann, Lisa Müller and Ferdinand Schäffler for providing the initial model of the gamepad and the car used in the remote driving environment.
+
+
 ## Contributors
 Aleksi Ikkala  
 Florian Fischer  
