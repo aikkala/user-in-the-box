@@ -104,15 +104,27 @@ The script [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/bl
 Note that you need to define a reward function when creating new interaction tasks. The implementation details of the reward function are (at least for now) left for users to decide. 
 
 
-## Testing
-
-One can use the script [uitb/test/evaluator.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/test/evaluator.py) to evaluate the performance of a trained simulator. (WIP)
-
-
 ## Pre-trained simulators
 
-- TODO add links to trained models
+| **Task**                           | **Simulator**                                           | **Config file**                  |
+|------------------------------------|----------------------------------------------------------|-----------------------------|
+| Pointing                           | [simulators/mobl_arms_index_pointing](https://github.com/aikkala/user-in-the-box/tree/main/simulators/mobl_arms_index_pointing)                    | [uitb/configs/mobl_arms_index_pointing.yaml](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs/mobl_arms_index_pointing.yaml) |
+| Tracking                           | [simulators/mobl_arms_index_tracking](https://github.com/aikkala/user-in-the-box/tree/main/simulators/mobl_arms_index_tracking)                                     | [uitb/configs/mobl_arms_index_tracking.yaml](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs/mobl_arms_index_tracking.yaml)  |
+| Choice Reaction                       | [simulators/mobl_arms_index_choice_reaction](https://github.com/aikkala/user-in-the-box/tree/main/simulators/mobl_arms_index_choice_reaction)                  | [uitb/configs/mobl_arms_index_choice_reaction.yaml](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs/mobl_arms_index_choice_reaction.yaml) |
+| Controlling an RC Car Via Joystick | [simulators/mobl_arms_index_remote_driving](https://github.com/aikkala/user-in-the-box/tree/main/simulators/mobl_arms_index_remote_driving) | [uitb/configs/mobl_arms_index_remote_driving.yaml](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs/mobl_arms_index_remote_driving.yaml) |
+
+
 - The simulators that were trained, evaluated, and analysed in our [UIST submission](TODO-add-a-working-link) are found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
+
+## Testing
+
+One can use the script [uitb/test/evaluator.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/test/evaluator.py) to evaluate the performance of a trained simulator. The script runs the simulator/policy and optionally saves log files and videos of the evaluated episodes. Example usage:
+
+```
+python uitb/test/evaluator.py simulators/mobl_arms_index_pointing --num_episodes 10 --record --logging --action_sample_freq 100
+```
+
+The above runs the pre-trained simulator `mobl_arms_index_pointing` for 10 episodes, records videos and saves log files of the evaluted episodes, and samples actions with a frequency of 100 Hz from the policy. The videos and log files will  be saved inside `simulators/mobl_arms_index_pointing/evaluate` folder. Run `python uitb/test/evaluator.py --help` for more information.
 
 
 ## TODO list
