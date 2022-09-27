@@ -52,6 +52,8 @@ if __name__=="__main__":
   parser = argparse.ArgumentParser(description='Evaluate a policy.')
   parser.add_argument('simulator_folder', type=str,
                       help='the simulation folder')
+  parser.add_argument('--action_sample_freq', type=float, default=20,
+                      help='action sample frequency (how many times per second actions are sampled from policy, default: 20)')
   parser.add_argument('--checkpoint', type=str, default=None,
                       help='filename of a specific checkpoint (default: None, latest checkpoint is used)')
   parser.add_argument('--num_episodes', type=int, default=10,
@@ -75,7 +77,7 @@ if __name__=="__main__":
 
   # Override run parameters
   run_params = dict()
-  run_params["action_sample_freq"] = 20
+  run_params["action_sample_freq"] = args.action_sample_freq
   run_params["evaluate"] = True
 
   # Use deterministic actions?
@@ -84,7 +86,7 @@ if __name__=="__main__":
   # Initialise simulator
   simulator = Simulator.get(args.simulator_folder, run_parameters=run_params)
 
-  print(f"run parameters are: {simulator.run_parameters}")
+  print(f"run parameters are: {simulator.run_parameters}\n")
 
   # Load latest model if filename not given
   if args.checkpoint is not None:
@@ -94,7 +96,7 @@ if __name__=="__main__":
     model_file = files[-1]
 
   # Load policy TODO should create a load method for uitb.rl.BaseRLModel
-  print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}')
+  print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}\n')
   model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
   # Set callbacks to match the value used for this training point (if the simulator had any)
