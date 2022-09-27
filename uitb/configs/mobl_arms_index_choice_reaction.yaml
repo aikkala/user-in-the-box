@@ -4,7 +4,7 @@ simulation:
   bm_model:
     cls: "MoblArmsIndex"
     kwargs:
-      shoulder_variant: "patch-v1"
+      shoulder_variant: "none"
   task:
     cls: "ChoiceReaction"
     kwargs:
@@ -32,7 +32,7 @@ rl:
   policy_type: "policies.MultiInputActorCriticPolicyTanhActions"
   policy_kwargs:
     activation_fn: "torch.nn.LeakyReLU"
-    net_arch: [256, 256, 256]
+    net_arch: [256, 256]
     log_std_init: 0.0
     features_extractor_class: "feature_extractor.FeatureExtractor"
     normalize_images: False
@@ -42,10 +42,10 @@ rl:
       initial_value: 5e-5
       min_value: 1e-7
       threshold: 0.8
-  total_timesteps: 100_000_000
+  total_timesteps: 50_000_000
   device: "cuda"
-  num_workers: 20
+  num_workers: 10
   nsteps: 4000
-  batch_size: 1000
+  batch_size: 500
   target_kl: 1.0
   save_freq: 5_000_000
