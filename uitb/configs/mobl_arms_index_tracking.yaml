@@ -4,13 +4,13 @@ simulation:
   bm_model:
     cls: "MoblArmsIndex"
     kwargs:
-      shoulder_variant: "patch-v1"
+      shoulder_variant: "none"
   task:
     cls: "Tracking"
     kwargs:
       end_effector: ["geom", "hand_2distph"]
       shoulder: ["body", "humphant"]
-      episode_length_seconds: 4
+      episode_length_seconds: 10
   perception_modules:
     - cls: "vision.FixedEye"
       kwargs:
@@ -34,7 +34,7 @@ simulation:
         kwargs:
           start_value: 0
           end_value: 1
-          start_timestep: 60_000_000
+          start_timestep: 40_000_000
           end_timestep: 80_000_000
 
 rl:

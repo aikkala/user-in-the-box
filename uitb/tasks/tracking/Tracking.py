@@ -35,8 +35,8 @@ class Tracking(BaseTask):
     self._info = {"termination": False, "inside_target": False}
 
     # Define a default reward function
-    #self._reward_function = NegativeDistance()
-    self._reward_function = NegativeExpDistanceWithHitBonus(k=3, scale=1.0, bonus=0)
+    self._reward_function = NegativeDistance()
+    #self._reward_function = NegativeExpDistanceWithHitBonus(k=3, scale=1.0, bonus=0)
 
     # Target radius
     self._target_radius = kwargs.get('target_radius', 0.05)
