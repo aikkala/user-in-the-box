@@ -29,4 +29,4 @@ You can also collect the data again with the trained models by using the script 
 
 ## Analysis
 
-TBD
+See the [UIST/plots/analyze_trajectories.ipynb](https://github.com/aikkala/user-in-the-box/blob/uist-submission-aleksi/UIST/plots/analyze_trajectories.ipynb) file for all analysis and plotting related functionality.
