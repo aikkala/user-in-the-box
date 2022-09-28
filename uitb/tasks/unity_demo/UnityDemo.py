@@ -18,7 +18,7 @@ class UnityDemo(BaseTask):
     # Fire up the Unity client if we're really stasrting the simulation and not just building
     if not kwargs.get("build", False):
       # Start a Unity client
-      self._unity_client = UnityClient(step_size=kwargs["dt"], port=5555)
+      self._unity_client = UnityClient(unity_executable=kwargs["unity_executable"], step_size=kwargs["dt"])
 
       # Wait until app is up and running. Ping the app and receive initial state for resetting
       self.initial_state = self._unity_client.handshake()
@@ -31,7 +31,7 @@ class UnityDemo(BaseTask):
     self._end_effector = end_effector
 
     # Use early termination if target is not hit in time
-    self._max_steps = self._action_sample_freq*10
+    self._max_steps = self._action_sample_freq*20
 
     # Geom's mass property is not saved when we save the integrated model xml file (would be saved in binary mjcf
     # though). So let's set it here again just to be sure
@@ -130,9 +130,9 @@ class UnityDemo(BaseTask):
     state = {
       "headsetPosition": {"x": 0, "y": 1, "z": 0},
       "leftControllerPosition": {"x": 0, "y": 0, "z": 0},
-      #'"rightControllerPosition": controller_right_pos,
-      "rightControllerPosition": {"x": .08, "y": 0.75, "z": 0.08},
-      "headsetRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
+      "rightControllerPosition": controller_right_pos,
+      #"rightControllerPosition": {"x": .08, "y": 0.75, "z": 0.08},
+      "headsetRotation": {"x": 0, "y": 0.7071068, "z": 0, "w": 0.7071068},
       "leftControllerRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
       "rightControllerRotation": controller_right_quat
     }
