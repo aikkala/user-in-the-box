@@ -8,6 +8,7 @@ simulation:
   task:
     cls: "UnityDemo"
     kwargs:
+      unity_executable: "/home/aleksi/Workspace/unity-exergame/build/build.x86_64"
       end_effector: "hand"
       relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
       controller_right_position: [0.05, -0.21, 0.39]
@@ -19,7 +20,8 @@ simulation:
     - cls: "vision.UnityHeadset"
       kwargs:
         resolution: [120, 80] # must match dimensions used in unity
-        channels: [2]
+        channels: [1]
+        buffer: 0.1
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
         end_effector: ["geom", "hand_2distph"]
