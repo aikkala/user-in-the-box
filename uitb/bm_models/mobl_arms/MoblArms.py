@@ -9,8 +9,8 @@ class MoblArms(BaseBMModel):
   def __init__(self, model, data, **kwargs):
     super().__init__(model, data, **kwargs)
 
-    # Set shoulder variant
-    self.shoulder_variant = kwargs.get("shoulder_variant", "patch-v1")
+    # Set shoulder variant; use "none" as default, use "patch-v1" for a qualitatively more reasonable looking movements (not thoroughly tested)
+    self.shoulder_variant = kwargs.get("shoulder_variant", "none")
 
   def _update(self, model, data):
 
