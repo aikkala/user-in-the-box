@@ -42,6 +42,9 @@ class UnityHeadset(BaseModule):
     self._quat = quat
     self._body = body
 
+    # Save last observation
+    self._last_obs = None
+
     # Define a vision buffer for including previous visual observations
     self._buffer = None
     if buffer is not None:
@@ -64,6 +67,7 @@ class UnityHeadset(BaseModule):
     else:
       # Normalise
       rgb = (info["unity_observation"] / 255.0 - 0.5) * 2
+      self._last_obs = info["unity_observation"].copy()
 
     if rgb.shape != (self._resolution[1], self._resolution[0], 3):
       # Sometimes the screen hasn't been resized yet when first screenshot arrives
@@ -96,3 +100,6 @@ class UnityHeadset(BaseModule):
   @property
   def encoder(self):
     return small_cnn(observation_shape=self._observation_shape, out_features=256)
+
+  def render(self):
+    return self._last_obs.copy()

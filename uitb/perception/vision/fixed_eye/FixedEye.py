@@ -130,3 +130,8 @@ class FixedEye(BaseModule):
   @property
   def encoder(self):
     return small_cnn(observation_shape=self._observation_shape, out_features=256)
+
+  # Should perhaps create a base class for vision modules and define an abstract render function
+  def render(self):
+    img, _ = self._camera.render()
+    return img
