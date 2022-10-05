@@ -1,13 +1,13 @@
 import numpy as np
 import mujoco
 from scipy.spatial.transform import Rotation
-import cv2
 import xml.etree.ElementTree as ET
-
-from UnityClient import UnityClient
+import os
+import pathlib
 
 from ..base import BaseTask
 from ...utils.transformations import transformation_matrix
+from ...utils.unity import UnityClient
 
 
 class UnityDemo(BaseTask):
@@ -15,13 +15,18 @@ class UnityDemo(BaseTask):
   def __init__(self, model, data, end_effector, relpose, **kwargs):
     super().__init__(model, data, **kwargs)
 
-    # Fire up the Unity client if we're really stasrting the simulation and not just building
+    # Fire up the Unity client if we're really starting the simulation and not just building
     if not kwargs.get("build", False):
-      # Start a Unity client
-      self._unity_client = UnityClient(unity_executable=kwargs["unity_executable"], step_size=kwargs["dt"])
 
-      # Wait until app is up and running. Ping the app and receive initial state for resetting
-      self.initial_state = self._unity_client.handshake()
+      # Start a Unity client
+      app_path = os.path.join(pathlib.Path(__file__).parent, kwargs["unity_executable"])
+      self._unity_client = UnityClient(unity_executable=app_path, port=kwargs.get("port", None),
+                                       standalone=kwargs.get("standalone", True))
+
+      # Wait until app is up and running. Send time options to unity app
+      time_options = {"timestep": model.opt.timestep, "sampleFrequency": kwargs["action_sample_freq"],
+                      "timeScale": kwargs["time_scale"]}
+      self.initial_state = self._unity_client.handshake(time_options)
 
     # This task requires an end-effector to be defined; also, it must be a body
     # Would be nicer to have this check in the "initialise" method of this class, but not currently possible because
@@ -29,6 +34,9 @@ class UnityDemo(BaseTask):
     if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, end_effector) == -1:
       raise KeyError(f"'end_effector' must be a body, no body called {end_effector} found in the model")
     self._end_effector = end_effector
+
+    # Let's try to keep time in mujoco and unity synced
+    self._current_timestep = 0
 
     # Use early termination if target is not hit in time
     self._max_steps = self._action_sample_freq*20
@@ -83,21 +91,21 @@ class UnityDemo(BaseTask):
     info = {}
     is_finished = False
 
+    # Update timestep
+    self._current_timestep = data.time
+
     # Let Unity app know that the episode has terminated
     if self._steps >= self._max_steps:
       is_finished = True
       info["termination"] = "max_steps_reached"
 
     # Send end effector position and rotation to unity, get reward and image from camera
-    reward, image_bytes, is_app_finished = self._unity_client.step(self._create_state(model, data), is_finished)
+    image, reward, is_app_finished = self._unity_client.step(self._create_state(model, data), is_finished)
 
     if is_finished and not is_app_finished:
       raise RuntimeError("User simulation has terminated an episode but Unity app has not")
 
-    # Form an image of the received bytes
-    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(image_bytes, dtype=np.uint8), -1), 2)}
-
-    return reward, is_app_finished, info
+    return reward, is_app_finished, {"unity_observation": image}
 
   @staticmethod
   def _transform_to_unity(pos, quat):
@@ -134,12 +142,18 @@ class UnityDemo(BaseTask):
       #"rightControllerPosition": {"x": .08, "y": 0.75, "z": 0.08},
       "headsetRotation": {"x": 0, "y": 0.7071068, "z": 0, "w": 0.7071068},
       "leftControllerRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
-      "rightControllerRotation": controller_right_quat
+      "rightControllerRotation": controller_right_quat,
+      "currentTimestep": self._current_timestep,
+      "nextTimestep": self._current_timestep + 1/self._action_sample_freq
     }
     return state
 
   def _reset(self, model, data):
+
     # Reset and receive an observation
-    image_bytes = self._unity_client.reset(self._create_state(model, data))
-    info = {"unity_observation": np.flip(cv2.imdecode(np.asarray(image_bytes, dtype=np.uint8), -1), 2)}
-    return info
+    image = self._unity_client.reset(self._create_state(model, data))
+
+    # Set timestep
+    data.time = self._current_timestep
+
+    return {"unity_observation": image}
