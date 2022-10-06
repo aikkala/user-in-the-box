@@ -3,6 +3,7 @@ import subprocess
 import socket
 import cv2
 import numpy as np
+import os
 
 
 class UnityClient:
@@ -18,7 +19,12 @@ class UnityClient:
     # Open Unity application
     self._app = None
     if standalone:
-      self._app = subprocess.Popen([unity_executable, '-port', f'{port}'])
+      # Hack for headless environments
+      env_with_display = os.environ.copy()
+      if "DISPLAY" not in env_with_display:
+        env_with_display["DISPLAY"] = ":0"
+      # Open the app
+      self._app = subprocess.Popen([unity_executable, '-port', f'{port}'], env=env_with_display)
 
     # Create zmq client
     self._context = zmq.Context()
@@ -26,9 +32,11 @@ class UnityClient:
     self._client.connect(f"tcp://localhost:{port}")
 
   def __del__(self):
-    self._client.send_json({"quitApplication": True})
-    self._client.close()
-    self._context.destroy()
+    if self._client:
+      self._client.send_json({"quitApplication": True})
+      self._client.close()
+    if self._context:
+      self._context.destroy()
 
   def _receive(self):
     msg = self._client.recv_json()
