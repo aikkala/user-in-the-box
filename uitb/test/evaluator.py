@@ -27,7 +27,8 @@ def grab_pip_image(simulator):
     if module.modality == "vision":
       # TODO would be better to have a class function that returns "human-viewable" rendering of the observation;
       #  e.g. in case the vision model has two cameras, or returns a combination of rgb + depth images etc.
-      ocular_img, _ = module._camera.render()
+      #ocular_img, _ = module._camera.render()
+      ocular_img = module.render()
 
   if ocular_img is not None:
 
@@ -146,6 +147,7 @@ if __name__=="__main__":
         imgs.append(grab_pip_image(simulator))
 
     #print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
+    print(reward)
 
     #episode_statistics = simulator.get_episode_statistics()
     #for key in episode_statistics:
@@ -165,3 +167,5 @@ if __name__=="__main__":
     # Write the video
     simulator._camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
     print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')
+
+  simulator.close()
