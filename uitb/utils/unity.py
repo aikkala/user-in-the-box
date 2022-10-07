@@ -4,6 +4,7 @@ import socket
 import cv2
 import numpy as np
 import os
+import time
 
 
 class UnityClient:
@@ -16,22 +17,32 @@ class UnityClient:
     if port is None:
       port = self._find_free_port()
 
-    # Open Unity application
     self._app = None
+
+    # Check if we should open the app (during debugging the app is typically run in Unity Editor)
     if standalone:
+
       # Hack for headless environments
       env_with_display = os.environ.copy()
       if "DISPLAY" not in env_with_display:
         env_with_display["DISPLAY"] = ":0"
+
+      # Define path for log file; use current time (in microseconds) since epoch, should be high resolution enough
+      log_name = f"{int(time.time_ns()/1e3)}"
+      log_path = os.path.join(os.path.split(unity_executable)[0], "logs")
+
+      # Create a "log" folder in the build folder
+      os.makedirs(log_path, exist_ok=True)
+
       # Open the app
-      self._app = subprocess.Popen([unity_executable, '-port', f'{port}'], env=env_with_display)
+      self._app = subprocess.Popen([unity_executable, '-port', f'{port}', '-logFile', f'{os.path.join(log_path, log_name)}'], env=env_with_display)
 
     # Create zmq client
     self._context = zmq.Context()
     self._client = self._context.socket(zmq.REQ)
     self._client.connect(f"tcp://localhost:{port}")
 
-  def __del__(self):
+  def close(self):
     if self._client:
       self._client.send_json({"quitApplication": True})
       self._client.close()
