@@ -351,6 +351,8 @@ class Simulator(gym.Env):
 
     # Update environment
     reward, finished, info = self.task.update(self._model, self._data)
+    if reward != 0:
+      print(f"reward {reward} received at time {self._data.time}")
 
     # Add an effort cost to reward
     reward -= self.bm_model.get_effort_cost(self._model, self._data)
@@ -445,3 +447,13 @@ class Simulator(gym.Env):
     state.update(self.perception.get_state(self._model, self._data))
 
     return state
+
+  def close(self):
+    """ Perform any necessary clean up.
+
+    This function is inherited from gym.Env. It should be automatically called when this object is garbage collected
+     or the program exists, but that doesn't seem to be the case. This function will be called if this object has been
+     initialised in the context manager fashion (i.e. using the 'with' statement). """
+    self.task.close()
+    self.perception.close()
+    self.bm_model.close()

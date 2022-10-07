@@ -159,6 +159,9 @@ class BaseModule(ABC):
       shutil.copytree(os.path.join(src, "assets"), os.path.join(simulator_folder, package_name, "assets"),
                       dirs_exist_ok=True)
 
+  def close(self):
+    """ Perform any necessary clean up. """
+    pass
 
   ############ The methods below you should not overwrite ############
 
@@ -292,6 +295,11 @@ class Perception:
     for module in self.perception_modules:
       observations[module.modality] = module.get_observation(model, data, info)
     return observations
+
+  def close(self):
+    """ Perform any necessary clean up. """
+    for module in self.perception_modules:
+      module.close()
 
   @property
   def actuators(self):

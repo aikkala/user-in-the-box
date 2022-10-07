@@ -199,6 +199,8 @@ class BaseTask(ABC):
     # Parse xml file and return the tree
     return ET.parse(cls.get_xml_file())
 
+  def close(self):
+    pass
 
   ############ The methods below you should not overwrite ############
 

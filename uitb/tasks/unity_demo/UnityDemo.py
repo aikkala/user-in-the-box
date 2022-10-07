@@ -157,3 +157,6 @@ class UnityDemo(BaseTask):
     data.time = self._current_timestep
 
     return {"unity_observation": image}
+
+  def close(self):
+    self._unity_client.close()
