@@ -5,11 +5,19 @@
 - The produced models/simulations (which will be henceforth referred to as *simulators*) are designed to run as standalone packages that can be easily shared with others. These simulators inherit and implement the OpenAI Gym interface, and hence they are easy to use and e.g. can be easily plugged into existing RL training libraries.
 
 
-## Video
+## Papers
+
+### [UIST2022: Breathing Life into Biomechanical User Models (todo add working link)]()
 
 https://user-images.githubusercontent.com/7627254/184347198-2d7f8852-d50b-457f-8eaa-07720b9522eb.mp4
 
 [Click here for a Youtube version (with subtitles)](https://youtu.be/-L2hls8Blyc)
+
+Cite
+
+```
+TODO add citation info in bibtex format
+```
 
 
 ## Implementation
@@ -27,6 +35,8 @@ The main entry point is **[uitb.simulator.Simulator](https://github.com/aikkala/
 ### Biomechanical models
 
 The biomechanical models are defined in [uitb/bm_models](https://github.com/aikkala/user-in-the-box/tree/main/uitb/bm_models). When creating new biomechanical models, one must inherit from the base class **[uitb.bm_models.base.BaseBMModel](https://github.com/aikkala/user-in-the-box/tree/main/uitb/bm_models/base.py)**. In addition to implementing a Python class, the biomechanical model must be defined as a (standalone) MuJoCo xml file. One option to creating new biomechanical models is to import them from [OpenSim](https://simtk.org/projects/opensim) models with an [OpenSim-to-MuJoCo converter](https://github.com/aikkala/O2MConverter).
+
+Related to the biomechanical models, in file [uitb/bm_models/effort_models.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/bm_models/effort_models.py) we have pre-defined a few effort models (WIP). These can be extended as well.
 
 
 ### Interaction tasks
@@ -84,6 +94,10 @@ Note the prefix `uitb:` and suffix `-v0` that must be used to satisfy OpenAI Gym
 import sys
 sys.path.insert(0, simulator_folder)
 
+# Import the module so that the gym env is registered
+import importlib
+importlib.import_module("mobl_arms_index_pointing")
+
 # Initialise a simulator with gym
 import gym
 simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
@@ -114,7 +128,7 @@ Note that you need to define a reward function when creating new interaction tas
 | Controlling an RC Car Via Joystick | [simulators/mobl_arms_index_remote_driving](https://github.com/aikkala/user-in-the-box/tree/main/simulators/mobl_arms_index_remote_driving) | [uitb/configs/mobl_arms_index_remote_driving.yaml](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs/mobl_arms_index_remote_driving.yaml) |
 
 
-- The simulators that were trained, evaluated, and analysed in our [UIST submission](TODO-add-a-working-link) are found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
+- The simulators that were trained, evaluated, and analysed in our [UIST paper](TODO-add-a-working-link) are found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
 
 ## Testing
 
@@ -136,8 +150,6 @@ The above runs the pre-trained simulator `mobl_arms_index_pointing` for 10 episo
 ## Troubleshooting
 No currently known issues.
 
-## Cite
-TBD
 
 ## Acknowledgments
 We would like to thank our students Dominik Ermer, Jannic Herrmann, Lisa Müller and Ferdinand Schäffler for providing the initial model of the gamepad and the car used in the remote driving environment.
