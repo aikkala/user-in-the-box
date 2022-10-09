@@ -4,7 +4,7 @@ simulation:
   bm_model:
     cls: "MoblArmsIndex"
     kwargs:
-      shoulder_variant: "patch-v1"
+      shoulder_variant: "none"
   task:
     cls: "Pointing"
     kwargs:
