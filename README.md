@@ -1,4 +1,4 @@
-# User-in-the-box
+# User-in-the-Box
 
 - This repository contains source code for modeling and simulating HCI interaction tasks in [MuJoCo](https://mujoco.org/). The user is modeled with a muscle-actuated biomechanical model with perception capabilities (e.g. egocentric vision), and is trained with reinforcement learning to solve the interaction task.
 - The source code provides a flexible (modular) approach to implementing new biomechanical models, perception models, and interaction tasks.
@@ -13,7 +13,7 @@ https://user-images.githubusercontent.com/7627254/184347198-2d7f8852-d50b-457f-8
 
 [Click here for a Youtube version (with subtitles)](https://youtu.be/-L2hls8Blyc)
 
-Please cite this paper if you use this repository
+Please cite this paper if you use this *User-in-the-Box* repository in your research.
 
 ```
 TODO add citation info in bibtex format
@@ -136,27 +136,19 @@ Note that you need to define a reward function when creating new interaction tas
 
 ### Pointing examples
 
-<img src="figs/mobl_arms_index/pointing/video1.gif" width="25%">
-<img src="figs/mobl_arms_index/pointing/video2.gif" width="25%">
-<img src="figs/mobl_arms_index/pointing/video3.gif" width="25%">
+<img src="figs/mobl_arms_index/pointing/video1.gif" width="25%"> <img src="figs/mobl_arms_index/pointing/video2.gif" width="25%"> <img src="figs/mobl_arms_index/pointing/video3.gif" width="25%">
 
 ### Tracking examples
 
-<img src="figs/mobl_arms_index/tracking/video1.gif" width="25%">
-<img src="figs/mobl_arms_index/tracking/video2.gif" width="25%">
-<img src="figs/mobl_arms_index/tracking/video3.gif" width="25%">
+<img src="figs/mobl_arms_index/tracking/video1.gif" width="25%"> <img src="figs/mobl_arms_index/tracking/video2.gif" width="25%"> <img src="figs/mobl_arms_index/tracking/video3.gif" width="25%">
 
 ### Choice reaction examples
 
-<img src="figs/mobl_arms_index/choice-reaction/video1.gif" width="25%">
-<img src="figs/mobl_arms_index/choice-reaction/video2.gif" width="25%">
-<img src="figs/mobl_arms_index/choice-reaction/video3.gif" width="25%">
+<img src="figs/mobl_arms_index/choice-reaction/video1.gif" width="25%"> <img src="figs/mobl_arms_index/choice-reaction/video2.gif" width="25%"> <img src="figs/mobl_arms_index/choice-reaction/video3.gif" width="25%">
 
 ### Controlling an RC Car examples
 
-<img src="figs/mobl_arms_index/remote-driving/video1.gif" width="25%">
-<img src="figs/mobl_arms_index/remote-driving/video2.gif" width="25%">
-<img src="figs/mobl_arms_index/remote-driving/video3.gif" width="25%">
+<img src="figs/mobl_arms_index/remote-driving/video1.gif" width="25%"> <img src="figs/mobl_arms_index/remote-driving/video2.gif" width="25%"> <img src="figs/mobl_arms_index/remote-driving/video3.gif" width="25%">
 
 
 
