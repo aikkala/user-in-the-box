@@ -5,6 +5,8 @@ import mujoco
 
 
 class MoblArms(BaseBMModel):
+  """This model is based on the MoBL ARMS model, see https://simtk.org/frs/?group_id=657 for the original model in OpenSim,
+  and https://github.com/aikkala/O2MConverter for the MuJoCo converted model. """
 
   def __init__(self, model, data, **kwargs):
     super().__init__(model, data, **kwargs)

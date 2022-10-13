@@ -5,6 +5,9 @@ import mujoco
 
 
 class MoblArmsIndex(BaseBMModel):
+  """This model is based on the MoBL ARMS model, see https://simtk.org/frs/?group_id=657 for the original model in OpenSim,
+  and https://github.com/aikkala/O2MConverter for the MuJoCo converted model. This model is the same as the one in uitb/bm_models/mobl_arms, except
+  the index finger is flexed and it contains a force sensor. """
 
   def __init__(self, model, data, **kwargs):
     super().__init__(model, data, **kwargs)
