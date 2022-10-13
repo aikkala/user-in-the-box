@@ -7,17 +7,21 @@
 
 ## Papers
 
-### [UIST2022: Breathing Life into Biomechanical User Models (todo add working link)]()
+### [Breathing Life into Biomechanical User Models (UIST2022)](https://programs.sigchi.org/uist/2022/index/content/85013)
 
 https://user-images.githubusercontent.com/7627254/184347198-2d7f8852-d50b-457f-8eaa-07720b9522eb.mp4
 
 [Click here for a Youtube version (with subtitles)](https://youtu.be/-L2hls8Blyc)
 
-Cite
+Please cite this paper if you use this repository
 
 ```
 TODO add citation info in bibtex format
 ```
+
+### [Converting Biomechanical Models from OpenSim to MuJoCo (ICNR2020)](https://arxiv.org/abs/2006.10618)
+
+The [`mobl_arms`](https://github.com/aikkala/user-in-the-box/tree/main/uitb/bm_models/mobl_arms) biomechanical model and its variant [`mobl_arms_index`](https://github.com/aikkala/user-in-the-box/tree/main/uitb/bm_models/mobl_arms_index) have been converted from OpenSim to MuJoCo using the [O2MConverter](https://github.com/aikkala/O2MConverter) (with some of the parameters further optimized).
 
 
 ## Implementation
@@ -129,6 +133,32 @@ Note that you need to define a reward function when creating new interaction tas
 
 
 - The simulators that were trained, evaluated, and analysed in our [UIST paper](TODO-add-a-working-link) are found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
+
+### Pointing examples
+
+<img src="figs/mobl_arms_index/pointing/video1.gif" width="25%">
+<img src="figs/mobl_arms_index/pointing/video2.gif" width="25%">
+<img src="figs/mobl_arms_index/pointing/video3.gif" width="25%">
+
+### Tracking examples
+
+<img src="figs/mobl_arms_index/tracking/video1.gif" width="25%">
+<img src="figs/mobl_arms_index/tracking/video2.gif" width="25%">
+<img src="figs/mobl_arms_index/tracking/video3.gif" width="25%">
+
+### Choice reaction examples
+
+<img src="figs/mobl_arms_index/choice-reaction/video1.gif" width="25%">
+<img src="figs/mobl_arms_index/choice-reaction/video2.gif" width="25%">
+<img src="figs/mobl_arms_index/choice-reaction/video3.gif" width="25%">
+
+### Controlling an RC Car examples
+
+<img src="figs/mobl_arms_index/remote-driving/video1.gif" width="25%">
+<img src="figs/mobl_arms_index/remote-driving/video2.gif" width="25%">
+<img src="figs/mobl_arms_index/remote-driving/video3.gif" width="25%">
+
+
 
 ## Testing
 
