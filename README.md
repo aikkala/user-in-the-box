@@ -7,7 +7,7 @@
 
 ## Papers
 
-### [Breathing Life into Biomechanical User Models (UIST2022)](https://programs.sigchi.org/uist/2022/index/content/85013)
+### [Breathing Life into Biomechanical User Models (UIST2022)](http://users.comnet.aalto.fi/oulasvir/uist22a-sub1886-cam-i32.pdf)
 
 https://user-images.githubusercontent.com/7627254/184347198-2d7f8852-d50b-457f-8eaa-07720b9522eb.mp4
 
@@ -16,7 +16,14 @@ https://user-images.githubusercontent.com/7627254/184347198-2d7f8852-d50b-457f-8
 Please cite this paper if you use this *User-in-the-Box* repository in your research.
 
 ```
-TODO add citation info in bibtex format
+@inproceedings{ikkala2022,
+title={Breathing Life Into Biomechanical User Models},
+author={Ikkala, Aleksi and Fischer, Florian and Klar, Markus and Bachinski, Miroslav and Fleig, Arthur and Howes, Andrew and H{\"a}m{\"a}l{\"a}inen, Perttu and M{\"u}ller, J{\"o}rg and Murray-Smith, Roderick and Oulasvirta, Antti},
+booktitle={Proc. UIST’22},
+year={2022},
+url={http://users.comnet.aalto.fi/oulasvir/uist22a-sub1886-cam-i32.pdf},
+organization={ACM}
+}
 ```
 
 ### [Converting Biomechanical Models from OpenSim to MuJoCo (ICNR2020)](https://arxiv.org/abs/2006.10618)
