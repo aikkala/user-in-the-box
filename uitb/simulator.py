@@ -1,8 +1,10 @@
 import gym
 from gym import spaces
+from gym.wrappers.render_collection import RenderCollection
 import mujoco
 import os
 import numpy as np
+import scipy
 import sys
 import importlib
 import shutil
@@ -232,7 +234,7 @@ class Simulator(gym.Env):
     return model, data, task, bm_model, perception, callbacks
 
   @classmethod
-  def get(cls, simulator_folder, run_parameters=None, use_cloned=True):
+  def get(cls, simulator_folder, render_mode="rgb_array", run_parameters=None, use_cloned=True):
     """ Returns a Simulator that is located in given folder.
 
     Args:
@@ -263,8 +265,15 @@ class Simulator(gym.Env):
     else:
       gen_cls = cls
 
+    # Check render mode
+    assert render_mode in ("rgb_array", "rgb_array_list"), "Invalid render mode."
+    if render_mode == "rgb_array_list":
+      _simulator = RenderCollection(gen_cls(simulator_folder, run_parameters=run_parameters))
+    else:
+      _simulator = gen_cls(simulator_folder, run_parameters=run_parameters)
+
     # Return Simulator object
-    return gen_cls(simulator_folder, run_parameters=run_parameters)
+    return _simulator
 
   def __init__(self, simulator_folder, run_parameters=None):
     """ Initialise a new `Simulator`.
@@ -302,6 +311,7 @@ class Simulator(gym.Env):
     # Initialise viewer
     self._camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
                          dt=self._run_parameters["dt"])
+    self._render_mode = "rgb_array"
 
   def _initialise_action_space(self):
     """ Initialise action space. """
@@ -345,7 +355,7 @@ class Simulator(gym.Env):
     self.perception.update(self._model, self._data)
 
     # Update environment
-    reward, finished, info = self.task.update(self._model, self._data)
+    reward, terminated, truncated, info = self.task.update(self._model, self._data)
 
     # Add an effort cost to reward
     reward -= self.bm_model.get_effort_cost(self._model, self._data)
@@ -353,7 +363,7 @@ class Simulator(gym.Env):
     # Get observation
     obs = self.get_observation()
 
-    return obs, reward, finished, info
+    return obs, reward, terminated, truncated, info
 
   def get_observation(self):
     """ Returns an observation from the perception model.
@@ -381,12 +391,42 @@ class Simulator(gym.Env):
     # Reset all models
     self.bm_model.reset(self._model, self._data)
     self.perception.reset(self._model, self._data)
-    self.task.reset(self._model, self._data)
+    info = self.task.reset(self._model, self._data)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self._model, self._data)
 
-    return self.get_observation()
+    return self.get_observation(), info
+
+  def render(self):
+    # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
+
+    # Grab images
+    img, _ = self._camera.render()
+
+    ocular_img = None
+    for module in self.perception.perception_modules:
+      if module.modality == "vision":
+        # TODO would be better to have a class function that returns "human-viewable" rendering of the observation;
+        #  e.g. in case the vision model has two cameras, or returns a combination of rgb + depth images etc.
+        ocular_img, _ = module._camera.render()
+
+    if ocular_img is not None:
+
+      # Resample
+      resample_factor = 2
+      resample_height = ocular_img.shape[0] * resample_factor
+      resample_width = ocular_img.shape[1] * resample_factor
+      resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
+      for channel in range(3):
+        resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+
+      # Embed ocular image into free image
+      i = self._camera.height - resample_height
+      j = self._camera.width - resample_width
+      img[i:, j:] = resampled_img
+
+    return img
 
   def callback(self, callback_name, num_timesteps):
     """ Update a callback -- may be useful during training, e.g. for curriculum learning. """
@@ -415,6 +455,11 @@ class Simulator(gym.Env):
   def simulator_folder(self):
     """ Return simulator folder. """
     return self._simulator_folder
+
+  @property
+  def render_mode(self):
+    """ Return render mode. """
+    return self._render_mode
 
   def get_state(self):
     """ Return a state of the simulator / individual components (biomechanical model, perception model, task).

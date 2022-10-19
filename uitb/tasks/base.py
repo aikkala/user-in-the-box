@@ -77,13 +77,18 @@ class BaseTask(ABC):
 
     Returns:
       A float indicating the reward received from the task/environment, a boolean indicating whether the episode
-        has terminated, and a dict containing information about the states of the task/environment
+        has terminated (e.g., episode success or failure), a boolean indicating whether the episode has been
+        truncated (e.g., timeout), and a dict containing information about the states of the task/environment
     """
     pass
 
   @abstractmethod
   def _reset(self, model, data):
-    """ Resets the task/environment. """
+    """ Resets the task/environment.
+
+    Returns:
+      A dict containing information about the states of the task/environment
+    """
     pass
 
 
@@ -152,6 +157,10 @@ class BaseTask(ABC):
     """
     module = importlib.import_module(".".join(cls.__module__.split(".")[:-1]) + f".{module_name}")
     return getattr(module, specs["cls"])(**specs.get("kwargs", {}))
+
+  @property
+  def fps(self):
+    return int(np.round(1.0 / self._dt))
 
   @classmethod
   def clone(cls, simulator_folder, package_name):

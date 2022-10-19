@@ -116,8 +116,9 @@ if __name__=="__main__":
   for episode_idx in range(args.num_episodes):
 
     # Reset environment
-    obs = simulator.reset()
-    done = False
+    obs, info = simulator.reset()
+    terminated = False
+    truncated = False
     reward = 0
 
     if args.logging:
@@ -128,13 +129,13 @@ if __name__=="__main__":
       imgs.append(grab_pip_image(simulator))
 
     # Loop until episode ends
-    while not done:
+    while not terminated and not truncated:
 
       # Get actions from policy
       action, _states = model.predict(obs, deterministic=deterministic)
 
       # Take a step
-      obs, r, done, info = simulator.step(action)
+      obs, r, terminated, truncated, info = simulator.step(action)
       reward += r
 
       if args.logging:

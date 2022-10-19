@@ -30,7 +30,8 @@ class ChoiceReaction(BaseTask):
     self._targets_hit = 0
 
     # Used for logging states
-    self._info = {"target_hit": False, "new_button_generated": False, "finished": False, "termination": False}
+    self._info = {"target_hit": False, "new_button_generated": False,
+                  "terminated": False, "truncated": False, "termination": False}
 
     # Define a default reward function
     self._reward_function = NegativeExpDistanceWithHitBonus()
@@ -77,7 +78,8 @@ class ChoiceReaction(BaseTask):
   def _update(self, model, data):
 
     # Set defaults
-    finished = False
+    terminated = False
+    truncated = False
     self._info["new_button_generated"] = False
 
     # Check if the correct button has been pressed with suitable force
@@ -106,7 +108,7 @@ class ChoiceReaction(BaseTask):
 
     # Check if max number trials reached
     if self._trial_idx >= self._max_trials:
-      finished = True
+      truncated = True
       self._info["termination"] = "max_trials_reached"
 
     # Get end-effector position and target position
@@ -119,7 +121,7 @@ class ChoiceReaction(BaseTask):
     # Calculate reward
     reward = self._reward_function.get(self, dist, self._info.copy())
 
-    return reward, finished, self._info.copy()
+    return reward, terminated, truncated, self._info.copy()
 
   def _choose_button(self, model, data):
 
@@ -150,10 +152,13 @@ class ChoiceReaction(BaseTask):
     self._trial_idx = 0
     self._targets_hit = 0
 
-    self._info = {"target_hit": False, "new_button_generated": False, "finished": False, "termination": False}
+    self._info = {"target_hit": False, "new_button_generated": False, "terminated": False, "truncated": False,
+                  "termination": False}
 
     # Choose a new button
     self._choose_button(model, data)
+
+    return self._info
 
   def get_stateful_information(self, model, data):
     # Time features
