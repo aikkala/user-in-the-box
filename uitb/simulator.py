@@ -245,6 +245,8 @@ class Simulator(gym.Env):
 
     Args:
       simulator_folder: Location of the simulator.
+      render_mode: whether render() will return a single rgb array (render_mode="rgb_array") or
+        a list of rgb arrays (render_mode="rgb_array_list").
       run_parameters: Can be used to override parameters.
       use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
         cloned/copied during building phase.
@@ -282,21 +284,24 @@ class Simulator(gym.Env):
           f"""WARNING: Version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_version}, set 'use_cloned=True'.""")
 
 
-    # Check render mode
-    assert render_mode in ("rgb_array", "rgb_array_list"), "Invalid render mode."
-    if render_mode == "rgb_array_list":
-      _simulator = RenderCollection(gen_cls(simulator_folder, run_parameters=run_parameters))
-    else:
-      _simulator = gen_cls(simulator_folder, run_parameters=run_parameters)
+    # # Check render mode
+    # assert render_mode in ("rgb_array", "rgb_array_list"), "Invalid render mode."
+    # if render_mode == "rgb_array_list":
+    #   _simulator = RenderCollection(gen_cls(simulator_folder, run_parameters=run_parameters))
+    # else:
+    _simulator = gen_cls(simulator_folder, render_mode=render_mode, run_parameters=run_parameters)
 
     # Return Simulator object
     return _simulator
 
-  def __init__(self, simulator_folder, run_parameters=None):
+  def __init__(self, simulator_folder, render_mode="rgb_array", run_parameters=None):
     """ Initialise a new `Simulator`.
 
     Args:
       simulator_folder: Location of a simulator.
+      render_mode: whether render() will return a single rgb array (render_mode="rgb_array") or
+        a list of rgb arrays (render_mode="rgb_array_list";
+        adapted from https://github.com/openai/gym/blob/master/gym/wrappers/render_collection.py)).
       run_parameters: Can be used to override parameters during run time.
     """
 
@@ -328,7 +333,12 @@ class Simulator(gym.Env):
     # Initialise viewer
     self._camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
                          dt=self._run_parameters["dt"])
-    self._render_mode = "rgb_array"
+
+    self._render_mode = render_mode
+    self._render_stack = []  #only used if render_mode == "rgb_array_list"
+    self._render_stack_pop = True  #If True, clear the render stack after .render() is called.
+    self._render_stack_clean_at_reset = True  #If True, clear the render stack when .reset() is called.
+
 
   def _initialise_action_space(self):
     """ Initialise action space. """
@@ -380,6 +390,10 @@ class Simulator(gym.Env):
     # Get observation
     obs = self.get_observation()
 
+    # Add frame to stack
+    if self._render_mode == "rgb_array_list":
+      self._render_stack.append(self._GUI_rendering())
+
     return obs, reward, terminated, truncated, info
 
   def get_observation(self):
@@ -413,9 +427,23 @@ class Simulator(gym.Env):
     # Do a forward so everything will be set
     mujoco.mj_forward(self._model, self._data)
 
+    if self._render_mode == "rgb_array_list":
+      if self._render_stack_clean_at_reset:
+        self._render_stack = []
+      self._render_stack.append(self._GUI_rendering())
+
     return self.get_observation(), info
 
   def render(self):
+    if self._render_mode == "rgb_array_list":
+      render_stack = self._render_stack
+      if self._render_stack_pop:
+        self.render_stack = []
+      return render_stack
+    else:
+      return self._GUI_rendering()
+
+  def _GUI_rendering(self):
     # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
 
     # Grab images
