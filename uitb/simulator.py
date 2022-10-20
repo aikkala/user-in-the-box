@@ -26,7 +26,7 @@ class Simulator(gym.Env):
   """
 
   # May be useful for later, the three digit number suffix is of format X.Y.Z where X is a major version.
-  version = "uitb:simulator-v110"
+  version = "uitb:simulator-v1.1.0"
 
   @classmethod
   def get_class(cls, *args):
@@ -261,15 +261,26 @@ class Simulator(gym.Env):
     if "built" not in config:
       raise RuntimeError("Simulator has not been built")
 
-    if use_cloned:
-      # Make sure simulator_folder is in path
-      if simulator_folder not in sys.path:
-        sys.path.insert(0, simulator_folder)
+    # Make sure simulator_folder is in path (used to import gen_cls_cloned)
+    if simulator_folder not in sys.path:
+      sys.path.insert(0, simulator_folder)
 
-      # Get Simulator class
-      gen_cls = getattr(importlib.import_module(config["package_name"]), "Simulator")
+    # Get Simulator class
+    gen_cls_cloned = getattr(importlib.import_module(config["package_name"]), "Simulator")
+    gen_cls_cloned_version = gen_cls_cloned.version.split("-v")[-1]
+    if use_cloned:
+      gen_cls = gen_cls_cloned
     else:
       gen_cls = cls
+      gen_cls_version = gen_cls.version.split("-v")[-1]
+
+      if gen_cls_version.split(".")[0] > gen_cls_cloned_version.split(".")[0]:
+        raise RuntimeError(
+          f"""Severe version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_cloned_version}, set 'use_cloned=True'.""")
+      elif gen_cls_version.split(".")[1] > gen_cls_cloned_version.split(".")[1]:
+        print(
+          f"""WARNING: Version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_version}, set 'use_cloned=True'.""")
+
 
     # Check render mode
     assert render_mode in ("rgb_array", "rgb_array_list"), "Invalid render mode."
