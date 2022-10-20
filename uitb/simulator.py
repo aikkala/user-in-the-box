@@ -177,6 +177,12 @@ class Simulator(gym.Env):
     # Copy utils
     shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(simulator_folder, package_name, "utils"),
                     dirs_exist_ok=True)
+    # Copy train
+    shutil.copytree(os.path.join(parent_path(src), "train"), os.path.join(simulator_folder, package_name, "train"),
+                    dirs_exist_ok=True)
+    # Copy test
+    shutil.copytree(os.path.join(parent_path(src), "test"), os.path.join(simulator_folder, package_name, "test"),
+                    dirs_exist_ok=True)
 
   @classmethod
   def _initialise(cls, config, simulator_folder, run_parameters):
