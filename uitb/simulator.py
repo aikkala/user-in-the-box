@@ -444,32 +444,38 @@ class Simulator(gym.Env):
       return self._GUI_rendering()
 
   def _GUI_rendering(self):
-    # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
+    # Grab an image from the 'for_testing' camera and grab all GUI-prepared images from included visual perception modules, and display them 'picture-in-picture'
 
     # Grab images
     img, _ = self._camera.render()
 
-    ocular_img = None
-    for module in self.perception.perception_modules:
-      if module.modality == "vision":
-        # TODO would be better to have a class function that returns "human-viewable" rendering of the observation;
-        #  e.g. in case the vision model has two cameras, or returns a combination of rgb + depth images etc.
-        ocular_img, _ = module._camera.render()
+    perception_camera_images = [module._camera.render()[0] for module in self.perception.perception_modules if module.modality == "vision"]
+    # TODO: add text annotations to perception camera images
+    if len(perception_camera_images) > 0:
+      _img_size = img.shape[:2]  #(height, width)
 
-    if ocular_img is not None:
+      # Vertical alignment of perception camera images, from bottom right to top right
+      _desired_subwindow_height = np.round(_img_size[0] / len(perception_camera_images)).astype(int)
+      _maximum_subwindow_width = np.round(0.2 * _img_size[1]).astype(int)
 
-      # Resample
-      resample_factor = 2
-      resample_height = ocular_img.shape[0] * resample_factor
-      resample_width = ocular_img.shape[1] * resample_factor
-      resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
-      for channel in range(3):
-        resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+      perception_camera_images_resampled = []
+      for ocular_img in perception_camera_images:
+        resample_factor = min(_desired_subwindow_height / ocular_img.shape[0], _maximum_subwindow_width / ocular_img.shape[1])
 
-      # Embed ocular image into free image
-      i = self._camera.height - resample_height
-      j = self._camera.width - resample_width
-      img[i:, j:] = resampled_img
+        resample_height = np.round(ocular_img.shape[0] * resample_factor).astype(int)
+        resample_width = np.round(ocular_img.shape[1] * resample_factor).astype(int)
+        resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
+        for channel in range(3):
+          resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+
+        perception_camera_images_resampled.append(resampled_img)
+
+      # Embed perception camera images into main camera image:
+      ocular_img_bottom = _img_size[0]
+      for ocular_img_idx, ocular_img in enumerate(perception_camera_images_resampled):
+        #print(f"Modify ({ocular_img_bottom - ocular_img.shape[0]}, { _img_size[1] - ocular_img.shape[1]})-({ocular_img_bottom}, {img.shape[1]}).")
+        img[ocular_img_bottom - ocular_img.shape[0]:ocular_img_bottom, _img_size[1] - ocular_img.shape[1]:] = ocular_img
+        ocular_img_bottom -= ocular_img.shape[0]
 
     return img
 
