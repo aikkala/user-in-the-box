@@ -26,7 +26,7 @@ class Simulator(gym.Env):
   """
 
   # May be useful for later, the three digit number suffix is of format X.Y.Z where X is a major version.
-  id = "uitb:simulator-v100"
+  version = "uitb:simulator-v110"
 
   @classmethod
   def get_class(cls, *args):
@@ -78,8 +78,8 @@ class Simulator(gym.Env):
     assert "action_sample_freq" in run_parameters, "Action sampling frequency (action_sample_freq) must be defined " \
                                                    "in run parameters"
 
-    # Set simulator id
-    config["id"] = cls.id
+    # Set simulator version
+    config["version"] = cls.version
 
     # Save generated simulators to uitb/simulators
     simulator_folder = os.path.join(output_path(), config["simulator_name"])
