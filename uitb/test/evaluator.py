@@ -145,7 +145,7 @@ if __name__=="__main__":
         state.update(info)
         state_logger.log(episode_idx, state)
 
-      if args.record and not done:
+      if args.record and not terminated and not truncated:
         imgs.append(grab_pip_image(simulator))
 
     #print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
