@@ -16,35 +16,36 @@ def natural_sort(l):
     alphanum_key = lambda key: [convert(c) for c in re.split('([0-9]+)', key)]
     return sorted(l, key=alphanum_key)
 
-def grab_pip_image(simulator):
-  # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
-
-  # Grab images
-  img, _ = simulator._camera.render()
-
-  ocular_img = None
-  for module in simulator.perception.perception_modules:
-    if module.modality == "vision":
-      # TODO would be better to have a class function that returns "human-viewable" rendering of the observation;
-      #  e.g. in case the vision model has two cameras, or returns a combination of rgb + depth images etc.
-      ocular_img, _ = module._camera.render()
-
-  if ocular_img is not None:
-
-    # Resample
-    resample_factor = 2
-    resample_height = ocular_img.shape[0]*resample_factor
-    resample_width = ocular_img.shape[1]*resample_factor
-    resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
-    for channel in range(3):
-      resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
-
-    # Embed ocular image into free image
-    i = simulator._camera.height - resample_height
-    j = simulator._camera.width - resample_width
-    img[i:, j:] = resampled_img
-
-  return img
+### DEPRECATED, use simulator.render() instead
+# def grab_pip_image(simulator):
+#   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
+#
+#   # Grab images
+#   img, _ = simulator._camera.render()
+#
+#   ocular_img = None
+#   for module in simulator.perception.perception_modules:
+#     if module.modality == "vision":
+#       # TODO would be better to have a class function that returns "human-viewable" rendering of the observation;
+#       #  e.g. in case the vision model has two cameras, or returns a combination of rgb + depth images etc.
+#       ocular_img, _ = module._camera.render()
+#
+#   if ocular_img is not None:
+#
+#     # Resample
+#     resample_factor = 2
+#     resample_height = ocular_img.shape[0]*resample_factor
+#     resample_width = ocular_img.shape[1]*resample_factor
+#     resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
+#     for channel in range(3):
+#       resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+#
+#     # Embed ocular image into free image
+#     i = simulator._camera.height - resample_height
+#     j = simulator._camera.width - resample_width
+#     img[i:, j:] = resampled_img
+#
+#   return img
 
 
 if __name__=="__main__":
@@ -84,7 +85,7 @@ if __name__=="__main__":
   deterministic = False
 
   # Initialise simulator
-  simulator = Simulator.get(args.simulator_folder, run_parameters=run_params)
+  simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array", run_parameters=run_params)
 
   print(f"run parameters are: {simulator.run_parameters}\n")
 
@@ -126,7 +127,7 @@ if __name__=="__main__":
       state_logger.log(episode_idx, state)
 
     if args.record:
-      imgs.append(grab_pip_image(simulator))
+      imgs.append(simulator.render())
 
     # Loop until episode ends
     while not terminated and not truncated:
@@ -146,7 +147,7 @@ if __name__=="__main__":
         state_logger.log(episode_idx, state)
 
       if args.record and not terminated and not truncated:
-        imgs.append(grab_pip_image(simulator))
+        imgs.append(simulator.render())
 
     #print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
 
