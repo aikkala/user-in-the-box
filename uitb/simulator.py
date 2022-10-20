@@ -5,6 +5,7 @@ import mujoco
 import os
 import numpy as np
 import scipy
+import matplotlib
 import sys
 import importlib
 import shutil
@@ -240,7 +241,7 @@ class Simulator(gym.Env):
     return model, data, task, bm_model, perception, callbacks
 
   @classmethod
-  def get(cls, simulator_folder, render_mode="rgb_array", run_parameters=None, use_cloned=True):
+  def get(cls, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None, use_cloned=True):
     """ Returns a Simulator that is located in given folder.
 
     Args:
@@ -248,6 +249,7 @@ class Simulator(gym.Env):
       render_mode: whether render() will return a single rgb array (render_mode="rgb_array") or
         a list of rgb arrays (render_mode="rgb_array_list").
       run_parameters: Can be used to override parameters.
+      render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
         cloned/copied during building phase.
     """
@@ -283,25 +285,21 @@ class Simulator(gym.Env):
         print(
           f"""WARNING: Version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_version}, set 'use_cloned=True'.""")
 
-
-    # # Check render mode
-    # assert render_mode in ("rgb_array", "rgb_array_list"), "Invalid render mode."
-    # if render_mode == "rgb_array_list":
-    #   _simulator = RenderCollection(gen_cls(simulator_folder, run_parameters=run_parameters))
-    # else:
-    _simulator = gen_cls(simulator_folder, render_mode=render_mode, run_parameters=run_parameters)
+    _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
+                         run_parameters=run_parameters)
 
     # Return Simulator object
     return _simulator
 
-  def __init__(self, simulator_folder, render_mode="rgb_array", run_parameters=None):
+  def __init__(self, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None):
     """ Initialise a new `Simulator`.
 
     Args:
       simulator_folder: Location of a simulator.
-      render_mode: whether render() will return a single rgb array (render_mode="rgb_array") or
+      render_mode: Whether render() will return a single rgb array (render_mode="rgb_array") or
         a list of rgb arrays (render_mode="rgb_array_list";
         adapted from https://github.com/openai/gym/blob/master/gym/wrappers/render_collection.py)).
+      render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
     """
 
@@ -338,6 +336,7 @@ class Simulator(gym.Env):
     self._render_stack = []  #only used if render_mode == "rgb_array_list"
     self._render_stack_pop = True  #If True, clear the render stack after .render() is called.
     self._render_stack_clean_at_reset = True  #If True, clear the render stack when .reset() is called.
+    self._render_show_depths = render_show_depths  #If True, depth images of visual perception modules are included in GUI rendering.
 
 
   def _initialise_action_space(self):
@@ -449,23 +448,34 @@ class Simulator(gym.Env):
     # Grab images
     img, _ = self._camera.render()
 
-    perception_camera_images = [module._camera.render()[0] for module in self.perception.perception_modules if module.modality == "vision"]
+    perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
+                                for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
     # TODO: add text annotations to perception camera images
     if len(perception_camera_images) > 0:
       _img_size = img.shape[:2]  #(height, width)
 
       # Vertical alignment of perception camera images, from bottom right to top right
+      ## TODO: allow for different inset locations
       _desired_subwindow_height = np.round(_img_size[0] / len(perception_camera_images)).astype(int)
       _maximum_subwindow_width = np.round(0.2 * _img_size[1]).astype(int)
 
       perception_camera_images_resampled = []
       for ocular_img in perception_camera_images:
+        # Convert 2D depth arrays to 3D heatmap arrays
+        if ocular_img.ndim == 2:
+          if self._render_show_depths:
+            ocular_img = matplotlib.pyplot.imshow(ocular_img, cmap=matplotlib.pyplot.cm.jet, interpolation='bicubic').make_image('TkAgg', unsampled=True)[0][
+            ..., :3]
+            matplotlib.pyplot.close()  #delete image
+          else:
+            continue
+
         resample_factor = min(_desired_subwindow_height / ocular_img.shape[0], _maximum_subwindow_width / ocular_img.shape[1])
 
         resample_height = np.round(ocular_img.shape[0] * resample_factor).astype(int)
         resample_width = np.round(ocular_img.shape[1] * resample_factor).astype(int)
-        resampled_img = np.zeros((resample_height, resample_width, 3), dtype=np.uint8)
-        for channel in range(3):
+        resampled_img = np.zeros((resample_height, resample_width, ocular_img.shape[2]), dtype=np.uint8)
+        for channel in range(ocular_img.shape[2]):
           resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 
         perception_camera_images_resampled.append(resampled_img)
