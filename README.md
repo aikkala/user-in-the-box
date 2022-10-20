@@ -115,11 +115,23 @@ simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 ```
 
 
-## Setup
+## Installation / Setup
 
 - The conda environment defined in `conda_env.yml` should contain all required packages. Create a new conda env with `conda env create -f conda_env.yml` and activate it with `conda activate uitb`.
 
-- Tested only with EGL for headless rendering: enable with `export MUJOCO_GL=egl`
+- Alternatively, you can install the `uitb` python package from the main directory via
+  ```bash
+  pip install -e .
+  ```
+
+- **IMPORTANT:** In case of headless rendering (e.g., in Jupyter Notebook/Google Colab files), EGL needs to be set as rendering backend (requires a GPU), either from commmand line: 
+  ```bash
+  export MUJOCO_GL=egl
+  ```
+  or, using ipython line magic in .ipynb files:
+  ```python
+  %env MUJOCO_GL=egl
+  ```
 
 
 ## Training
