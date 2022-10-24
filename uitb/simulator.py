@@ -27,7 +27,7 @@ class Simulator(gym.Env):
   """
 
   # May be useful for later, the three digit number suffix is of format X.Y.Z where X is a major version.
-  version = "uitb:simulator-v1.1.0"
+  version = "1.1.0"
 
   @classmethod
   def get_class(cls, *args):
@@ -488,6 +488,10 @@ class Simulator(gym.Env):
         ocular_img_bottom -= ocular_img.shape[0]
 
     return img
+
+  @property
+  def fps(self):
+    return self._camera.fps
 
   def callback(self, callback_name, num_timesteps):
     """ Update a callback -- may be useful during training, e.g. for curriculum learning. """

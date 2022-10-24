@@ -158,10 +158,6 @@ class BaseTask(ABC):
     module = importlib.import_module(".".join(cls.__module__.split(".")[:-1]) + f".{module_name}")
     return getattr(module, specs["cls"])(**specs.get("kwargs", {}))
 
-  @property
-  def fps(self):
-    return int(np.round(1.0 / self._dt))
-
   @classmethod
   def clone(cls, simulator_folder, package_name):
     """ Clones (i.e. copies) the relevant python files into a new location.
