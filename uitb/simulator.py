@@ -491,7 +491,7 @@ class Simulator(gym.Env):
 
   @property
   def fps(self):
-    return self._camera.fps
+    return self._camera._fps
 
   def callback(self, callback_name, num_timesteps):
     """ Update a callback -- may be useful during training, e.g. for curriculum learning. """
