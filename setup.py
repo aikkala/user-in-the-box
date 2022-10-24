@@ -12,9 +12,11 @@ setup(
    long_description=open('README.md').read(),
    python_requires='>=3.8',
    install_requires=[
-       "gym", #>=0.26.0",
+       "gym>=0.26.0",
        "mujoco>=2.2.0",
-       "stable_baselines3>=1.4.0", "torch",
+       #"stable_baselines3>=1.4.0", 
+       "stable_baselines3 @ git+https://github.com/carlosluis/stable-baselines3.git@fix_tests#egg=stable_baselines3-2.0.0a0",
+       "torch",
        "wandb", "tensorboard",
        "numpy", "matplotlib", "scipy",
        "opencv-python",
