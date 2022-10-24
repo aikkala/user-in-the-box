@@ -70,7 +70,7 @@ rl:
   batch_size: 1000
   target_kl: 1.0
   save_freq: 5_000_000
-id: uitb:simulator-v100
+version: 1.1.0
 package_name: mobl_arms_index_remote_driving
 gym_name: uitb:mobl_arms_index_remote_driving-v0
-built: '2022-09-02 11:40:34'
+built: '2022-10-24 10:52:19'

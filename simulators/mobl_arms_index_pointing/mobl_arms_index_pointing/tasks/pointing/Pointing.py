@@ -26,8 +26,8 @@ class Pointing(BaseTask):
     self._max_steps_without_hit = self._action_sample_freq*4
 
     # Used for logging states
-    self._info = {"target_hit": False, "inside_target": False, "target_spawned": False, "finished": False,
-                 "termination": False}
+    self._info = {"target_hit": False, "inside_target": False, "target_spawned": False, "terminated": False,
+                  "truncated": False, "termination": False}
 
     # Define a maximum number of trials (if needed for e.g. evaluation / visualisation)
     self._trial_idx = 0
@@ -76,7 +76,8 @@ class Pointing(BaseTask):
   def _update(self, model, data):
 
     # Set some defaults
-    finished = False
+    terminated = False
+    truncated = False
     self._info["target_spawned"] = False
 
     # Get end-effector position
@@ -119,14 +120,14 @@ class Pointing(BaseTask):
 
     # Check if max number trials reached
     if self._trial_idx >= self._max_trials:
-      finished = True
+      truncated = True
       self._info["termination"] = "max_trials_reached"
 
     # Calculate reward; note, inputting distance to surface into reward function, hence distance can be negative if
     # fingertip is inside target
     reward = self._reward_function.get(self, dist-self._target_radius, self._info.copy())
 
-    return reward, finished, self._info.copy()
+    return reward, terminated, truncated, self._info.copy()
 
   def _get_state(self, model, data):
     state = dict()
@@ -145,11 +146,13 @@ class Pointing(BaseTask):
     self._trial_idx = 0
     self._targets_hit = 0
 
-    self._info = {"target_hit": False, "inside_target": False, "target_spawned": False, "finished": False,
-                 "termination": False}
+    self._info = {"target_hit": False, "inside_target": False, "target_spawned": False,
+                  "terminated": False, "truncated": False, "termination": False}
 
     # Spawn a new location
     self._spawn_target(model, data)
+
+    return self._info
 
   def _spawn_target(self, model, data):
 

@@ -1,8 +1,11 @@
 import gym
 from gym import spaces
+from gym.wrappers.render_collection import RenderCollection
 import mujoco
 import os
 import numpy as np
+import scipy
+import matplotlib
 import sys
 import importlib
 import shutil
@@ -24,7 +27,7 @@ class Simulator(gym.Env):
   """
 
   # May be useful for later, the three digit number suffix is of format X.Y.Z where X is a major version.
-  id = "uitb:simulator-v100"
+  version = "1.1.0"
 
   @classmethod
   def get_class(cls, *args):
@@ -76,8 +79,8 @@ class Simulator(gym.Env):
     assert "action_sample_freq" in run_parameters, "Action sampling frequency (action_sample_freq) must be defined " \
                                                    "in run parameters"
 
-    # Set simulator id
-    config["id"] = cls.id
+    # Set simulator version
+    config["version"] = cls.version
 
     # Save generated simulators to uitb/simulators
     simulator_folder = os.path.join(output_path(), config["simulator_name"])
@@ -175,6 +178,12 @@ class Simulator(gym.Env):
     # Copy utils
     shutil.copytree(os.path.join(parent_path(src), "utils"), os.path.join(simulator_folder, package_name, "utils"),
                     dirs_exist_ok=True)
+    # Copy train
+    shutil.copytree(os.path.join(parent_path(src), "train"), os.path.join(simulator_folder, package_name, "train"),
+                    dirs_exist_ok=True)
+    # Copy test
+    shutil.copytree(os.path.join(parent_path(src), "test"), os.path.join(simulator_folder, package_name, "test"),
+                    dirs_exist_ok=True)
 
   @classmethod
   def _initialise(cls, config, simulator_folder, run_parameters):
@@ -232,12 +241,15 @@ class Simulator(gym.Env):
     return model, data, task, bm_model, perception, callbacks
 
   @classmethod
-  def get(cls, simulator_folder, run_parameters=None, use_cloned=True):
+  def get(cls, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None, use_cloned=True):
     """ Returns a Simulator that is located in given folder.
 
     Args:
       simulator_folder: Location of the simulator.
+      render_mode: whether render() will return a single rgb array (render_mode="rgb_array") or
+        a list of rgb arrays (render_mode="rgb_array_list").
       run_parameters: Can be used to override parameters.
+      render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
         cloned/copied during building phase.
     """
@@ -253,24 +265,41 @@ class Simulator(gym.Env):
     if "built" not in config:
       raise RuntimeError("Simulator has not been built")
 
-    if use_cloned:
-      # Make sure simulator_folder is in path
-      if simulator_folder not in sys.path:
-        sys.path.insert(0, simulator_folder)
+    # Make sure simulator_folder is in path (used to import gen_cls_cloned)
+    if simulator_folder not in sys.path:
+      sys.path.insert(0, simulator_folder)
 
-      # Get Simulator class
-      gen_cls = getattr(importlib.import_module(config["package_name"]), "Simulator")
+    # Get Simulator class
+    gen_cls_cloned = getattr(importlib.import_module(config["package_name"]), "Simulator")
+    gen_cls_cloned_version = gen_cls_cloned.version.split("-v")[-1]
+    if use_cloned:
+      gen_cls = gen_cls_cloned
     else:
       gen_cls = cls
+      gen_cls_version = gen_cls.version.split("-v")[-1]
+
+      if gen_cls_version.split(".")[0] > gen_cls_cloned_version.split(".")[0]:
+        raise RuntimeError(
+          f"""Severe version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_cloned_version}, set 'use_cloned=True'.""")
+      elif gen_cls_version.split(".")[1] > gen_cls_cloned_version.split(".")[1]:
+        print(
+          f"""WARNING: Version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_version}, set 'use_cloned=True'.""")
+
+    _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
+                         run_parameters=run_parameters)
 
     # Return Simulator object
-    return gen_cls(simulator_folder, run_parameters=run_parameters)
+    return _simulator
 
-  def __init__(self, simulator_folder, run_parameters=None):
+  def __init__(self, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None):
     """ Initialise a new `Simulator`.
 
     Args:
       simulator_folder: Location of a simulator.
+      render_mode: Whether render() will return a single rgb array (render_mode="rgb_array") or
+        a list of rgb arrays (render_mode="rgb_array_list";
+        adapted from https://github.com/openai/gym/blob/master/gym/wrappers/render_collection.py)).
+      render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
     """
 
@@ -302,6 +331,13 @@ class Simulator(gym.Env):
     # Initialise viewer
     self._camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
                          dt=self._run_parameters["dt"])
+
+    self._render_mode = render_mode
+    self._render_stack = []  #only used if render_mode == "rgb_array_list"
+    self._render_stack_pop = True  #If True, clear the render stack after .render() is called.
+    self._render_stack_clean_at_reset = True  #If True, clear the render stack when .reset() is called.
+    self._render_show_depths = render_show_depths  #If True, depth images of visual perception modules are included in GUI rendering.
+
 
   def _initialise_action_space(self):
     """ Initialise action space. """
@@ -345,7 +381,7 @@ class Simulator(gym.Env):
     self.perception.update(self._model, self._data)
 
     # Update environment
-    reward, finished, info = self.task.update(self._model, self._data)
+    reward, terminated, truncated, info = self.task.update(self._model, self._data)
 
     # Add an effort cost to reward
     reward -= self.bm_model.get_effort_cost(self._model, self._data)
@@ -353,7 +389,11 @@ class Simulator(gym.Env):
     # Get observation
     obs = self.get_observation()
 
-    return obs, reward, finished, info
+    # Add frame to stack
+    if self._render_mode == "rgb_array_list":
+      self._render_stack.append(self._GUI_rendering())
+
+    return obs, reward, terminated, truncated, info
 
   def get_observation(self):
     """ Returns an observation from the perception model.
@@ -381,12 +421,77 @@ class Simulator(gym.Env):
     # Reset all models
     self.bm_model.reset(self._model, self._data)
     self.perception.reset(self._model, self._data)
-    self.task.reset(self._model, self._data)
+    info = self.task.reset(self._model, self._data)
 
     # Do a forward so everything will be set
     mujoco.mj_forward(self._model, self._data)
 
-    return self.get_observation()
+    if self._render_mode == "rgb_array_list":
+      if self._render_stack_clean_at_reset:
+        self._render_stack = []
+      self._render_stack.append(self._GUI_rendering())
+
+    return self.get_observation(), info
+
+  def render(self):
+    if self._render_mode == "rgb_array_list":
+      render_stack = self._render_stack
+      if self._render_stack_pop:
+        self.render_stack = []
+      return render_stack
+    else:
+      return self._GUI_rendering()
+
+  def _GUI_rendering(self):
+    # Grab an image from the 'for_testing' camera and grab all GUI-prepared images from included visual perception modules, and display them 'picture-in-picture'
+
+    # Grab images
+    img, _ = self._camera.render()
+
+    perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
+                                for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
+    # TODO: add text annotations to perception camera images
+    if len(perception_camera_images) > 0:
+      _img_size = img.shape[:2]  #(height, width)
+
+      # Vertical alignment of perception camera images, from bottom right to top right
+      ## TODO: allow for different inset locations
+      _desired_subwindow_height = np.round(_img_size[0] / len(perception_camera_images)).astype(int)
+      _maximum_subwindow_width = np.round(0.2 * _img_size[1]).astype(int)
+
+      perception_camera_images_resampled = []
+      for ocular_img in perception_camera_images:
+        # Convert 2D depth arrays to 3D heatmap arrays
+        if ocular_img.ndim == 2:
+          if self._render_show_depths:
+            ocular_img = matplotlib.pyplot.imshow(ocular_img, cmap=matplotlib.pyplot.cm.jet, interpolation='bicubic').make_image('TkAgg', unsampled=True)[0][
+            ..., :3]
+            matplotlib.pyplot.close()  #delete image
+          else:
+            continue
+
+        resample_factor = min(_desired_subwindow_height / ocular_img.shape[0], _maximum_subwindow_width / ocular_img.shape[1])
+
+        resample_height = np.round(ocular_img.shape[0] * resample_factor).astype(int)
+        resample_width = np.round(ocular_img.shape[1] * resample_factor).astype(int)
+        resampled_img = np.zeros((resample_height, resample_width, ocular_img.shape[2]), dtype=np.uint8)
+        for channel in range(ocular_img.shape[2]):
+          resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+
+        perception_camera_images_resampled.append(resampled_img)
+
+      # Embed perception camera images into main camera image:
+      ocular_img_bottom = _img_size[0]
+      for ocular_img_idx, ocular_img in enumerate(perception_camera_images_resampled):
+        #print(f"Modify ({ocular_img_bottom - ocular_img.shape[0]}, { _img_size[1] - ocular_img.shape[1]})-({ocular_img_bottom}, {img.shape[1]}).")
+        img[ocular_img_bottom - ocular_img.shape[0]:ocular_img_bottom, _img_size[1] - ocular_img.shape[1]:] = ocular_img
+        ocular_img_bottom -= ocular_img.shape[0]
+
+    return img
+
+  @property
+  def fps(self):
+    return self._camera.fps
 
   def callback(self, callback_name, num_timesteps):
     """ Update a callback -- may be useful during training, e.g. for curriculum learning. """
@@ -415,6 +520,11 @@ class Simulator(gym.Env):
   def simulator_folder(self):
     """ Return simulator folder. """
     return self._simulator_folder
+
+  @property
+  def render_mode(self):
+    """ Return render mode. """
+    return self._render_mode
 
   def get_state(self):
     """ Return a state of the simulator / individual components (biomechanical model, perception model, task).

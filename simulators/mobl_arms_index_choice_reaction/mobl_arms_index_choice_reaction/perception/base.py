@@ -35,10 +35,13 @@ class BaseModule(ABC):
     # Observation shape will be set later
     self._observation_shape = None
 
+    # List of cameras provided by the module (cameras should be appended by subclasses)
+    self._cameras = []
+
   def __init_subclass__(cls, *args, **kwargs):
     """ Define a new __init__ method with a hook that automatically sets observation shape after a child instance
     has been initialised. This is only for convenience, otherwise we would need to set the observation shape separately
-    in each child class constructor, or after a a child of BaseModule has been initialised."""
+    in each child class constructor, or after a child of BaseModule has been initialised."""
     super().__init_subclass__(*args, **kwargs)
     def init_with_hook(self, model, data, bm_model, init=cls.__init__, **init_kwargs):
       init(self, model, data, bm_model, **init_kwargs)
@@ -237,12 +240,16 @@ class Perception:
     self.encoders = dict()
 
     self.perception_modules = []
+    self._cameras = []
     for module_cls, kwargs in perception_modules.items():
       module = module_cls(model, data, bm_model, **{**kwargs, **run_parameters})
       self.perception_modules.append(module)
       self._actuator_names.extend(module.actuator_names)
       self._joint_names.extend(module.joint_names)
       self.encoders[module.modality] = module.encoder
+
+      if module.modality == "vision":
+        self._cameras.extend(module._cameras)
 
     # Find actuators in the simulation
     self._actuators = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
@@ -291,6 +298,10 @@ class Perception:
     for module in self.perception_modules:
       observations[module.modality] = module.get_observation(model, data)
     return observations
+
+  @property
+  def cameras(self):
+    return self._cameras
 
   @property
   def actuators(self):

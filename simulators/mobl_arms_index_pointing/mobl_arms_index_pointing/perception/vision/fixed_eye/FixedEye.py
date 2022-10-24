@@ -52,8 +52,11 @@ class FixedEye(BaseModule):
     self._context = kwargs["rendering_context"]
 
     # Initialise camera
-    self._camera = Camera(context=self._context, model=model, data=data,
+    self.camera_fixed_eye = Camera(context=self._context, model=model, data=data,
                           resolution=resolution, rgb=True, depth=True, camera_id="fixed-eye")
+    # Append all cameras to self._cameras to be able to display
+    # their outputs in human-view/GUI mode (used by simulator.py)
+    self._cameras.append(self.camera_fixed_eye)
 
     # Define a vision buffer for including previous visual observations
     self._buffer = None
@@ -97,7 +100,7 @@ class FixedEye(BaseModule):
   def get_observation(self, model, data):
 
     # Get rgb and depth arrays
-    rgb, depth = self._camera.render()
+    rgb, depth = self.camera_fixed_eye.render()
     assert not np.all(rgb==0), "There's still something wrong with rendering"
 
     # Normalise
