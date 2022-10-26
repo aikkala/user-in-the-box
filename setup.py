@@ -1,4 +1,9 @@
 from setuptools import setup
+from setuptools import find_packages
+
+import os, glob
+datadir = "uitb/"
+datafiles = [(datadir, list(glob.glob(os.path.join(datadir, '*'))))]
 
 setup(
    name='uitb',
@@ -6,6 +11,8 @@ setup(
    author='Aleksi Ikkala',
    author_email='aleksi.ikkala@gmail.com',
    packages=['uitb'],
+   package_data={'': ['**']},
+   #data_files=datafiles,
    url='https://github.com/aikkala/user-in-the-box',
    license='LICENSE',
    description='Modeling and simulating HCI interaction tasks in MuJoCo',
