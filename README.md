@@ -17,13 +17,19 @@ Please cite this paper if you use this *User-in-the-Box* repository in your rese
 
 ```
 @inproceedings{ikkala2022,
-title={Breathing Life Into Biomechanical User Models},
-author={Ikkala, Aleksi and Fischer, Florian and Klar, Markus and Bachinski, Miroslav and Fleig, Arthur and Howes, Andrew and H{\"a}m{\"a}l{\"a}inen, Perttu and M{\"u}ller, J{\"o}rg and Murray-Smith, Roderick and Oulasvirta, Antti},
-booktitle={Proc. UIST’22},
-year={2022},
-url={http://users.comnet.aalto.fi/oulasvir/uist22a-sub1886-cam-i32.pdf},
-organization={ACM}
-}
+author = {Ikkala, Aleksi and Fischer, Florian and Klar, Markus and Bachinski, Miroslav and Fleig, Arthur and Howes, Andrew and H\"{a}m\"{a}l\"{a}inen, Perttu and M\"{u}ller, J\"{o}rg and Murray-Smith, Roderick and Oulasvirta, Antti},
+title = {Breathing Life Into Biomechanical User Models},
+year = {2022},
+isbn = {9781450393201},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3526113.3545689},
+doi = {10.1145/3526113.3545689},
+booktitle = {Proceedings of the 35th Annual ACM Symposium on User Interface Software and Technology},
+articleno = {90},
+numpages = {14},
+location = {Bend, OR, USA},
+series = {UIST '22}}
 ```
 
 ### [Converting Biomechanical Models from OpenSim to MuJoCo (ICNR2020)](https://arxiv.org/abs/2006.10618)
