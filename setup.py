@@ -5,7 +5,8 @@ setup(name='UIB',
       author="Aleksi Ikkala",
       author_email="aleksi.ikkala@aalto.fi",
       packages=["UIB"],
-      install_requires=['gym', 'mujoco_py', 'stable-baselines3', 'tensorboard', 'torch',
-                        'matplotlib', 'pandas', 'scipy', 'numpy',
-                        'uitb_tools @ git+https://github.com/fl0fischer/uitb-tools.git#egg=uitb_tools-0.1.0']
+      # this branch should be used for evaluation only
+      install_requires=['matplotlib', 'pandas', 'scipy', 'numpy', 'xmltodict',
+                        'uitb_tools @ git+https://github.com/fl0fischer/uitb-tools.git#egg=uitb_tools-0.1.0'],
+      extra_requires={'training': ['gym', 'mujoco_py', 'stable-baselines3', 'tensorboard', 'torch']}
 )
