@@ -191,7 +191,6 @@ The above runs the pre-trained simulator `mobl_arms_index_pointing` for 10 episo
 ## TODO list
 - cameras, lighting
 - separate Task class into World and Task classes, where the former defines the world and the latter defines only the interactive task?
-- create a setup.py for the simulators so they (and required packages) can be easily installed?
 
 
 ## Troubleshooting
