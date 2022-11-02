@@ -29,4 +29,4 @@ You can also collect the data again with the trained models by using the script 
 
 ## Analysis
 
-See the [UIST/plots/analyze_trajectories.ipynb](https://github.com/aikkala/user-in-the-box/blob/uist-submission-aleksi/UIST/plots/analyze_trajectories.ipynb) file for all analysis and plotting related functionality.
+To re-create all data plots from the paper, simply run the python script [generate_plots.py](https://github.com/aikkala/user-in-the-box/blob/uist-submission-aleksi/UIST/plots/generate_plots.py). This script makes use of the [uitb-tools](https://github.com/fl0fischer/uitb-tools) module, which is automatically installed by this branch's [setup.py](https://github.com/aikkala/user-in-the-box/blob/uist-submission-aleksi/setup.py) (just call `pip install -e .` within the main directory).
