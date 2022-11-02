@@ -2,12 +2,14 @@ import os
 from uitb_evaluate.trajectory_data import TrajectoryData_RL, TrajectoryData_STUDY
 from uitb_evaluate.evaluate_main import trajectoryplot
 from uitb_evaluate.evaluate_summarystatistics import sumstatsplot
+from utils import check_study_dataset_dir
 
 DIRNAME_SIMULATION = os.path.abspath("../")
 DIRNAME_STUDY = os.path.abspath("../study/")
 PLOTS_DIR = os.path.abspath("_generated_plots/")  #overwrites PLOTS_DIR_DEFAULT from uitb_evaluate.trajectory_data
 
 if __name__ == "__main__":
+    check_study_dataset_dir(DIRNAME_STUDY)
     #################################
 
     _active_parts = [1, 2, 3, 4, 5]
