@@ -150,7 +150,7 @@ if __name__ == "__main__":
         r1_FIXED = None  # r1list[5]  #only used if PLOTTING_ENV == "MPC-costweights"
         r2_FIXED = None  # r2list[-1]  #only used if PLOTTING_ENV == "MPC-costweights"
 
-        # TASK_CONDITION_LIST_SELECTED = ["Standing_ID_ISO_15_plane", "Standing_Cursor_Handtuned_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
+        # TASK_CONDITION_LIST_SELECTED = ["Virtual_Cursor_ID_ISO_15_plane", "Virtual_Cursor_Ergonomic_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
 
         # WHAT TO COMPUTE?
         EFFECTIVE_PROJECTION_PATH = (
@@ -291,7 +291,7 @@ if __name__ == "__main__":
         r1_FIXED = None  # r1list[5]  #only used if PLOTTING_ENV == "MPC-costweights"
         r2_FIXED = None  # r2list[-1]  #only used if PLOTTING_ENV == "MPC-costweights"
 
-        # TASK_CONDITION_LIST_SELECTED = ["Standing_ID_ISO_15_plane", "Standing_Cursor_Handtuned_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
+        # TASK_CONDITION_LIST_SELECTED = ["Virtual_Cursor_ID_ISO_15_plane", "Virtual_Cursor_Ergonomic_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
 
         # WHAT TO COMPUTE?
         EFFECTIVE_PROJECTION_PATH = (
@@ -475,7 +475,7 @@ if __name__ == "__main__":
         r1_FIXED = None  # r1list[5]  #only used if PLOTTING_ENV == "MPC-costweights"
         r2_FIXED = None  # r2list[-1]  #only used if PLOTTING_ENV == "MPC-costweights"
 
-        # TASK_CONDITION_LIST_SELECTED = ["Standing_ID_ISO_15_plane", "Standing_Cursor_Handtuned_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
+        # TASK_CONDITION_LIST_SELECTED = ["Virtual_Cursor_ID_ISO_15_plane", "Virtual_Cursor_Ergonomic_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
 
         # WHAT TO COMPUTE?
         EFFECTIVE_PROJECTION_PATH = (
@@ -632,7 +632,7 @@ if __name__ == "__main__":
         r1_FIXED = None  # r1list[5]  #only used if PLOTTING_ENV == "MPC-costweights"
         r2_FIXED = None  # r2list[-1]  #only used if PLOTTING_ENV == "MPC-costweights"
 
-        # TASK_CONDITION_LIST_SELECTED = ["Standing_ID_ISO_15_plane", "Standing_Cursor_Handtuned_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
+        # TASK_CONDITION_LIST_SELECTED = ["Virtual_Cursor_ID_ISO_15_plane", "Virtual_Cursor_Ergonomic_ISO_15_plane"]  #only used if PLOTTING_ENV == "MPC-taskconditions"
 
         # WHAT TO COMPUTE?
         EFFECTIVE_PROJECTION_PATH = (
