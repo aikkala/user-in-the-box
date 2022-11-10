@@ -1,8 +1,14 @@
 import os
+from pathlib import Path
+import logging
 from uitb_evaluate.trajectory_data import TrajectoryData_RL, TrajectoryData_STUDY
 from uitb_evaluate.evaluate_main import trajectoryplot
 from uitb_evaluate.evaluate_summarystatistics import sumstatsplot
 from utils import check_study_dataset_dir
+
+# Change current working directory to file directory
+os.chdir(Path(__file__).parent)
+logging.info(Path(__file__).parent)
 
 DIRNAME_SIMULATION = os.path.abspath("../")
 DIRNAME_STUDY = os.path.abspath("../study/")

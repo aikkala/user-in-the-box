@@ -8,8 +8,8 @@ def check_study_dataset_dir(DIRNAME_STUDY):
         download_datasets = input(
             "Could not find reference to the ISO-VR-Pointing Dataset. Do you want to download it (~3.9GB after unpacking)? (y/N) ")
         if download_datasets.lower().startswith("y"):
-            print(f"Will download and unzip to '{DIRNAME_STUDY}'.")
-            print("Downloading archive... ", end='', flush=True)
+            print(f"Will download and unzip to '{os.path.abspath(DIRNAME_STUDY)}'.")
+            print("Downloading archive... This can take several minutes. ", end='', flush=True)
             resp = urlopen("https://zenodo.org/record/7300062/files/ISO_VR_Pointing_Dataset.zip?download=1")
             zipfile = ZipFile(BytesIO(resp.read()))
             print("unzip archive... ", end='', flush=True)
