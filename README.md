@@ -121,6 +121,11 @@ simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 
 - Alternatively, you can install the `uitb` python package from the main directory via
   ```bash
+  pip install .
+  ```
+  or (editable)
+  
+  ```bash
   pip install -e .
   ```
 
