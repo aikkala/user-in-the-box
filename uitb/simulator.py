@@ -83,7 +83,10 @@ class Simulator(gym.Env):
     config["version"] = cls.version
 
     # Save generated simulators to uitb/simulators
-    simulator_folder = os.path.join(output_path(), config["simulator_name"])
+    if "simulator_folder" in config:
+      simulator_folder = os.path.normpath(config["simulator_folder"])
+    else:
+      simulator_folder = os.path.join(output_path(), config["simulator_name"])
 
     # If 'package_name' is not defined use 'simulator_name'
     if "package_name" not in config:

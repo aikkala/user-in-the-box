@@ -1,6 +1,10 @@
-from setuptools import setup
-from setuptools import find_packages
+import os.path
 
+from setuptools import setup
+
+# Store simulators path before installing
+with open(os.path.join(os.path.dirname(__file__), "uitb/utils/__simulatorsdir__.py"), "w") as f:
+    f.write("SIMULATORS_DIR = " + repr(os.path.normpath(os.path.abspath('simulators'))))
 
 setup(
    name='uitb',
@@ -16,6 +20,7 @@ setup(
    python_requires='>=3.8',
    install_requires=[
        "gym>=0.26.0",
+       "pygame",
        "mujoco>=2.2.0",
        #"stable_baselines3>=1.4.0", 
        "stable_baselines3 @ git+https://github.com/carlosluis/stable-baselines3.git@fix_tests#egg=stable_baselines3-2.0.0a0",
