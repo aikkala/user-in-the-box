@@ -1,6 +1,6 @@
 import gym
 from gym import spaces
-from gym.wrappers.render_collection import RenderCollection
+import pygame
 import mujoco
 import os
 import numpy as np
@@ -245,13 +245,15 @@ class Simulator(gym.Env):
     """ Returns a Simulator that is located in given folder.
 
     Args:
-      simulator_folder: Location of the simulator.
-      render_mode: whether render() will return a single rgb array (render_mode="rgb_array") or
-        a list of rgb arrays (render_mode="rgb_array_list").
-      run_parameters: Can be used to override parameters.
+      simulator_folder: Location of a simulator.
+      render_mode: Whether render() will return a single rgb array (render_mode="rgb_array"),
+        a list of rgb arrays (render_mode="rgb_array_list";
+        adapted from https://github.com/openai/gym/blob/master/gym/wrappers/render_collection.py),
+        or None while the frames in a separate PyGame window are updated directly when calling
+        step() or reset() (render_mode="human";
+        adapted from https://github.com/openai/gym/blob/master/gym/wrappers/human_rendering.py)).
       render_show_depths: Whether depth images of visual perception modules should be included in rendering.
-      use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
-        cloned/copied during building phase.
+      run_parameters: Can be used to override parameters during run time.
     """
 
     # Read config file
@@ -296,9 +298,12 @@ class Simulator(gym.Env):
 
     Args:
       simulator_folder: Location of a simulator.
-      render_mode: Whether render() will return a single rgb array (render_mode="rgb_array") or
+      render_mode: Whether render() will return a single rgb array (render_mode="rgb_array"),
         a list of rgb arrays (render_mode="rgb_array_list";
-        adapted from https://github.com/openai/gym/blob/master/gym/wrappers/render_collection.py)).
+        adapted from https://github.com/openai/gym/blob/master/gym/wrappers/render_collection.py),
+        or None while the frames in a separate PyGame window are updated directly when calling
+        step() or reset() (render_mode="human";
+        adapted from https://github.com/openai/gym/blob/master/gym/wrappers/human_rendering.py)).
       render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
     """
@@ -329,7 +334,7 @@ class Simulator(gym.Env):
     self._episode_statistics = {"length (seconds)": 0, "length (steps)": 0, "reward": 0}
 
     # Initialise viewer
-    self._camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
+    self._GUI_camera = Camera(self._run_parameters["rendering_context"], self._model, self._data, camera_id='for_testing',
                          dt=self._run_parameters["dt"])
 
     self._render_mode = render_mode
@@ -337,7 +342,9 @@ class Simulator(gym.Env):
     self._render_stack_pop = True  #If True, clear the render stack after .render() is called.
     self._render_stack_clean_at_reset = True  #If True, clear the render stack when .reset() is called.
     self._render_show_depths = render_show_depths  #If True, depth images of visual perception modules are included in GUI rendering.
-
+    self._render_screen_size = None  #only used if render_mode == "human"
+    self._render_window = None  #only used if render_mode == "human"
+    self._render_clock = None  #only used if render_mode == "human"
 
   def _initialise_action_space(self):
     """ Initialise action space. """
@@ -392,6 +399,8 @@ class Simulator(gym.Env):
     # Add frame to stack
     if self._render_mode == "rgb_array_list":
       self._render_stack.append(self._GUI_rendering())
+    elif self._render_mode == "human":
+      self._GUI_rendering_pygame()
 
     return obs, reward, terminated, truncated, info
 
@@ -430,6 +439,8 @@ class Simulator(gym.Env):
       if self._render_stack_clean_at_reset:
         self._render_stack = []
       self._render_stack.append(self._GUI_rendering())
+    elif self._render_mode == "human":
+      self._GUI_rendering_pygame()
 
     return self.get_observation(), info
 
@@ -439,14 +450,16 @@ class Simulator(gym.Env):
       if self._render_stack_pop:
         self.render_stack = []
       return render_stack
-    else:
+    elif self._render_mode == "rgb_array":
       return self._GUI_rendering()
+    else:
+      return None
 
   def _GUI_rendering(self):
     # Grab an image from the 'for_testing' camera and grab all GUI-prepared images from included visual perception modules, and display them 'picture-in-picture'
 
     # Grab images
-    img, _ = self._camera.render()
+    img, _ = self._GUI_camera.render()
 
     perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
                                 for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
@@ -489,9 +502,41 @@ class Simulator(gym.Env):
 
     return img
 
+  def _GUI_rendering_pygame(self):
+    rgb_array = np.transpose(self._GUI_rendering(), axes=(1, 0, 2))
+
+    if self._render_screen_size is None:
+      self._render_screen_size = rgb_array.shape[:2]
+
+    assert self._render_screen_size == rgb_array.shape[
+                                       :2], f"Expected an rgb array of shape {self._render_screen_size} from self._GUI_camera, but received an rgb array of shape {rgb_array.shape[:2]}. "
+
+    if self._render_window is None:
+      pygame.init()
+      pygame.display.init()
+      self._render_window = pygame.display.set_mode(self._render_screen_size)
+
+    if self._render_clock is None:
+      self._render_clock = pygame.time.Clock()
+
+    surf = pygame.surfarray.make_surface(rgb_array)
+    self._render_window.blit(surf, (0, 0))
+    pygame.event.pump()
+    self._render_clock.tick(self.fps)
+    pygame.display.flip()
+
+  def close(self):
+    """ Close the rendering window (if self._render_mode == 'human')."""
+    super().close()
+    if self._render_window is not None:
+      import pygame
+
+      pygame.display.quit()
+      pygame.quit()
+
   @property
   def fps(self):
-    return self._camera._fps
+    return self._GUI_camera._fps
 
   def callback(self, callback_name, num_timesteps):
     """ Update a callback -- may be useful during training, e.g. for curriculum learning. """
