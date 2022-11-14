@@ -121,6 +121,11 @@ simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 
 - Alternatively, you can install the `uitb` python package from the main directory via
   ```bash
+  pip install .
+  ```
+  or (editable)
+  
+  ```bash
   pip install -e .
   ```
 
@@ -136,7 +141,9 @@ simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 
 ## Training
 
-The script [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/train/trainer.py) takes as a input a config file, then calls `Simulation.build(config)` to build the simulator, and then starts running the RL training using stable-baselines3. Other RL libraries can be defined in [uitb/rl](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl), and they must inherit from the base class **[uitb.rl.base.BaseRLModel](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl/base.py)**. Weights & Biases is used for logging.
+The script [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/train/trainer.py) takes as a input a config file, then calls `Simulation.build(config)` to build the simulator, and then starts running the RL training using stable-baselines3. Other RL libraries can be defined in [uitb/rl](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl), and they must inherit from the base class **[uitb.rl.base.BaseRLModel](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl/base.py)**. Weights & Biases is used for logging. 
+
+The simulation data directory can be set  from the config file using the `simulator_folder` tag. By default, simulation data is stored at `SIMULATORS_DIR` as defined in uitb/utils/\_\_simulatorsdir__.py, if this file exists (which is usually created during installation), or at [simulators](https://github.com/aikkala/user-in-the-box/tree/gym_setting/simulators).
 
 Note that you need to define a reward function when creating new interaction tasks. The implementation details of the reward function are (at least for now) left for users to decide. 
 
@@ -185,8 +192,6 @@ The above runs the pre-trained simulator `mobl_arms_index_pointing` for 10 episo
 ## TODO list
 - cameras, lighting
 - separate Task class into World and Task classes, where the former defines the world and the latter defines only the interactive task?
-- create a setup.py for the simulators so they (and required packages) can be easily installed?
-
 
 ## Troubleshooting
 No currently known issues.
