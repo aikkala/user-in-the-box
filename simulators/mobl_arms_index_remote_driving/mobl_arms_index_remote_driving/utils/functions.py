@@ -4,7 +4,6 @@ from datetime import datetime
 import sys
 import select
 import numpy as np
-from distutils.dir_util import copy_tree
 import re
 from ruamel.yaml import YAML
 
@@ -16,7 +15,11 @@ def project_path():
   return pathlib.Path(__file__).parent.parent.absolute()
 
 def output_path():
-  return os.path.join(project_path().parent.absolute(), "simulators")
+  try:
+    from .__simulatorsdir__ import SIMULATORS_DIR
+  except (ModuleNotFoundError, ImportError):
+    SIMULATORS_DIR = os.path.join(project_path().parent.absolute(), "simulators")
+  return SIMULATORS_DIR
 
 def strtime():
   return datetime.utcfromtimestamp(datetime.now().timestamp()).strftime('%Y-%m-%dT%H-%M-%SZ')

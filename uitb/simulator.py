@@ -248,7 +248,7 @@ class Simulator(gym.Env):
     """ Returns a Simulator that is located in given folder.
 
     Args:
-      simulator_folder: Location of a simulator.
+      simulator_folder: Location of the simulator.
       render_mode: Whether render() will return a single rgb array (render_mode="rgb_array"),
         a list of rgb arrays (render_mode="rgb_array_list";
         adapted from https://github.com/openai/gym/blob/master/gym/wrappers/render_collection.py),
@@ -257,6 +257,8 @@ class Simulator(gym.Env):
         adapted from https://github.com/openai/gym/blob/master/gym/wrappers/human_rendering.py)).
       render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
+      use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
+        cloned/copied during building phase.
     """
 
     # Read config file
