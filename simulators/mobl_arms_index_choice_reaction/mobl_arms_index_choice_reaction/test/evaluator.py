@@ -21,7 +21,7 @@ def natural_sort(l):
 #   # Grab an image from both 'for_testing' camera and 'oculomotor' camera, and display them 'picture-in-picture'
 #
 #   # Grab images
-#   img, _ = simulator._camera.render()
+#   img, _ = simulator._GUI_camera.render()
 #
 #   ocular_img = None
 #   for module in simulator.perception.perception_modules:
@@ -41,8 +41,8 @@ def natural_sort(l):
 #       resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 #
 #     # Embed ocular image into free image
-#     i = simulator._camera.height - resample_height
-#     j = simulator._camera.width - resample_width
+#     i = simulator._GUI_camera.height - resample_height
+#     j = simulator._GUI_camera.width - resample_width
 #     img[i:, j:] = resampled_img
 #
 #   return img
@@ -115,6 +115,8 @@ if __name__=="__main__":
   statistics = defaultdict(list)
   imgs = []
   for episode_idx in range(args.num_episodes):
+    
+    print(f"Run episode {episode_idx+1}/{args.num_episodes}.")
 
     # Reset environment
     obs, info = simulator.reset()
@@ -167,5 +169,5 @@ if __name__=="__main__":
 
   if args.record:
     # Write the video
-    simulator._camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
+    simulator._GUI_camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
     print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')
