@@ -10,7 +10,7 @@ setup(
    license='LICENSE',
    description='Modeling and simulating HCI interaction tasks in MuJoCo',
    long_description=open('README.md').read(),
-   python_requires='>=3.8',
+   python_requires='>=3.7',
    install_requires=[
        "gym", #>=0.26.0",
        "mujoco>=2.2.0",
