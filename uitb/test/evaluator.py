@@ -116,7 +116,6 @@ if __name__ == "__main__":
 
     # Visualise evaluations
     statistics = defaultdict(list)
-    imgs = []
     for episode_idx in range(args.num_episodes):
 
         print(f"Run episode {episode_idx + 1}/{args.num_episodes}.")
