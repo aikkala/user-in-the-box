@@ -30,7 +30,7 @@ def grab_pip_image(simulator):
   simulator._model.tendon_rgba[:, 0] = 0.3 + simulator._data.ctrl * 0.7
 
   # Grab images
-  img, _ = simulator._camera.render()
+  img, _ = simulator._GUI_camera.render()
 
   ocular_img = None
   for module in simulator.perception.perception_modules:
@@ -53,8 +53,8 @@ def grab_pip_image(simulator):
       resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 
     # Embed ocular image into free image
-    i = simulator._camera.height - resample_height
-    j = simulator._camera.width - resample_width
+    i = simulator._GUI_camera.height - resample_height
+    j = simulator._GUI_camera.width - resample_width
     img[i:, j:] = resampled_img
 
   return img
@@ -234,7 +234,7 @@ if __name__=="__main__":
     action, _states = model.predict(obs, deterministic=deterministic)
 
     # Take a step
-    obs, r, done, info = simulator.step(action)
+    obs, r, terminated, truncated, info = simulator.step(action)
 
     if args.logging:
       action_logger.log(0, {"steps": state["steps"], "timestep": state["timestep"], "action": action.copy(),
