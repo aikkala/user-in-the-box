@@ -6,20 +6,14 @@ from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 
 
 class FeatureExtractor(BaseFeaturesExtractor):
-  def __init__(self, observation_space: gym.spaces.Dict, extractors):
+  def __init__(self, observation_space: gym.spaces.Dict, encoders):
 
-    # Sample a fake observation
-    fake_observation = observation_space.sample()
-
-    # Convert None extractors into identity layers
+    # Get the encoder models and define features_dim for parent class
     total_concat_size = 0
-    for key, extractor in extractors.items():
-      if extractor is None:
-        extractors[key] = nn.Identity()
-      fake_obs_tensor = th.from_numpy(fake_observation[key])[None]
-      if len(extractors[key]._modules) > 0:
-        fake_obs_tensor = fake_obs_tensor.to(next(extractors[key].parameters()).device)
-      total_concat_size += extractors[key](fake_obs_tensor).shape[1]
+    extractors = dict()
+    for key, encoder in encoders.items():
+      extractors[key] = encoder.model
+      total_concat_size += encoder.out_features
 
     # Initialise parent class
     super().__init__(observation_space, features_dim=total_concat_size)

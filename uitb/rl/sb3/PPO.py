@@ -27,10 +27,9 @@ class PPO(BaseRLModel):
                                  env_kwargs={"simulator_folder": simulator_folder})
 
     # Add feature and stateful information encoders to policy_kwargs
-    encoders = simulator.perception.encoders.copy()
-    if simulator.task.get_stateful_information_space_params() is not None:
-      encoders["stateful_information"] = simulator.task.stateful_information_encoder
-    rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"extractors": encoders}
+    encoders = simulator.perception.encoders
+    encoders["stateful_information"] = simulator.task.stateful_information_encoder
+    rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"encoders": encoders}
 
     # Initialise model
     self.model = PPO_sb3(rl_config["policy_type"], parallel_envs, verbose=1, policy_kwargs=rl_config["policy_kwargs"],

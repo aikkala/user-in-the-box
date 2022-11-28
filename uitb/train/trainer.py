@@ -16,7 +16,7 @@ if __name__=="__main__":
   # Build the simulator
   simulator_folder = Simulator.build(config_file_path)
 
-  # Initialise
+  # Initialise (set use_cloned=False when debugging to use original files)
   simulator = Simulator.get(simulator_folder)
 
   # Get the config
