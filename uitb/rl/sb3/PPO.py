@@ -4,14 +4,16 @@ import importlib
 from stable_baselines3 import PPO as PPO_sb3
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.callbacks import CheckpointCallback, EveryNTimesteps
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback  #, EveryNTimesteps
 
 from ..base import BaseRLModel
-from .callbacks import EvalCallback
+# from .callbacks import EvalCallback
+
 
 class PPO(BaseRLModel):
 
-  def __init__(self, simulator):
+  def __init__(self, simulator, checkpoint_path=None, wandb_id=None):
     super().__init__()
 
     rl_config = self.load_config(simulator)
@@ -20,22 +22,32 @@ class PPO(BaseRLModel):
 
     # Get total timesteps
     self.total_timesteps = rl_config["total_timesteps"]
-
+        
     # Initialise parallel envs
     parallel_envs = make_vec_env(simulator.__class__, n_envs=rl_config["num_workers"],
                                  seed=run_parameters.get("random_seed", None), vec_env_cls=SubprocVecEnv,
                                  env_kwargs={"simulator_folder": simulator_folder})
+    
+    if checkpoint_path is not None:
+        # Resume training
+        self.model = PPO_sb3.load(checkpoint_path, parallel_envs, verbose=1, #policy_kwargs=rl_config["policy_kwargs"], 
+                                  tensorboard_log=simulator_folder, n_steps=rl_config["nsteps"],
+                                  batch_size=rl_config["batch_size"], target_kl=rl_config["target_kl"],
+                                  learning_rate=rl_config["lr"], device=rl_config["device"])
+        self.training_resumed = True
+    else:
+        # Add feature and stateful information encoders to policy_kwargs
+        encoders = simulator.perception.encoders
+        encoders["stateful_information"] = simulator.task.stateful_information_encoder
+        rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"encoders": encoders}
+        rl_config["policy_kwargs"]["wandb_id"] = wandb_id
 
-    # Add feature and stateful information encoders to policy_kwargs
-    encoders = simulator.perception.encoders
-    encoders["stateful_information"] = simulator.task.stateful_information_encoder
-    rl_config["policy_kwargs"]["features_extractor_kwargs"] = {"encoders": encoders}
-
-    # Initialise model
-    self.model = PPO_sb3(rl_config["policy_type"], parallel_envs, verbose=1, policy_kwargs=rl_config["policy_kwargs"],
-                         tensorboard_log=simulator_folder, n_steps=rl_config["nsteps"],
-                         batch_size=rl_config["batch_size"], target_kl=rl_config["target_kl"],
-                         learning_rate=rl_config["lr"], device=rl_config["device"])
+        # Initialise model
+        self.model = PPO_sb3(rl_config["policy_type"], parallel_envs, verbose=1, policy_kwargs=rl_config["policy_kwargs"],
+                             tensorboard_log=simulator_folder, n_steps=rl_config["nsteps"],
+                             batch_size=rl_config["batch_size"], target_kl=rl_config["target_kl"],
+                             learning_rate=rl_config["lr"], device=rl_config["device"])
+        self.training_resumed = False
 
 
     # Create a checkpoint callback
@@ -48,9 +60,8 @@ class PPO(BaseRLModel):
     # Get callbacks as a list
     self.callbacks = [*simulator.callbacks.values()]
 
-    # Create an evaluation callback
-#    eval_env = gym.make(rl_config["env_name"], **rl_config["env_kwargs"])
-#    self.eval_callback = EveryNTimesteps(n_steps=rl_config["total_timesteps"]//100, callback=EvalCallback(eval_env, num_eval_episodes=20))
+    # Create an evaluation env (only used if eval_callback=True is passed to learn())
+    self.eval_env = Monitor(simulator.__class__(**{"simulator_folder": simulator_folder}))
 
   def load_config(self, simulator):
     config = simulator.config["rl"]
@@ -71,6 +82,9 @@ class PPO(BaseRLModel):
 
     return config
 
-  def learn(self, wandb_callback):
+  def learn(self, wandb_callback, eval_callback=False, eval_freq=10000, n_eval_episodes=5):
+    self.eval_callback = EvalCallback(self.eval_env, eval_freq=eval_freq, n_eval_episodes=n_eval_episodes)
+    
     self.model.learn(total_timesteps=self.total_timesteps,
-                     callback=[wandb_callback, self.checkpoint_callback, *self.callbacks])
+                     callback=[wandb_callback, self.checkpoint_callback, self.eval_callback, *self.callbacks],
+                     reset_num_timesteps=not self.training_resumed)

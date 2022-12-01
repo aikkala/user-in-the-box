@@ -86,6 +86,7 @@ class ActorCriticPolicyStdDecay(BasePolicy):
       normalize_images: bool = True,
       optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
       optimizer_kwargs: Optional[Dict[str, Any]] = None,
+      wandb_id: str = None
   ):
 
     if optimizer_kwargs is None:
@@ -391,6 +392,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
       normalize_images: bool = True,
       optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
       optimizer_kwargs: Optional[Dict[str, Any]] = None,
+      wandb_id: str = None
   ):
 
     if optimizer_kwargs is None:
@@ -406,7 +408,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
       features_extractor_kwargs,
       optimizer_class=optimizer_class,
       optimizer_kwargs=optimizer_kwargs,
-      squash_output=squash_output,
+      squash_output=squash_output
     )
 
     # Default network architecture, from stable-baselines
@@ -686,6 +688,7 @@ class MultiInputActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
       normalize_images: bool = True,
       optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
       optimizer_kwargs: Optional[Dict[str, Any]] = None,
+      wandb_id: str = None
   ):
     super(MultiInputActorCriticPolicyTanhActions, self).__init__(
       observation_space,
