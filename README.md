@@ -145,9 +145,9 @@ The script [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/bl
 
 The simulation data directory can be set from the config file using the `simulator_folder` tag. By default, simulation data is stored at `SIMULATORS_DIR` as defined in uitb/utils/\_\_simulatorsdir__.py, if this file exists (which is usually created during installation), or at [simulators](https://github.com/aikkala/user-in-the-box/tree/gym_setting/simulators).
 
-To resume training at a stored checkpoint, either pass `--resume` to use the latest checkpoint or `--checkpoint <checkpoint_filename>`` to use a specific checkpoint when calling [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/train/trainer.py).
+To resume training at a stored checkpoint, either pass `--resume` to use the latest checkpoint or `--checkpoint <checkpoint_filename>`` to use a specific checkpoint when calling [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/train/trainer.py). If training is started from the scratch, the checkpoint directory (if existing) is backuped and cleared to avoid confusion. 
 
-Evaluations can be run regularly during training by passing the `--eval` flag. This flag takes the number of steps after which an evaluation is performed as optional argument.
+Regular evaluations can be added to the training loop by passing the `--eval` flag. This flag takes the number of steps after which an evaluation is performed as optional argument. In addition, the `--eval_info_keywords` flag allows to log custom environment variables during evaluation, as long as these are included in the "info" dict that is returned by the step function. For example, to log whether the end-effector is inside the target and whether it has hit the target, `--eval_info_keywords inside_target target_hit` can be used.
 
 Note that you need to define a reward function when creating new interaction tasks. The implementation details of the reward function are (at least for now) left for users to decide. 
 
