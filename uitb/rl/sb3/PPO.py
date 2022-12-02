@@ -5,10 +5,10 @@ from stable_baselines3 import PPO as PPO_sb3
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
-from stable_baselines3.common.callbacks import CheckpointCallback, EvalCallback  #, EveryNTimesteps
+from stable_baselines3.common.callbacks import CheckpointCallback  #, EvalCallback
 
 from ..base import BaseRLModel
-# from .callbacks import EvalCallback
+from .callbacks import EvalCallback
 
 
 class PPO(BaseRLModel):
@@ -24,7 +24,8 @@ class PPO(BaseRLModel):
     self.total_timesteps = rl_config["total_timesteps"]
         
     # Initialise parallel envs
-    parallel_envs = make_vec_env(simulator.__class__, n_envs=rl_config["num_workers"],
+    self.n_envs = rl_config["num_workers"]
+    parallel_envs = make_vec_env(simulator.__class__, n_envs=self.n_envs,
                                  seed=run_parameters.get("random_seed", None), vec_env_cls=SubprocVecEnv,
                                  env_kwargs={"simulator_folder": simulator_folder})
     
@@ -51,7 +52,7 @@ class PPO(BaseRLModel):
 
 
     # Create a checkpoint callback
-    save_freq = rl_config["save_freq"] // rl_config["num_workers"]
+    save_freq = rl_config["save_freq"] // self.n_envs
     checkpoint_folder = os.path.join(simulator_folder, 'checkpoints')
     self.checkpoint_callback = CheckpointCallback(save_freq=save_freq,
                                                   save_path=checkpoint_folder,
@@ -59,10 +60,10 @@ class PPO(BaseRLModel):
 
     # Get callbacks as a list
     self.callbacks = [*simulator.callbacks.values()]
-
+    
     # Create an evaluation env (only used if eval_callback=True is passed to learn())
-    self.eval_env = Monitor(simulator.__class__(**{"simulator_folder": simulator_folder}))
-
+    self.eval_env = simulator.__class__(**{"simulator_folder": simulator_folder})
+    
   def load_config(self, simulator):
     config = simulator.config["rl"]
 
@@ -82,9 +83,16 @@ class PPO(BaseRLModel):
 
     return config
 
-  def learn(self, wandb_callback, eval_callback=False, eval_freq=10000, n_eval_episodes=5):
-    self.eval_callback = EvalCallback(self.eval_env, eval_freq=eval_freq, n_eval_episodes=n_eval_episodes)
-    
-    self.model.learn(total_timesteps=self.total_timesteps,
-                     callback=[wandb_callback, self.checkpoint_callback, self.eval_callback, *self.callbacks],
-                     reset_num_timesteps=not self.training_resumed)
+  def learn(self, wandb_callback, with_evaluation=False, eval_freq=10000, n_eval_episodes=5, eval_info_keywords=()):
+    if with_evaluation:
+        self.eval_env = Monitor(self.eval_env, info_keywords=eval_info_keywords)
+        self.eval_freq = eval_freq // self.n_envs
+        self.eval_callback = EvalCallback(self.eval_env, eval_freq=self.eval_freq, n_eval_episodes=n_eval_episodes, info_keywords=eval_info_keywords)
+
+        self.model.learn(total_timesteps=self.total_timesteps,
+                         callback=[wandb_callback, self.checkpoint_callback, self.eval_callback, *self.callbacks],
+                         reset_num_timesteps=not self.training_resumed)
+    else:
+        self.model.learn(total_timesteps=self.total_timesteps,
+                         callback=[wandb_callback, self.checkpoint_callback, *self.callbacks],
+                         reset_num_timesteps=not self.training_resumed)
