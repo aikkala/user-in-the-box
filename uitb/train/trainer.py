@@ -22,8 +22,8 @@ if __name__=="__main__":
                       help='filename of a specific checkpoint to resume training at '
                            '(default: None, start training from the scratch)')
   parser.add_argument('--resume', action='store_true', help='resume at latest checkpoint')
-  parser.add_argument('--eval', type=int, default=None, const=10000, nargs='?', help='run and store evaluations at a specific frequency (every ``eval`` call of the callback)')
-  parser.add_argument('--eval_info_keywords', type=str, nargs='*', default=[], help='additional arguments of info keys that should be logged during evaluation')
+  parser.add_argument('--eval', type=int, default=None, const=10000, nargs='?', help='run and store evaluations at a specific frequency (every ``eval`` timestep)')
+  parser.add_argument('--eval_info_keywords', type=str, nargs='*', default=[], help='additional keys of ``info``  dict that should be logged at the end of each evaluation episode')
   args = parser.parse_args()
 
   # Get config file path
