@@ -12,8 +12,10 @@ simulation:
       standalone: True # set to False for debugging (open the app in Unity editor)
       #port: 5555 # uncomment for debugging (connects to this port instead of finding a random open one)
       time_scale: 5
-      end_effector: "hand"
-      relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
+      end_effector_body: "hand"
+      end_effector_relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
+      headset_body: "thorax"
+      headset_relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
   perception_modules:
     - cls: "vision.UnityHeadset"
       kwargs:
@@ -45,6 +47,6 @@ rl:
   device: "cuda"
   num_workers: 5
   nsteps: 8000
-  batch_size: 500
+  batch_size: 1000
   target_kl: 1.0
   save_freq: 5_000_000

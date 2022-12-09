@@ -12,7 +12,7 @@ from ...utils.unity import UnityClient
 
 class UnityDemo(BaseTask):
 
-  def __init__(self, model, data, end_effector, relpose, **kwargs):
+  def __init__(self, model, data, end_effector_body, end_effector_relpose, **kwargs):
     super().__init__(model, data, **kwargs)
 
     # Fire up the Unity client if we're really starting the simulation and not just building
@@ -31,9 +31,9 @@ class UnityDemo(BaseTask):
     # This task requires an end-effector to be defined; also, it must be a body
     # Would be nicer to have this check in the "initialise" method of this class, but not currently possible because
     # of the order in which mujoco xml files are merged (task -> bm_model -> perception).
-    if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, end_effector) == -1:
-      raise KeyError(f"'end_effector' must be a body, no body called {end_effector} found in the model")
-    self._end_effector = end_effector
+    if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, end_effector_body) == -1:
+      raise KeyError(f"'end_effector_body' must be a body, no body called {end_effector_body} found in the model")
+    self._end_effector = end_effector_body
 
     # Let's try to keep time in mujoco and unity synced
     self._current_timestep = 0
@@ -43,16 +43,17 @@ class UnityDemo(BaseTask):
 
     # Geom's mass property is not saved when we save the integrated model xml file (would be saved in binary mjcf
     # though). So let's set it here again just to be sure
-    model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "controller-right")] = 0.503
+    model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "controller-right")] = 0.129
+    #model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "headset")] = 0.571
 
     # Do a forward step so body positions are updated
     mujoco.mj_forward(model, data)
 
-    # 'relpose' is defined with respect to the end-effector. We need to move the controller to the correct position
-    # to make sure there aren't any quick movements in the first timesteps when mujoco starts enforcing the equality
-    # constraint.
+    # 'end_effector_relpose' is defined with respect to the end-effector. We need to move the controller to the correct
+    # position to make sure there aren't any quick movements in the first timesteps when mujoco starts enforcing the
+    # equality constraint.
     T1 = transformation_matrix(pos=data.body(self._end_effector).xpos, quat=data.body(self._end_effector).xquat)
-    T2 = transformation_matrix(pos=relpose[:3], quat=relpose[3:])
+    T2 = transformation_matrix(pos=end_effector_relpose[:3], quat=end_effector_relpose[3:])
     T = np.matmul(T1, np.linalg.inv(T2))
     model.body("controller-right").pos = T[:3, 3]
     model.body("controller-right").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
@@ -62,16 +63,22 @@ class UnityDemo(BaseTask):
     model.cam_quat[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array(
       [0.6582, 0.6577, 0.2590, 0.2588])
 
+    # Need to set up some transforms from mujoco to unity. The exact specifications of these transforms remain a bit
+    # of a mystery. They might be different for different biomechanical models (depending on in which orientation the
+    # axis of the root body is in)
+    self.rotation1 = Rotation.from_euler("xyz", np.array([90, 0, 180]), degrees=True)
+    self.rotation2 = Rotation.from_euler("z", 90, degrees=True)
+
   @classmethod
   def initialise(cls, task_kwargs):
 
-    if "end_effector" not in task_kwargs:
-      raise KeyError("Key 'end_effector' is missing from task kwargs. The end-effector must be defined for this "
+    if "end_effector_body" not in task_kwargs:
+      raise KeyError("Key 'end_effector_body' is missing from task kwargs. The end-effector must be defined for this "
                      "environment")
-    end_effector = task_kwargs["end_effector"]
-    if "relpose" not in task_kwargs:
-      raise KeyError("Key 'relpose' is missing from task kwargs. This key defines the relative pose of controller wrt "
-                     "to end-effector, and it must be defined for this environment")
+    end_effector = task_kwargs["end_effector_body"]
+    if "end_effector_relpose" not in task_kwargs:
+      raise KeyError("Key 'end_effector_relpose' is missing from task kwargs. This key defines the relative pose of "
+                     "controller wrt to end-effector, and it must be defined for this environment")
 
     # Parse xml file
     tree = ET.parse(cls.get_xml_file())
@@ -82,7 +89,8 @@ class UnityDemo(BaseTask):
     if equality is None:
       equality = ET.Element("equality")
       root.append(equality)
-    equality.append(ET.Element("weld", name="controller-right-weld", body1="controller-right", body2=end_effector, relpose=" ".join([str(x) for x in task_kwargs["relpose"]]), active="true"))
+    equality.append(ET.Element("weld", name="controller-right-weld", body1="controller-right", body2=end_effector,
+                               relpose=" ".join([str(x) for x in task_kwargs["end_effector_relpose"]]), active="true"))
 
     return tree
 
@@ -107,13 +115,14 @@ class UnityDemo(BaseTask):
 
     return reward, is_app_finished, {"unity_observation": image}
 
-  @staticmethod
-  def _transform_to_unity(pos, quat):
+  def _transform_to_unity(self, pos, quat):
 
-    # The coordinate axis needs to be rotated to match the one used in Unity
+    # A couple of rotations to make coordinate axes match with unity. These probably could be simplified
     rot = Rotation.from_quat(np.roll(quat, -1))
-    unity_transform = Rotation.from_quat(np.array([0, 0.7071068, 0.7071068, 0]))
-    rot = rot*unity_transform
+    rot = self.rotation2*rot*self.rotation1
+
+    # Need to rotate the position as well to match coordinates
+    pos = self.rotation2.apply(pos)
 
     # Get the quaternion; quat is in scalar-last format
     quat = rot.as_quat()
@@ -131,16 +140,15 @@ class UnityDemo(BaseTask):
       self._transform_to_unity(data.body("controller-right").xpos, data.body("controller-right").xquat)
 
     # Get position and rotation of headset
-#    headset_pos, headset_quat = \
-#      self._transform_to_unity(data.body("headset").xpos, data.body("headset").xquat)
+    headset_pos, headset_quat = \
+      self._transform_to_unity(data.body("thorax").xpos+np.array([0.15, 0, 0.22]), data.body("thorax").xquat)
 
     # Create the state
     state = {
-      "headsetPosition": {"x": 0, "y": 1, "z": 0},
+      "headsetPosition": headset_pos,
       "leftControllerPosition": {"x": 0, "y": 0, "z": 0},
       "rightControllerPosition": controller_right_pos,
-      #"rightControllerPosition": {"x": .08, "y": 0.75, "z": 0.08},
-      "headsetRotation": {"x": 0, "y": 0.7071068, "z": 0, "w": 0.7071068},
+      "headsetRotation": {"x": 0.1305262, "y": 0, "z": 0, "w": 0.9914449},#headset_quat, # tilt head down by 15 degrees
       "leftControllerRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
       "rightControllerRotation": controller_right_quat,
       "currentTimestep": self._current_timestep,
