@@ -35,7 +35,8 @@ class UnityClient:
       os.makedirs(log_path, exist_ok=True)
 
       # Open the app
-      self._app = subprocess.Popen([unity_executable, '-port', f'{port}', '-logFile', f'{os.path.join(log_path, log_name)}'], env=env_with_display)
+      self._app = subprocess.Popen([unity_executable, '-simulated', '-port', f'{port}',
+                                    '-logFile', f'{os.path.join(log_path, log_name)}'], env=env_with_display)
 
     # Create zmq client
     self._context = zmq.Context()
