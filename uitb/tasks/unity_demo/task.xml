@@ -6,13 +6,18 @@
     <asset>
         <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="0.6 0.8 1" width="256" height="256"/>
         <mesh name="controller-right" file="assets/OculusTouchForQuest2_Right_maybe_correct_scaling.stl"/>
+        <!--mesh name="headset" file="assets/oculus-quest-1-headset.stl"/-->
     </asset>
     <worldbody>
         <light name="scene_directional_light" directional="true" castshadow="false" cutoff="4" exponent="20"
                diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5"/>
         <body name="controller-right">
-            <geom type="mesh" mesh="controller-right" mass="0.503" rgba="0.24 0.24 0.24 1.0"/>
+            <geom type="mesh" mesh="controller-right" mass="0.129" rgba="0.24 0.24 0.24 1.0"/>
             <freejoint name="controller-right"/>
         </body>
+        <!--body name="headset">
+            <geom type="mesh" mesh="headset" mass="0.571" rgba="0.24 0.24 0.24 1.0"/>
+            <freejoint name="headset"/>
+        </body-->
     </worldbody>
 </mujoco>
