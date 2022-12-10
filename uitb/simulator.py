@@ -351,8 +351,6 @@ class Simulator(gym.Env):
 
     # Update environment
     reward, finished, info = self.task.update(self._model, self._data)
-    if reward != 0:
-      print(f"reward {reward} received at time {self._data.time}")
 
     # Add an effort cost to reward
     reward -= self.bm_model.get_effort_cost(self._model, self._data)
