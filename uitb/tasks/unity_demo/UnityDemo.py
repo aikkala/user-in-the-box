@@ -103,9 +103,9 @@ class UnityDemo(BaseTask):
     self._current_timestep = data.time
 
     # Let Unity app know that the episode has terminated
-    if self._steps >= self._max_steps:
-      is_finished = True
-      info["termination"] = "max_steps_reached"
+    # if self._steps >= self._max_steps:
+    #   is_finished = True
+    #   info["termination"] = "max_steps_reached"
 
     # Send end effector position and rotation to unity, get reward and image from camera
     image, reward, is_app_finished = self._unity_client.step(self._create_state(model, data), is_finished)
