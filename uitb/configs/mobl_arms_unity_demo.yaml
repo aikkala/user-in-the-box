@@ -12,16 +12,15 @@ simulation:
       standalone: True # set to False for debugging (open the app in Unity editor)
       #port: 5555 # uncomment for debugging (connects to this port instead of finding a random open one)
       time_scale: 5
-      end_effector_body: "hand"
-      end_effector_relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
+      right_controller_body: "hand"
+      right_controller_relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
       headset_body: "thorax"
-      headset_relpose: [-0.01772321, 0.01274328, -0.07052886, 0.7901813, -0.3503278, -0.4854591, 0.1311998]
+      headset_relpose: [-0.10703, 0.001594, -0.19141, 0.7071068, 0.7071068, 0, 0]
   perception_modules:
     - cls: "vision.UnityHeadset"
       kwargs:
         resolution: [120, 80] # must match dimensions used in unity
         channels: [1]
-        buffer: 0.1
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
         end_effector: ["geom", "hand_2distph"]

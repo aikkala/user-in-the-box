@@ -12,7 +12,7 @@ from ...utils.unity import UnityClient
 
 class UnityDemo(BaseTask):
 
-  def __init__(self, model, data, end_effector_body, end_effector_relpose, **kwargs):
+  def __init__(self, model, data, **kwargs):
     super().__init__(model, data, **kwargs)
 
     # Fire up the Unity client if we're really starting the simulation and not just building
@@ -31,9 +31,14 @@ class UnityDemo(BaseTask):
     # This task requires an end-effector to be defined; also, it must be a body
     # Would be nicer to have this check in the "initialise" method of this class, but not currently possible because
     # of the order in which mujoco xml files are merged (task -> bm_model -> perception).
-    if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, end_effector_body) == -1:
-      raise KeyError(f"'end_effector_body' must be a body, no body called {end_effector_body} found in the model")
-    self._end_effector = end_effector_body
+    self._right_controller = kwargs["right_controller_body"]
+    if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, self._right_controller) == -1:
+      raise KeyError(f"'right_controller_body' must be a body, no body called {self._right_controller} found in the model")
+
+    # Check for headset
+    self._headset = kwargs["headset_body"]
+    if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, self._headset) == -1:
+      raise KeyError(f"'headset_body' must be a body, no body called {self._headset} found in the model")
 
     # Let's try to keep time in mujoco and unity synced
     self._current_timestep = 0
@@ -44,19 +49,26 @@ class UnityDemo(BaseTask):
     # Geom's mass property is not saved when we save the integrated model xml file (would be saved in binary mjcf
     # though). So let's set it here again just to be sure
     model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "controller-right")] = 0.129
-    #model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "headset")] = 0.571
+    model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "headset")] = 0.571
 
     # Do a forward step so body positions are updated
     mujoco.mj_forward(model, data)
 
-    # 'end_effector_relpose' is defined with respect to the end-effector. We need to move the controller to the correct
-    # position to make sure there aren't any quick movements in the first timesteps when mujoco starts enforcing the
-    # equality constraint.
-    T1 = transformation_matrix(pos=data.body(self._end_effector).xpos, quat=data.body(self._end_effector).xquat)
-    T2 = transformation_matrix(pos=end_effector_relpose[:3], quat=end_effector_relpose[3:])
+    # 'right_controller_relpose' is defined with respect to the right controller body. We need to move the controller to
+    # the correct position to make sure there aren't any quick movements in the first timesteps when mujoco starts
+    # enforcing the equality constraint.
+    T1 = transformation_matrix(pos=data.body(self._right_controller).xpos, quat=data.body(self._right_controller).xquat)
+    T2 = transformation_matrix(pos=kwargs["right_controller_relpose"][:3], quat=kwargs["right_controller_relpose"][3:])
     T = np.matmul(T1, np.linalg.inv(T2))
     model.body("controller-right").pos = T[:3, 3]
     model.body("controller-right").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
+
+    T1 = transformation_matrix(pos=data.body(self._headset).xpos, quat=data.body(self._headset).xquat)
+    T2 = transformation_matrix(pos=kwargs["headset_relpose"][:3], quat=kwargs["headset_relpose"][3:])
+    T = np.matmul(T1, np.linalg.inv(T2))
+    #T = T1
+    model.body("headset").pos = T[:3, 3]
+    model.body("headset").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
 
     # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([2.2, -1.8, 0.95])
@@ -72,25 +84,57 @@ class UnityDemo(BaseTask):
   @classmethod
   def initialise(cls, task_kwargs):
 
-    if "end_effector_body" not in task_kwargs:
-      raise KeyError("Key 'end_effector_body' is missing from task kwargs. The end-effector must be defined for this "
+    # Make sure body for right controller is defined, as well as the relative position of the controller wrt to it
+    if "right_controller_body" not in task_kwargs:
+      raise KeyError("Key 'right_controller_body' is missing from task kwargs. The end-effector body must be defined "
+                     "for this environment")
+    right_controller = task_kwargs["right_controller_body"]
+    if "right_controller_relpose" not in task_kwargs:
+      raise KeyError("Key 'right_controller_relpose' is missing from task kwargs. This key defines the relative pose "
+                     "of right controller wrt to end-effector, and it must be defined for this environment")
+
+    # Make sure body for headset is defined, as well as the relative position of headset wrt to it
+    if "headset_body" not in task_kwargs:
+      raise KeyError("Key 'headset_body' is missing from task kwargs. The headset body must be defined for this "
                      "environment")
-    end_effector = task_kwargs["end_effector_body"]
-    if "end_effector_relpose" not in task_kwargs:
-      raise KeyError("Key 'end_effector_relpose' is missing from task kwargs. This key defines the relative pose of "
-                     "controller wrt to end-effector, and it must be defined for this environment")
+    headset = task_kwargs["headset_body"]
+    if "headset_relpose" not in task_kwargs:
+      raise KeyError("Key 'headset_relpose' is missing from task kwargs. This key defines the relative pose of "
+                     "the headset wrt to a head, and it must be defined for this environment")
 
     # Parse xml file
     tree = ET.parse(cls.get_xml_file())
     root = tree.getroot()
 
-    # Add a weld connect
+    # Find equalities
     equality = root.find("equality")
     if equality is None:
       equality = ET.Element("equality")
       root.append(equality)
-    equality.append(ET.Element("weld", name="controller-right-weld", body1="controller-right", body2=end_effector,
-                               relpose=" ".join([str(x) for x in task_kwargs["end_effector_relpose"]]), active="true"))
+
+    # Add a weld connect for right controller
+    equality.append(ET.Element("weld",
+                               name="controller-right-weld",
+                               body1="controller-right",
+                               body2=right_controller,
+                               relpose=" ".join([str(x) for x in task_kwargs["right_controller_relpose"]]),
+                               active="true"))
+
+    # Add a weld connect for left controller
+    # equality.append(ET.Element("weld",
+    #                            name="controller-right-weld",
+    #                            body1="controller-right",
+    #                            body2=right_controller,
+    #                            relpose=" ".join([str(x) for x in task_kwargs["right_controller_relpose"]]),
+    #                            active="true"))
+
+    # Add a weld connect for headset
+    equality.append(ET.Element("weld",
+                               name="headset-weld",
+                               body1="headset",
+                               body2=headset,
+                               relpose=" ".join([str(x) for x in task_kwargs["headset_relpose"]]),
+                               active="true"))
 
     return tree
 
