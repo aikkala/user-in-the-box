@@ -20,7 +20,7 @@ simulation:
     - cls: "vision.UnityHeadset"
       kwargs:
         resolution: [120, 80] # must match dimensions used in unity
-        channels: [1]
+        channels: [0,1,2,3]
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
         end_effector: ["geom", "hand_2distph"]
