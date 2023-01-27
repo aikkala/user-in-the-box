@@ -35,7 +35,7 @@ class UnityHeadset(BaseModule):
 
     # Set camera specs
     if channels is None:
-      channels = [0, 1, 2]
+      channels = [0, 1, 2, 3]
     self._channels = channels
     self._resolution = resolution
     self._pos = pos
@@ -63,19 +63,25 @@ class UnityHeadset(BaseModule):
     # The observation is transferred from task through 'info' TODO a smarter architecture?
 
     if not info:
-      rgb = np.zeros((self._resolution[1], self._resolution[0], 3))
+      obs = np.zeros((self._resolution[1], self._resolution[0], 4))
     else:
+
+      # Get observation
+      obs = info["unity_observation"]
+
+      # Sometimes the screen hasn't been resized yet when first screenshot arrives
+      if obs.shape != (self._resolution[1], self._resolution[0], 4):
+        print(f"Resizing from {[obs.shape[1], obs.shape[0]]} to {self._resolution}")
+        obs = cv2.resize(obs, dsize=tuple(self._resolution), interpolation=cv2.INTER_CUBIC)
+
       # Normalise
-      rgb = (info["unity_observation"] / 255.0 - 0.5) * 2
+      obs = (obs / 255.0 - 0.5) * 2
+
+      # Make a copy for rendering purposes
       self._last_obs = info["unity_observation"].copy()
 
-    if rgb.shape != (self._resolution[1], self._resolution[0], 3):
-      # Sometimes the screen hasn't been resized yet when first screenshot arrives
-      print(f"Resizing from {[rgb.shape[1], rgb.shape[0]]} to {self._resolution}")
-      rgb = cv2.resize(info["unity_observation"], dsize=tuple(self._resolution), interpolation=cv2.INTER_CUBIC)
-
     # Transpose channels
-    obs = np.transpose(rgb, [2, 0, 1])
+    obs = np.transpose(obs, [2, 0, 1])
 
     # Choose channels
     obs = obs[self._channels, :, :]
@@ -102,4 +108,5 @@ class UnityHeadset(BaseModule):
     return small_cnn(observation_shape=self._observation_shape, out_features=256)
 
   def render(self):
-    return self._last_obs.copy()
+    # Return only rgb channels
+    return self._last_obs[:,:,:3].copy()

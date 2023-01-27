@@ -51,8 +51,16 @@ class UnityClient:
       self._context.destroy()
 
   def _receive(self):
+
+    # Receive message
     msg = self._client.recv_json()
-    image = np.flip(cv2.imdecode(np.asarray(msg["image"], dtype=np.uint8), -1), 2)
+
+    # Convert byte array to image
+    image = cv2.imdecode(np.asarray(msg["image"], dtype=np.uint8), -1)
+
+    # Convert BGRA format to RGBA format
+    image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
+
     return image, msg["reward"], msg["isFinished"]
 
   def step(self, state, is_finished):
