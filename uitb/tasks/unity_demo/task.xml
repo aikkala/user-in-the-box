@@ -5,7 +5,8 @@
     <size njmax="1000" nconmax="400"/>
     <asset>
         <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="0.6 0.8 1" width="256" height="256"/>
-        <mesh name="controller-right" file="assets/OculusTouchForQuest2_Right_maybe_correct_scaling.stl"/>
+        <mesh name="controller-right" file="assets/oculus-quest-1-controller-right.stl"/>
+        <mesh name="controller-left" file="assets/oculus-quest-1-controller-left.stl"/>
         <mesh name="headset" file="assets/oculus-quest-1-headset-maybe-correct-scaling.stl"/>
     </asset>
     <worldbody>
@@ -14,6 +15,10 @@
         <body name="controller-right">
             <geom name="controller-right" type="mesh" mesh="controller-right" mass="0.129" rgba="0.24 0.24 0.24 1.0"/>
             <freejoint name="controller-right"/>
+        </body>
+        <body name="controller-left">
+            <geom name="controller-left" type="mesh" mesh="controller-left" mass="0.129" rgba="0.24 0.24 0.24 1.0"/>
+            <freejoint name="controller-left"/>
         </body>
         <body name="headset">
             <geom name="headset" type="mesh" mesh="headset" mass="0.571" rgba="0.24 0.24 0.24 1.0"/>

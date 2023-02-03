@@ -11,8 +11,11 @@ from ...utils.unity import UnityClient
 
 
 class UnityDemo(BaseTask):
+  # IMPORTANT: This task expects that in Unity Z is forward, Y is up, and X is to the right, and
+  # that in MuJoCo Z is up, Y is to the left, and X is forward. If these don't hold, then the
+  # transformations will not be correct
 
-  def __init__(self, model, data, **kwargs):
+  def __init__(self, model, data, left_controller_enabled=False, **kwargs):
     super().__init__(model, data, **kwargs)
 
     # Fire up the Unity client if we're really starting the simulation and not just building
@@ -34,6 +37,13 @@ class UnityDemo(BaseTask):
     if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, kwargs["right_controller_body"]) == -1:
       raise KeyError(f"'right_controller_body' must be a body, no body called {kwargs['right_controller_body']} found in the model")
 
+    # Left controller can be disabled or enabled
+    self.left_controller_enabled = left_controller_enabled
+    if left_controller_enabled:
+      if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, kwargs["left_controller_body"]) == -1:
+        raise KeyError(
+          f"'left_controller_body' must be a body, no body called {kwargs['left_controller_body']} found in the model")
+
     # Check for headset
     if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, kwargs["headset_body"]) == -1:
       raise KeyError(f"'headset_body' must be a body, no body called {kwargs['headset_body']} found in the model")
@@ -47,28 +57,36 @@ class UnityDemo(BaseTask):
     # Geom's mass property is not saved when we save the integrated model xml file (would be saved in binary mjcf
     # though). So let's set it here again just to be sure
     model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "controller-right")] = 0.129
+    if left_controller_enabled:
+      model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "controller-left")] = 0.129
     model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "headset")] = 0.571
 
     # Do a forward step so body positions are updated
     mujoco.mj_forward(model, data)
 
-    # 'right_controller_relpose' is defined with respect to the right controller body. We need to move the controller to
-    # the correct position to make sure there aren't any quick movements in the first timesteps when mujoco starts
-    # enforcing the equality constraint.
-    T1 = transformation_matrix(pos=data.body(kwargs["right_controller_body"]).xpos,
-                               quat=data.body(kwargs["right_controller_body"]).xquat)
-    T2 = transformation_matrix(pos=kwargs["right_controller_relpose"][:3], quat=kwargs["right_controller_relpose"][3:])
-    T = np.matmul(T1, np.linalg.inv(T2))
-    model.body("controller-right").pos = T[:3, 3]
-    model.body("controller-right").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
+    # '*_relpose' is defined with respect to the '*_body'. We need to move the object to the correct position to make
+    # sure there aren't any quick movements in the first timesteps when mujoco starts enforcing the equality constraint
+    self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["right_controller_body"],
+                                 relpose=kwargs["right_controller_relpose"], body="controller-right")
+    if self.left_controller_enabled:
+      self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["left_controller_body"],
+                                   relpose=kwargs["left_controller_relpose"], body="controller-left")
+    self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["headset_body"],
+                                 relpose=kwargs["headset_relpose"], body="headset")
+    # T1 = transformation_matrix(pos=data.body(kwargs["right_controller_body"]).xpos,
+    #                            quat=data.body(kwargs["right_controller_body"]).xquat)
+    # T2 = transformation_matrix(pos=kwargs["right_controller_relpose"][:3], quat=kwargs["right_controller_relpose"][3:])
+    # T = np.matmul(T1, np.linalg.inv(T2))
+    # model.body("controller-right").pos = T[:3, 3]
+    # model.body("controller-right").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
 
-    T1 = transformation_matrix(pos=data.body(kwargs["headset_body"]).xpos,
-                               quat=data.body(kwargs["headset_body"]).xquat)
-    T2 = transformation_matrix(pos=kwargs["headset_relpose"][:3], quat=kwargs["headset_relpose"][3:])
-    T = np.matmul(T1, np.linalg.inv(T2))
-    #T = T1
-    model.body("headset").pos = T[:3, 3]
-    model.body("headset").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
+    # T1 = transformation_matrix(pos=data.body(kwargs["headset_body"]).xpos,
+    #                            quat=data.body(kwargs["headset_body"]).xquat)
+    # T2 = transformation_matrix(pos=kwargs["headset_relpose"][:3], quat=kwargs["headset_relpose"][3:])
+    # T = np.matmul(T1, np.linalg.inv(T2))
+    # #T = T1
+    # model.body("headset").pos = T[:3, 3]
+    # model.body("headset").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
 
     # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([2.2, -1.8, 0.95])
@@ -78,9 +96,17 @@ class UnityDemo(BaseTask):
     # Need to set up some transforms from mujoco to unity. The exact specifications of these transforms remain a bit
     # of a mystery. They are different for different meshes, and perhaps also for different biomechanical models
     # (depending on in which orientation the axis of the root body is in)
-    self.rotation1 = Rotation.from_euler("xyz", np.array([90, 0, 180]), degrees=True)
-    self.rotation2 = Rotation.from_euler("z", 90, degrees=True)
-    self.rotation3 = Rotation.from_euler("XYZ", np.array([90, -90, 0]), degrees=True)
+    # self.rotation1 = Rotation.from_euler("xyz", np.array([90, 0, 180]), degrees=True)
+    # self.rotation2 = Rotation.from_euler("z", 90, degrees=True)
+    # self.rotation3 = Rotation.from_euler("XYZ", np.array([90, -90, 0]), degrees=True)
+    # self.rotation4 = Rotation.from_euler("z", -90, degrees=True)
+
+  def initialise_pos_and_quat(self, model, data, aux_body, relpose, body):
+    T1 = transformation_matrix(pos=data.body(aux_body).xpos, quat=data.body(aux_body).xquat)
+    T2 = transformation_matrix(pos=relpose[:3], quat=relpose[3:])
+    T = np.matmul(T1, np.linalg.inv(T2))
+    model.body(body).pos = T[:3, 3]
+    model.body(body).quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
 
   @classmethod
   def initialise(cls, task_kwargs):
@@ -92,6 +118,17 @@ class UnityDemo(BaseTask):
     if "right_controller_relpose" not in task_kwargs:
       raise KeyError("Key 'right_controller_relpose' is missing from task kwargs. This key defines the relative pose "
                      "of right controller wrt to end-effector, and it must be defined for this environment")
+
+    if "left_controller_enabled" not in task_kwargs:
+      raise KeyError("Key 'left_controller_enabled' is missing from task kwargs.")
+
+    if task_kwargs["left_controller_enabled"]:
+      if "left_controller_body" not in task_kwargs:
+        raise KeyError("Key 'left_controller_body' is missing from task kwargs. The end-effector body must be defined "
+                       "for this environment")
+      if "left_controller_relpose" not in task_kwargs:
+        raise KeyError("Key 'left_controller_relpose' is missing from task kwargs. This key defines the relative pose "
+                       "of left controller wrt to end-effector, and it must be defined for this environment")
 
     # Make sure body for headset is defined, as well as the relative position of headset wrt to it
     if "headset_body" not in task_kwargs:
@@ -111,7 +148,7 @@ class UnityDemo(BaseTask):
       equality = ET.Element("equality")
       root.append(equality)
 
-    # Add a weld connect for right controller
+    # Add a weld equality for right controller
     equality.append(ET.Element("weld",
                                name="controller-right-weld",
                                body1="controller-right",
@@ -119,15 +156,19 @@ class UnityDemo(BaseTask):
                                relpose=" ".join([str(x) for x in task_kwargs["right_controller_relpose"]]),
                                active="true"))
 
-    # Add a weld connect for left controller
-    # equality.append(ET.Element("weld",
-    #                            name="controller-right-weld",
-    #                            body1="controller-right",
-    #                            body2=task_kwargs["right_controller_body"],
-    #                            relpose=" ".join([str(x) for x in task_kwargs["right_controller_relpose"]]),
-    #                            active="true"))
+    # If left controller is not enabled, remove it from the model; if it is enabled, add a weld equality
+    if task_kwargs["left_controller_enabled"]:
+      equality.append(ET.Element("weld",
+                                 name="controller-left-weld",
+                                 body1="controller-left",
+                                 body2=task_kwargs["left_controller_body"],
+                                 relpose=" ".join([str(x) for x in task_kwargs["left_controller_relpose"]]),
+                                 active="true"))
+    else:
+      worldbody = root.find("worldbody")
+      worldbody.remove(worldbody.find("body[@name='controller-left']"))
 
-    # Add a weld connect for headset
+    # Add a weld equality for headset
     equality.append(ET.Element("weld",
                                name="headset-weld",
                                body1="headset",
@@ -162,20 +203,22 @@ class UnityDemo(BaseTask):
 
     # A couple of rotations to make coordinate axes match with unity. These probably could be simplified
     rot = Rotation.from_quat(np.roll(quat, -1))
-    if apply_rotation:
-      rot = self.rotation2*rot*self.rotation1
+#    if apply_rotation:
+#      rot = self.rotation2*rot*self.rotation1
 #    else:
 #      rot = rot*self.rotation3
 
     # Need to rotate the position as well to match coordinates
-    pos = self.rotation2.apply(pos)
+    #pos = self.rotation2.apply(pos)
 
     # Get the quaternion; quat is in scalar-last format
     quat = rot.as_quat()
 
     # Transform from MuJoCo's right hand side coordinate system to Unity's left hand side coordinate system
-    pos = {"x": pos[0], "y": pos[2], "z": pos[1]}
-    quat = {"x": quat[0], "y": quat[2], "z": quat[1], "w": -quat[3]}
+    #pos = {"x": pos[0], "y": pos[2], "z": pos[1]}
+    pos = {"x": -pos[1], "y": pos[2], "z": pos[0]}
+    #quat = {"x": quat[0], "y": quat[2], "z": quat[1], "w": -quat[3]}
+    quat = {"x": -quat[1], "y": quat[2], "z": quat[0], "w": -quat[3]}
 
     return pos, quat
 
@@ -186,6 +229,14 @@ class UnityDemo(BaseTask):
       self._transform_to_unity(data.body("controller-right").xpos, data.body("controller-right").xquat,
                                apply_rotation=True)
 
+    if self.left_controller_enabled:
+      controller_left_pos, controller_left_quat = \
+        self._transform_to_unity(data.body("controller-left").xpos, data.body("controller-left").xquat,
+                               apply_rotation=True)
+    else:
+      controller_left_pos = {"x": 0, "y": 0, "z": 0}
+      controller_left_quat = {"x": 0, "y": 0, "z": 0, "w": 1.0}
+
     # Get position and rotation of headset
     # TODO fix rotation, it's not correct, works only if data.body("headset").xquat is "0 0 0 1"
     headset_pos, headset_quat = \
@@ -194,11 +245,11 @@ class UnityDemo(BaseTask):
     # Create the state
     state = {
       "headsetPosition": headset_pos,
-      "leftControllerPosition": {"x": 0, "y": 0, "z": 0},
+      "leftControllerPosition": controller_left_pos,
       "rightControllerPosition": controller_right_pos,
       #"headsetRotation": {"x": 0.1305262, "y": 0, "z": 0, "w": 0.9914449},# tilt camera down by 15 degrees
       "headsetRotation": headset_quat,
-      "leftControllerRotation": {"x": 0, "y": 0, "z": 0, "w": 1.0},
+      "leftControllerRotation": controller_left_quat,
       "rightControllerRotation": controller_right_quat,
       "currentTimestep": self._current_timestep,
       "nextTimestep": self._current_timestep + 1/self._action_sample_freq
