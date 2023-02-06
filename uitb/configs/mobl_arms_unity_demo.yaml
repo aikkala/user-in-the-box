@@ -11,7 +11,7 @@ simulation:
       unity_executable: "build/build.x86_64"
       standalone: True # set to False for debugging (open the app in Unity editor)
       #port: 5555 # uncomment for debugging (connects to this port instead of finding a random open one)
-      time_scale: 1
+      time_scale: 5
       left_controller_enabled: false
 #      left_controller_body: "hand"
 #      left_controller_relpose: [-0.06694103, -0.00423279, 0.00806701, 0.79349534, 0.49238653, -0.24941408,  0.256346]
