@@ -31,8 +31,11 @@ if __name__=="__main__":
                          timeout=30, default="")
     config["simulator_name"] = name.replace("-", "_")
 
+  # Get project name
+  project = config.get("project", "uitb")
+
   # Initialise wandb
-  run = wandb.init(project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
+  run = wandb.init(project=project, name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
 
   # Initialise RL model
   rl_cls = simulator.get_class("rl", config["rl"]["algorithm"])
