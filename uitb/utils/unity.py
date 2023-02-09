@@ -11,7 +11,7 @@ class UnityClient:
   """ This class defines an object that 1) opens up a Unity standalone application, and 2) communicates with the
   application through ZMQ. """
 
-  def __init__(self, unity_executable, port=None, standalone=True):
+  def __init__(self, unity_executable, port=None, standalone=True, record_options=dict()):
 
     # If a port number hasn't been given, grab one randomly
     if port is None:
@@ -27,16 +27,28 @@ class UnityClient:
       if "DISPLAY" not in env_with_display:
         env_with_display["DISPLAY"] = ":0"
 
+      # Get build folder
+      build_folder = os.path.split(unity_executable)[0]
+
       # Define path for log file; use current time (in microseconds) since epoch, should be high resolution enough
       log_name = f"{int(time.time_ns()/1e3)}"
-      log_path = os.path.join(os.path.split(unity_executable)[0], "logs")
+      log_path = os.path.join(build_folder, "logs")
 
       # Create a "log" folder in the build folder
       os.makedirs(log_path, exist_ok=True)
 
       # Open the app
-      self._app = subprocess.Popen([unity_executable, '-simulated', '-port', f'{port}',
-                                    '-logFile', f'{os.path.join(log_path, log_name)}'], env=env_with_display)
+      if not record_options:
+        self._app = subprocess.Popen([unity_executable, '-simulated', '-port', f'{port}',
+                                      '-logFile', f'{os.path.join(log_path, log_name)}'], env=env_with_display)
+      else:
+        self._app = subprocess.Popen([unity_executable, '-simulated', '-port', f'{port}',
+                                      '-logFile', f'{os.path.join(log_path, log_name)}',
+                                      '-record',
+                                      '-resolution', record_options["resolution"],
+                                      '-outputFolder', record_options["output_folder"]],
+                                     env=env_with_display)
+
 
     # Create zmq client
     self._context = zmq.Context()

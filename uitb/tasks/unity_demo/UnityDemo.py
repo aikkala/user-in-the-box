@@ -4,6 +4,7 @@ from scipy.spatial.transform import Rotation
 import xml.etree.ElementTree as ET
 import os
 import pathlib
+import subprocess
 
 from ..base import BaseTask
 from ...utils.transformations import transformation_matrix
@@ -21,10 +22,19 @@ class UnityDemo(BaseTask):
     # Fire up the Unity client if we're really starting the simulation and not just building
     if not kwargs.get("build", False):
 
-      # Start a Unity client
+      # Get path for the application binary/executable file
       app_path = os.path.join(pathlib.Path(__file__).parent, kwargs["unity_executable"])
+
+      # Check if we want to record game play videos
+      self.record_options = dict()
+      if kwargs.get("unity_record_gameplay", False):
+        self.record_options = {"resolution": kwargs.get("unity_record_resolution",
+                                                        f"{model.vis.global_.offwidth}x{model.vis.global_.offheight}"),
+                               "output_folder": os.path.join(os.path.split(app_path)[0], "output")}
+
+      # Start a Unity client
       self._unity_client = UnityClient(unity_executable=app_path, port=kwargs.get("port", None),
-                                       standalone=kwargs.get("standalone", True))
+                                       standalone=kwargs.get("standalone", True), record_options=self.record_options)
 
       # Wait until app is up and running. Send time options to unity app
       time_options = {"timestep": model.opt.timestep, "sampleFrequency": kwargs["action_sample_freq"],
@@ -73,33 +83,11 @@ class UnityDemo(BaseTask):
                                    relpose=kwargs["left_controller_relpose"], body="controller-left")
     self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["headset_body"],
                                  relpose=kwargs["headset_relpose"], body="headset")
-    # T1 = transformation_matrix(pos=data.body(kwargs["right_controller_body"]).xpos,
-    #                            quat=data.body(kwargs["right_controller_body"]).xquat)
-    # T2 = transformation_matrix(pos=kwargs["right_controller_relpose"][:3], quat=kwargs["right_controller_relpose"][3:])
-    # T = np.matmul(T1, np.linalg.inv(T2))
-    # model.body("controller-right").pos = T[:3, 3]
-    # model.body("controller-right").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
-
-    # T1 = transformation_matrix(pos=data.body(kwargs["headset_body"]).xpos,
-    #                            quat=data.body(kwargs["headset_body"]).xquat)
-    # T2 = transformation_matrix(pos=kwargs["headset_relpose"][:3], quat=kwargs["headset_relpose"][3:])
-    # T = np.matmul(T1, np.linalg.inv(T2))
-    # #T = T1
-    # model.body("headset").pos = T[:3, 3]
-    # model.body("headset").quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
 
     # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([2.2, -1.8, 0.95])
     model.cam_quat[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array(
       [0.6582, 0.6577, 0.2590, 0.2588])
-
-    # Need to set up some transforms from mujoco to unity. The exact specifications of these transforms remain a bit
-    # of a mystery. They are different for different meshes, and perhaps also for different biomechanical models
-    # (depending on in which orientation the axis of the root body is in)
-    # self.rotation1 = Rotation.from_euler("xyz", np.array([90, 0, 180]), degrees=True)
-    # self.rotation2 = Rotation.from_euler("z", 90, degrees=True)
-    # self.rotation3 = Rotation.from_euler("XYZ", np.array([90, -90, 0]), degrees=True)
-    # self.rotation4 = Rotation.from_euler("z", -90, degrees=True)
 
   def initialise_pos_and_quat(self, model, data, aux_body, relpose, body):
     T1 = transformation_matrix(pos=data.body(aux_body).xpos, quat=data.body(aux_body).xquat)
@@ -203,21 +191,12 @@ class UnityDemo(BaseTask):
 
     # A couple of rotations to make coordinate axes match with unity. These probably could be simplified
     rot = Rotation.from_quat(np.roll(quat, -1))
-#    if apply_rotation:
-#      rot = self.rotation2*rot*self.rotation1
-#    else:
-#      rot = rot*self.rotation3
-
-    # Need to rotate the position as well to match coordinates
-    #pos = self.rotation2.apply(pos)
 
     # Get the quaternion; quat is in scalar-last format
     quat = rot.as_quat()
 
     # Transform from MuJoCo's right hand side coordinate system to Unity's left hand side coordinate system
-    #pos = {"x": pos[0], "y": pos[2], "z": pos[1]}
     pos = {"x": -pos[1], "y": pos[2], "z": pos[0]}
-    #quat = {"x": quat[0], "y": quat[2], "z": quat[1], "w": -quat[3]}
     quat = {"x": -quat[1], "y": quat[2], "z": quat[0], "w": -quat[3]}
 
     return pos, quat
@@ -238,7 +217,6 @@ class UnityDemo(BaseTask):
       controller_left_quat = {"x": 0, "y": 0, "z": 0, "w": 1.0}
 
     # Get position and rotation of headset
-    # TODO fix rotation, it's not correct, works only if data.body("headset").xquat is "0 0 0 1"
     headset_pos, headset_quat = \
       self._transform_to_unity(data.body("headset").xpos, data.body("headset").xquat, apply_rotation=False)
 
@@ -247,7 +225,6 @@ class UnityDemo(BaseTask):
       "headsetPosition": headset_pos,
       "leftControllerPosition": controller_left_pos,
       "rightControllerPosition": controller_right_pos,
-      #"headsetRotation": {"x": 0.1305262, "y": 0, "z": 0, "w": 0.9914449},# tilt camera down by 15 degrees
       "headsetRotation": headset_quat,
       "leftControllerRotation": controller_left_quat,
       "rightControllerRotation": controller_right_quat,
@@ -267,4 +244,24 @@ class UnityDemo(BaseTask):
     return {"unity_observation": image}
 
   def close(self):
+
+    # Close Unity
     self._unity_client.close()
+
+    # If we were recording, create videos from images
+    if self.record_options:
+
+      # There can be several folders with images, loop through them
+      for key in os.listdir(self.record_options["output_folder"]):
+
+        maybe_folder = os.path.join(self.record_options["output_folder"], key)
+
+        # Only process folders (there shouldn't be anything else anyways)
+        if os.path.isdir(maybe_folder):
+
+          # Create the video
+          subprocess.call([
+            'ffmpeg',
+            '-r', f'{self._action_sample_freq}', '-f', 'image2', '-s', self.record_options["resolution"],
+            '-i', f"{os.path.join(maybe_folder, 'image%d.png')}",
+            '-vcodec', 'libx264', '-crf', '15', '-pix_fmt', 'yuv420p', f"{os.path.join(maybe_folder, f'{key}_video.mp4')}"])
