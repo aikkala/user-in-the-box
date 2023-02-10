@@ -448,12 +448,12 @@ class Simulator(gym.Env):
 
     return state
 
-  def close(self):
+  def close(self, **kwargs):
     """ Perform any necessary clean up.
 
     This function is inherited from gym.Env. It should be automatically called when this object is garbage collected
      or the program exists, but that doesn't seem to be the case. This function will be called if this object has been
      initialised in the context manager fashion (i.e. using the 'with' statement). """
-    self.task.close()
-    self.perception.close()
-    self.bm_model.close()
+    self.task.close(**kwargs)
+    self.perception.close(**kwargs)
+    self.bm_model.close(**kwargs)

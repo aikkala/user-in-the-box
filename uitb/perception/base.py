@@ -159,7 +159,7 @@ class BaseModule(ABC):
       shutil.copytree(os.path.join(src, "assets"), os.path.join(simulator_folder, package_name, "assets"),
                       dirs_exist_ok=True)
 
-  def close(self):
+  def close(self, **kwargs):
     """ Perform any necessary clean up. """
     pass
 
@@ -296,10 +296,10 @@ class Perception:
       observations[module.modality] = module.get_observation(model, data, info)
     return observations
 
-  def close(self):
+  def close(self, **kwargs):
     """ Perform any necessary clean up. """
     for module in self.perception_modules:
-      module.close()
+      module.close(**kwargs)
 
   @property
   def actuators(self):

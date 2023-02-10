@@ -256,7 +256,7 @@ class BaseBMModel(ABC):
     # Add equality constraints
     ETutils.copy_children("equality", bm_root, simulator_root)
 
-  def close(self):
+  def close(self, **kwargs):
     """ Perform any necessary clean up. """
     pass
 
