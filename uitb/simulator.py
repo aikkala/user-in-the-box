@@ -24,7 +24,7 @@ class Simulator(gym.Env):
   """
 
   # May be useful for later, the three digit number suffix is of format X.Y.Z where X is a major version.
-  id = "uitb:simulator-v100"
+  id = "uitb:simulator-v110"
 
   @classmethod
   def get_class(cls, *args):
