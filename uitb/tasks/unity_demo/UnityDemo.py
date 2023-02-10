@@ -16,7 +16,7 @@ class UnityDemo(BaseTask):
   # that in MuJoCo Z is up, Y is to the left, and X is forward. If these don't hold, then the
   # transformations will not be correct
 
-  def __init__(self, model, data, left_controller_enabled=False, **kwargs):
+  def __init__(self, model, data, gear, left_controller_enabled=False, **kwargs):
     super().__init__(model, data, **kwargs)
 
     # Fire up the Unity client if we're really starting the simulation and not just building
@@ -83,6 +83,18 @@ class UnityDemo(BaseTask):
                                    relpose=kwargs["left_controller_relpose"], body="controller-left")
     self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["headset_body"],
                                  relpose=kwargs["headset_relpose"], body="headset")
+
+    # OpenXR has a slight offset that applies to each controller (the origin of the controller is slightly offset
+    # in Unity). You probably could use this same for for other VR gears, or just use an identity matrix
+    self.offsets = {
+      "oculus-quest-1": transformation_matrix(pos=np.array([0.053, 0, 0.002]), quat=np.array([1, 0, 0, 0]),
+                                              scalar_first=True)
+    }
+
+    # Check if offset has been defined
+    self.gear = gear
+    if gear not in self.offsets:
+      raise NotImplementedError(f"Offset has not been defined for VR gear {gear}")
 
     # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([2.2, -1.8, 0.95])
@@ -187,13 +199,17 @@ class UnityDemo(BaseTask):
 
     return reward, is_app_finished, {"unity_observation": image}
 
-  def _transform_to_unity(self, pos, quat, apply_rotation):
+  def _transform_to_unity(self, pos, quat, apply_offset=False):
 
-    # A couple of rotations to make coordinate axes match with unity. These probably could be simplified
-    rot = Rotation.from_quat(np.roll(quat, -1))
+    T_controller = transformation_matrix(pos=pos, quat=quat, scalar_first=True)
 
-    # Get the quaternion; quat is in scalar-last format
-    quat = rot.as_quat()
+    # Check if we need to offset the position/rotation
+    if apply_offset:
+      T_controller = np.matmul(T_controller, self.offsets[self.gear])
+
+    # Get (updated) pos and quat; quat is in scalar-last format
+    pos = T_controller[:3, 3]
+    quat = Rotation.from_matrix(T_controller[:3, :3]).as_quat()
 
     # Transform from MuJoCo's right hand side coordinate system to Unity's left hand side coordinate system
     pos = {"x": -pos[1], "y": pos[2], "z": pos[0]}
@@ -206,19 +222,19 @@ class UnityDemo(BaseTask):
     # Get position and rotation of right controller
     controller_right_pos, controller_right_quat = \
       self._transform_to_unity(data.body("controller-right").xpos, data.body("controller-right").xquat,
-                               apply_rotation=True)
+                               apply_offset=True)
 
     if self.left_controller_enabled:
       controller_left_pos, controller_left_quat = \
         self._transform_to_unity(data.body("controller-left").xpos, data.body("controller-left").xquat,
-                               apply_rotation=True)
+                                 apply_offset=True)
     else:
       controller_left_pos = {"x": 0, "y": 0, "z": 0}
       controller_left_quat = {"x": 0, "y": 0, "z": 0, "w": 1.0}
 
     # Get position and rotation of headset
     headset_pos, headset_quat = \
-      self._transform_to_unity(data.body("headset").xpos, data.body("headset").xquat, apply_rotation=False)
+      self._transform_to_unity(data.body("headset").xpos, data.body("headset").xquat)
 
     # Create the state
     state = {
@@ -243,7 +259,7 @@ class UnityDemo(BaseTask):
 
     return {"unity_observation": image}
 
-  def close(self):
+  def close(self, evaluate_dir):
 
     # Close Unity
     self._unity_client.close()
@@ -264,4 +280,4 @@ class UnityDemo(BaseTask):
             'ffmpeg',
             '-r', f'{self._action_sample_freq}', '-f', 'image2', '-s', self.record_options["resolution"],
             '-i', f"{os.path.join(maybe_folder, 'image%d.png')}",
-            '-vcodec', 'libx264', '-crf', '15', '-pix_fmt', 'yuv420p', f"{os.path.join(maybe_folder, f'{key}_video.mp4')}"])
+            '-vcodec', 'libx264', '-crf', '15', '-pix_fmt', 'yuv420p', f"{os.path.join(evaluate_dir, f'{key}.mp4')}"])
