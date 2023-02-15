@@ -99,7 +99,7 @@ class UnityDemo(BaseTask):
     # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([2.2, -1.8, 0.95])
     model.cam_quat[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array(
-      [0.6582, 0.6577, 0.2590, 0.2588])
+      [0.6369657, 0.6364587, 0.3076895, 0.3074446])
 
   def initialise_pos_and_quat(self, model, data, aux_body, relpose, body):
     T1 = transformation_matrix(pos=data.body(aux_body).xpos, quat=data.body(aux_body).xquat)
