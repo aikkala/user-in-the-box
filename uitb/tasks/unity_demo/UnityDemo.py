@@ -278,6 +278,6 @@ class UnityDemo(BaseTask):
           # Create the video
           subprocess.call([
             'ffmpeg',
-            '-r', f'{self._action_sample_freq}', '-f', 'image2', '-s', self.record_options["resolution"],
+            '-y', '-r', f'{self._action_sample_freq}', '-f', 'image2', '-s', self.record_options["resolution"],
             '-i', f"{os.path.join(maybe_folder, 'image%d.png')}",
             '-vcodec', 'libx264', '-crf', '15', '-pix_fmt', 'yuv420p', f"{os.path.join(evaluate_dir, f'{key}.mp4')}"])
