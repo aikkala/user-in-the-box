@@ -250,7 +250,7 @@ class UnityDemo(BaseTask):
       "headsetPosition": headset_pos,
       "leftControllerPosition": controller_left_pos,
       "rightControllerPosition": controller_right_pos,
-      "headsetRotation": {"x": 0.258819, "y": 0, "z": 0, "w": 0.9659258},#headset_quat,
+      "headsetRotation":  {"x": 0.0871557, "y": 0, "z": 0, "w": 0.9961947},#headset_quat,
       "leftControllerRotation": controller_left_quat,
       "rightControllerRotation": controller_right_quat,
       "currentTimestep": self._current_timestep,
