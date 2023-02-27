@@ -9,6 +9,7 @@ import subprocess
 from ..base import BaseTask
 from ...utils.transformations import transformation_matrix
 from ...utils.unity import UnityClient
+from ...utils.functions import initialise_pos_and_quat
 
 
 class UnityDemo(BaseTask):
@@ -85,13 +86,13 @@ class UnityDemo(BaseTask):
 
     # '*_relpose' is defined with respect to the '*_body'. We need to move the object to the correct position to make
     # sure there aren't any quick movements in the first timesteps when mujoco starts enforcing the equality constraint
-    self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["right_controller_body"],
-                                 relpose=kwargs["right_controller_relpose"], body="controller-right")
+    initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["right_controller_body"],
+                            relpose=kwargs["right_controller_relpose"], body="controller-right")
     if self.left_controller_enabled:
-      self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["left_controller_body"],
-                                   relpose=kwargs["left_controller_relpose"], body="controller-left")
-    self.initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["headset_body"],
-                                 relpose=kwargs["headset_relpose"], body="headset")
+      initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["left_controller_body"],
+                              relpose=kwargs["left_controller_relpose"], body="controller-left")
+    initialise_pos_and_quat(model=model, data=data, aux_body=kwargs["headset_body"],
+                            relpose=kwargs["headset_relpose"], body="headset")
 
     # OpenXR has a slight offset that applies to each controller (the origin of the controller is slightly offset
     # in Unity). You probably could use this same for for other VR gears, or just use an identity matrix
@@ -109,13 +110,6 @@ class UnityDemo(BaseTask):
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([1.2, -0.8, 0.95])
     model.cam_quat[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array(
       [0.6369657, 0.6364587, 0.3076895, 0.3074446])
-
-  def initialise_pos_and_quat(self, model, data, aux_body, relpose, body):
-    T1 = transformation_matrix(pos=data.body(aux_body).xpos, quat=data.body(aux_body).xquat)
-    T2 = transformation_matrix(pos=relpose[:3], quat=relpose[3:])
-    T = np.matmul(T1, np.linalg.inv(T2))
-    model.body(body).pos = T[:3, 3]
-    model.body(body).quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)
 
   @classmethod
   def initialise(cls, task_kwargs):
@@ -250,7 +244,7 @@ class UnityDemo(BaseTask):
       "headsetPosition": headset_pos,
       "leftControllerPosition": controller_left_pos,
       "rightControllerPosition": controller_right_pos,
-      "headsetRotation":  {"x": 0.0871557, "y": 0, "z": 0, "w": 0.9961947},#headset_quat,
+      "headsetRotation": headset_quat,
       "leftControllerRotation": controller_left_quat,
       "rightControllerRotation": controller_right_quat,
       "currentTimestep": self._current_timestep,
