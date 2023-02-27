@@ -52,8 +52,10 @@
             <!--inertial pos="-0.0194693 -0.124635 3.52071e-05" quat="0.982593 0.00053772 0.000250291 0.185769" mass="8.01418" diaginertia="0.0768128 0.0574863 0.0458735" /!-->
             <joint name="r_z" pos="0 0 0" axis="0 0 1" stiffness="0" range="-6.28319 6.28319" armature="0" damping="0" />
             <geom name="thorax" type="mesh" mesh="thorax" />
-            <geom name="spine" type="mesh" mesh="spine"></geom>
-            <geom name="skull" type="mesh" mesh="skull"></geom>
+            <geom name="spine" type="mesh" mesh="spine"/>
+            <body name="skull">
+                <geom name="skull" type="mesh" mesh="skull"/>
+            </body>
             <site name="PECM1-P3" pos="-7e-05 0.00821 0.10454" />
             <site name="PECM2-P4" pos="0.03091 -0.03922 0.09705" />
             <site name="PECM2-P5" pos="0.02769 -0.04498 0.02271" />
