@@ -47,6 +47,7 @@ class UnityHeadset(BaseModule):
 
     # Define a vision buffer for including previous visual observations
     self._buffer = None
+    self._buffer_difference = kwargs.get("use_buffer_difference", False)
     if buffer is not None:
       assert "dt" in kwargs, "dt must be defined in order to include prior observations"
       maxlen = 1 + int(buffer/kwargs["dt"])
@@ -95,7 +96,10 @@ class UnityHeadset(BaseModule):
         self._buffer.appendleft(obs)
 
       # Use latest and oldest observation, and their difference
-      obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=0)
+      if self._buffer_difference:
+        obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=0)
+      else:
+        obs = np.concatenate([self._buffer[0], self._buffer[-1]], axis=0)
 
     return obs
 
