@@ -44,7 +44,8 @@ class UnityDemo(BaseTask):
                                        standalone=kwargs.get("standalone", True),
                                        record=self._record,
                                        resolution=self._resolution,
-                                       logging=self._logging)
+                                       logging=self._logging,
+                                       app_args=kwargs.get("app_args", []))
 
       # Wait until app is up and running. Send time options to unity app
       time_options = {"timestep": model.opt.timestep, "sampleFrequency": kwargs["action_sample_freq"],

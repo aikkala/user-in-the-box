@@ -12,7 +12,7 @@ class UnityClient:
   application through ZMQ. """
 
   def __init__(self, unity_executable, output_folder, port=None, standalone=True, record=False, resolution=None,
-               logging=False):
+               logging=False, app_args=[]):
 
     # If a port number hasn't been given, grab one randomly
     if port is None:
@@ -43,6 +43,9 @@ class UnityClient:
         args.extend(["-record", "-resolution", resolution])
       if logging:
         args.extend(["-logging"])
+
+      # Add given kwargs
+      args.extend(app_args)
 
       # Open the app
       self._app = subprocess.Popen([unity_executable,
