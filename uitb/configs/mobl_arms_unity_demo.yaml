@@ -1,4 +1,4 @@
-simulator_name: "mobl_arms_unity_demo"
+simulator_name: "unity_difficulty_easy"
 project: "unity"
 
 simulation:
@@ -15,6 +15,7 @@ simulation:
     cls: "UnityDemo"
     kwargs:
       unity_executable: "build/build.x86_64"
+      app_args: ["-game", "easy", "-level", "level1"]
       standalone: true # set to False for debugging (open the app in Unity editor)
       #port: 5555 # uncomment for debugging (connects to this port instead of finding a random open one)
       time_scale: 5
@@ -30,7 +31,9 @@ simulation:
     - cls: "vision.UnityHeadset"
       kwargs:
         resolution: [120, 80] # must match dimensions used in unity
-        channels: [0,3]
+        channels: [0,1,3]
+#        buffer: 0.1
+#        use_buffer_difference: true
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
         end_effector: ["geom", "hand_2distph"]
