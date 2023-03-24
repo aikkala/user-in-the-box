@@ -2,4 +2,4 @@ from .remote_driving.RemoteDriving import RemoteDriving
 from .pointing.Pointing import Pointing
 from .tracking.Tracking import Tracking
 from .choice_reaction.ChoiceReaction import ChoiceReaction
-from .unity_demo.UnityDemo import UnityDemo
+from .unity.Unity import Unity
