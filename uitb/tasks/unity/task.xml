@@ -25,4 +25,9 @@
             <freejoint name="headset"/>
         </body>
     </worldbody>
+    <contact>
+        <pair name="headset-controller-right" geom1="headset" geom2="controller-right"/>
+        <pair name="headset-controller-left" geom1="headset" geom2="controller-left"/>
+        <pair name="controllers" geom1="controller-right" geom2="controller-left"/>
+    </contact>
 </mujoco>

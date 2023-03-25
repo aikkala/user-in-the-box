@@ -4,6 +4,7 @@ import socket
 import cv2
 import numpy as np
 import os
+import shutil
 import time
 
 
@@ -11,8 +12,7 @@ class UnityClient:
   """ This class defines an object that 1) opens up a Unity standalone application, and 2) communicates with the
   application through ZMQ. """
 
-  def __init__(self, unity_executable, output_folder, port=None, standalone=True, record=False, resolution=None,
-               logging=False, app_args=[]):
+  def __init__(self, unity_executable, port=None, standalone=True, app_args=[]):
 
     # If a port number hasn't been given, grab one randomly
     if port is None:
@@ -33,26 +33,16 @@ class UnityClient:
 
       # Define path for log file; use current time (in microseconds) since epoch, should be high resolution enough
       log_name = f"{int(time.time_ns()/1e3)}"
-      log_path = os.path.join(build_folder, "logs")
+      log_path = os.path.join(build_folder, "app_logs")
 
       # Create a "log" folder in the build folder
       os.makedirs(log_path, exist_ok=True)
-
-      args = []
-      if record:
-        args.extend(["-record", "-resolution", resolution])
-      if logging:
-        args.extend(["-logging"])
-
-      # Add given kwargs
-      args.extend(app_args)
 
       # Open the app
       self._app = subprocess.Popen([unity_executable,
                                     '-simulated',
                                     '-port', f'{port}',
-                                    '-logFile', f'{os.path.join(log_path, log_name)}',
-                                    '-outputFolder', output_folder] + args, env=env_with_display)
+                                    '-logFile', f'{os.path.join(log_path, log_name)}'] + app_args, env=env_with_display)
 
     # Create zmq client
     self._context = zmq.Context()
@@ -101,3 +91,26 @@ class UnityClient:
     with socket.socket() as s:
       s.bind(('', 0))
       return s.getsockname()[1]
+
+
+def images_to_video(recording_folder, action_sample_freq, resolution, evaluate_dir=None):
+
+  # There can be several folders with images, loop through them
+  for key in os.listdir(recording_folder):
+
+    maybe_folder = os.path.join(recording_folder, key)
+
+    # Only process folders (there shouldn't be anything else anyways)
+    if os.path.isdir(maybe_folder):
+      # Save to evaluate_dir if it is given, otherwise save to same folder where images are read from
+
+      # Create the video
+      subprocess.call([
+        'ffmpeg',
+        '-y', '-r', f'{action_sample_freq}', '-f', 'image2', '-s', resolution,
+        '-i', f"{os.path.join(maybe_folder, 'image%d.png')}",
+        '-vcodec', 'libx264', '-crf', '15', '-pix_fmt', 'yuv420p',
+        f"{os.path.join(evaluate_dir if evaluate_dir else recording_folder, f'{key}.mp4')}"])
+
+      # Remove the folder containing images
+      shutil.rmtree(maybe_folder)

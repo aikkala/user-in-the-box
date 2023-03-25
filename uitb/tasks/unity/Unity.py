@@ -4,11 +4,10 @@ from scipy.spatial.transform import Rotation
 import xml.etree.ElementTree as ET
 import os
 import pathlib
-import subprocess
 
 from ..base import BaseTask
 from ...utils.transformations import transformation_matrix
-from ...utils.unity import UnityClient
+from ...utils.unity import UnityClient, images_to_video
 from ...utils.functions import initialise_pos_and_quat
 
 
@@ -26,25 +25,35 @@ class Unity(BaseTask):
       # Get path for the application binary/executable file
       app_path = os.path.join(pathlib.Path(__file__).parent, kwargs["unity_executable"])
 
-      # Define output folder for logs and images/recordings
-      self._output_folder = os.path.join(os.path.split(app_path)[0], "output/")
+      # Parse app args
+      app_args = kwargs.get("app_args", [])
 
-      # Check if we want to record game play videos
+      # Check for output folder
+      self._output_folder = None
+      if "unity_output_folder" in kwargs:
+        self._output_folder = kwargs["unity_output_folder"]
+        app_args.extend(["-outputFolder", self._output_folder])
+
+      # Check for recording and resolution
       self._record = kwargs.get("unity_record_gameplay", False)
       self._resolution = kwargs.get("unity_record_resolution",
                                     f"{model.vis.global_.offwidth}x{model.vis.global_.offheight}")
+      if self._record:
+        app_args.extend(["-record", "-resolution", self._resolution])
 
-      # Check if we want to do logging
+      # Check for logging
       self._logging = kwargs.get("unity_logging", False)
+      if self._logging:
+        app_args.extend(["-logging"])
+
+      # Check if we want to set the random seed
+      if "unity_random_seed" in kwargs:
+        app_args.extend(["-fixedSeed", f"{kwargs['unity_random_seed']}"])
 
       # Start a Unity client
       self._unity_client = UnityClient(unity_executable=app_path,
-                                       output_folder=self._output_folder,
                                        port=kwargs.get("port", None),
                                        standalone=kwargs.get("standalone", True),
-                                       record=self._record,
-                                       resolution=self._resolution,
-                                       logging=self._logging,
                                        app_args=kwargs.get("app_args", []))
 
       # Wait until app is up and running. Send time options to unity app
@@ -171,6 +180,9 @@ class Unity(BaseTask):
     else:
       worldbody = root.find("worldbody")
       worldbody.remove(worldbody.find("body[@name='controller-left']"))
+      contact = root.find("contact")
+      contact.remove(contact.find("pair[@name='headset-controller-left']"))
+      contact.remove(contact.find("pair[@name='controllers']"))
 
     # Add a weld equality for headset
     equality.append(ET.Element("weld",
@@ -271,21 +283,6 @@ class Unity(BaseTask):
     # If we were recording, create videos from images
     if self._record:
 
-      # There can be several folders with images, loop through them
       recording_folder = os.path.join(self._output_folder, "recording")
-      for key in os.listdir(recording_folder):
 
-        maybe_folder = os.path.join(recording_folder, key)
-
-        # Only process folders (there shouldn't be anything else anyways)
-        if os.path.isdir(maybe_folder):
-
-          # Save to evaluate_dir if it is given, otherwise save to same folder where images are read from
-
-          # Create the video
-          subprocess.call([
-            'ffmpeg',
-            '-y', '-r', f'{self._action_sample_freq}', '-f', 'image2', '-s', self._resolution,
-            '-i', f"{os.path.join(maybe_folder, 'image%d.png')}",
-            '-vcodec', 'libx264', '-crf', '15', '-pix_fmt', 'yuv420p',
-            f"{os.path.join(evaluate_dir if evaluate_dir else maybe_folder, f'{key}.mp4')}"])
+      images_to_video(recording_folder, self._action_sample_freq, self._resolution, evaluate_dir)
