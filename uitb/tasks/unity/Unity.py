@@ -84,6 +84,9 @@ class Unity(BaseTask):
     # Use early termination if target is not hit in time
     self._max_steps = self._action_sample_freq*20
 
+    # Unity returns a time feature to indicate how much of episode is left, scaled [-1, 1]
+    self._time = -1
+
     # Geom's mass property is not saved when we save the integrated model xml file (would be saved in binary mjcf
     # though). So let's set it here again just to be sure
     model.body_mass[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, "controller-right")] = 0.129
@@ -211,12 +214,16 @@ class Unity(BaseTask):
     #   info["termination"] = "max_steps_reached"
 
     # Send end effector position and rotation to unity, get reward and image from camera
-    image, reward, is_app_finished = self._unity_client.step(self._create_state(model, data), is_finished)
+    obs, reward, is_app_finished = self._unity_client.step(self._create_state(model, data), is_finished)
+    self._time = obs["time"]
 
     if is_finished and not is_app_finished:
       raise RuntimeError("User simulation has terminated an episode but Unity app has not")
 
-    return reward, is_app_finished, {"unity_observation": image}
+    return reward, is_app_finished, {"unity_image": obs["image"]}
+
+  def get_stateful_information(self, model, data):
+    return np.array([self._time])
 
   def _transform_to_unity(self, pos, quat, apply_offset=False):
 
@@ -273,12 +280,15 @@ class Unity(BaseTask):
   def _reset(self, model, data):
 
     # Reset and receive an observation
-    image = self._unity_client.reset(self._create_state(model, data))
+    obs = self._unity_client.reset(self._create_state(model, data))
 
     # Set timestep
     data.time = self._current_timestep
 
-    return {"unity_observation": image}
+    # Reset time feature
+    self._time = obs["time"]
+
+    return {"unity_image": obs["image"]}
 
   def close(self, evaluate_dir=None):
 

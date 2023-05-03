@@ -68,7 +68,7 @@ class UnityHeadset(BaseModule):
     else:
 
       # Get observation
-      obs = info["unity_observation"]
+      obs = info["unity_image"]
 
       # Sometimes the screen hasn't been resized yet when first screenshot arrives
       if obs.shape != (self._resolution[1], self._resolution[0], 4):
@@ -79,7 +79,7 @@ class UnityHeadset(BaseModule):
       obs = (obs / 255.0 - 0.5) * 2
 
       # Make a copy for rendering purposes
-      self._last_obs = info["unity_observation"].copy()
+      self._last_obs = info["unity_image"].copy()
 
     # Transpose channels
     obs = np.transpose(obs, [2, 0, 1])
