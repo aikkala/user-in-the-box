@@ -1,0 +1,5 @@
+**/__pycache__/
+.ipynb_checkpoints
+simulators/mobl_arms_index_remote_driving
+simulators/mobl_arms_index_tracking
+simulators/*/evaluate
