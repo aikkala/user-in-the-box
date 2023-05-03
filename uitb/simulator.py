@@ -1,5 +1,5 @@
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import pygame
 import mujoco
 import os
@@ -171,7 +171,7 @@ class Simulator(gym.Env):
     # Create __init__.py with env registration
     with open(os.path.join(dst, "__init__.py"), "w") as file:
       file.write("from .simulator import Simulator\n\n")
-      file.write("from gym.envs.registration import register\n")
+      file.write("from gymnasium.envs.registration import register\n")
       file.write("import pathlib\n\n")
       file.write("module_folder = pathlib.Path(__file__).parent\n")
       file.write("simulator_folder = module_folder.parent\n")

@@ -87,18 +87,18 @@ Once a simulator has been built as shown above, you can initialise the simulator
 simulator = Simulator.get(simulator_folder)
 ```
 
-and `simulator` can be run in the same way as any OpenAI Gym environment (i.e. by calling methods `simulator.step(action)`, `simulator.reset()`). **IF** the simulator folder is in Python path, one can also import a simulator with its name, and initialise it with `gym`. E.g. if config["simulator_name"] = "mobl_arms_index_pointing"
+and `simulator` can be run in the same way as any OpenAI Gym environment (i.e. by calling methods `simulator.step(action)`, `simulator.reset()`). **IF** the simulator folder is in Python path, one can also import a simulator with its name, and initialise it with `gymnasium`. E.g. if config["simulator_name"] = "mobl_arms_index_pointing"
 
 ```python
 # Import the simulator
 import mobl_arms_index_pointing
 
-# Initialise a simulator with gym
-import gym
+# Initialise a simulator with gym(nasium)
+import gymnasium as gym
 simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 ```
 
-Note the prefix `uitb:` and suffix `-v0` that must be used to satisfy OpenAI Gym's naming conventions. Alternatively, you can programmatically import a simulator and then initialise with gym
+Note the prefix `uitb:` and suffix `-v0` that must be used to satisfy OpenAI Gym's naming conventions. Alternatively, you can programmatically import a simulator and then initialise with gymnasium
 
 ```python
 # Add simulator_folder to Python path
@@ -109,8 +109,8 @@ sys.path.insert(0, simulator_folder)
 import importlib
 importlib.import_module("mobl_arms_index_pointing")
 
-# Initialise a simulator with gym
-import gym
+# Initialise a simulator with gym(nasium)
+import gymnasium as gym
 simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 ```
 
