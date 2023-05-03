@@ -26,6 +26,7 @@ setup(
        "pygame",
        "pynput",
        "mujoco>=2.2.0",
+       "imageio",
        #"stable_baselines3>=1.4.0", 
        #"stable_baselines3 @ git+https://github.com/carlosluis/stable-baselines3.git@fix_tests#egg=stable_baselines3-2.0.0a0",
        "stable_baselines3>=2.0.0a1",
