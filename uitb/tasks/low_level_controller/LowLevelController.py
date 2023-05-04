@@ -12,6 +12,7 @@ class LowLevelController(BaseTask):
     self._max_trials = 10
     self._trial_idx = 0
     self._targets_hit = 0
+    self._trials_ep = 0
 
     self._target_radius = 0.05
     self._steps_inside_target = 0
@@ -32,6 +33,7 @@ class LowLevelController(BaseTask):
       self._independent_dofs.append(model.jnt_qposadr[joint_id])
       self._independent_joints.append(joint_id)
 
+
     # Get joint range for normalisation
     self._jnt_range = model.jnt_range[self._independent_joints]
 
@@ -45,8 +47,7 @@ class LowLevelController(BaseTask):
 
     # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([1.1, -0.9, 0.95])
-    model.cam_quat[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array(
-      [0.6582, 0.6577, 0.2590, 0.2588])
+    model.cam_quat[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([0.6582, 0.6577, 0.2590, 0.2588])
 
   def _update(self, model, data):
 
@@ -69,20 +70,20 @@ class LowLevelController(BaseTask):
       self._steps_inside_target = 0
       self._info["inside_target"] = False
 
-#    if self._info["inside_target"] and self._steps_inside_target >= self._dwell_threshold:
-#
-#      # Update counters
-#      self._info["target_hit"] = True
-#      self._trial_idx += 1
-#      self._targets_hit += 1
-#      self._steps_since_last_hit = 0
-#      self._steps_inside_target = 0
-#      self._sample_target_qpos(model, data)
-#      self._info["target_sampled"] = True
-#
-#    else:
-#
-#      self._info["target_hit"] = False
+    if self._info["inside_target"] and self._steps_inside_target >= self._dwell_threshold:
+
+      # Update counters
+      self._info["target_hit"] = True
+      self._trial_idx += 1
+      self._targets_hit += 1
+      self._steps_since_last_hit = 0
+      self._steps_inside_target = 0
+      self._info["acc_dist"] += np.mean(dist)
+      self._sample_target_qpos(model, data)
+      self._info["target_sampled"] = True
+
+    else:
+      self._info["target_hit"] = False
 
     # Check if time limit has been reached
     self._steps_since_last_hit += 1
@@ -90,17 +91,27 @@ class LowLevelController(BaseTask):
       # Spawn a new target
       self._steps_since_last_hit = 0
       self._trial_idx += 1
+      self._info["acc_dist"] += np.mean(dist)
       self._sample_target_qpos(model, data)
       self._info["target_sampled"] = True
 
     # Check if max number trials reached
     if self._trial_idx >= self._max_trials:
+      self._info["mean_dist"] = self._info["acc_dist"]/self._trial_idx
       truncated = True
       self._info["termination"] = "max_trials_reached"
 
-    reward = np.prod(np.exp(-dist*3))
+    reward = self.get_reward_with_hit_bonus(dist-self._target_radius, self._info.copy())
 
     return reward, terminated, truncated, self._info
+
+  def get_reward_with_hit_bonus(self, dist, info):
+    if info["target_hit"]:
+      return 8
+    elif info["inside_target"]:
+      return 0
+    else:
+      return np.prod(np.exp(-dist*3))
 
   def _normalise_qpos(self, qpos):
     # Normalise to [0, 1]
@@ -121,7 +132,7 @@ class LowLevelController(BaseTask):
 
     self._info = {"target_hit": False, "inside_target": False, "target_sampled": False,
                   "terminated": False, "truncated": False,
-                  "termination": False}
+                  "termination": False, "mean_dist": 0, "acc_dist": 0}
 
     self._sample_target_qpos(model, data)
 

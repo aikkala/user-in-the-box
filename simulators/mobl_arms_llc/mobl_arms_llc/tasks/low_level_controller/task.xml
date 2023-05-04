@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<mujoco>
+    <compiler angle="radian"/>
+    <option collision="predefined" timestep="0.002"/>
+    <size njmax="1000" nconmax="400"/>
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="0.6 0.8 1" width="256" height="256"/>
+    </asset>
+    <worldbody>
+        <light name="scene_directional_light" directional="true" castshadow="false" cutoff="4" exponent="20"
+               diffuse="1 1 1" specular="0 0 0" pos=".9 .3 2.5"/>
+    </worldbody>
+</mujoco>
