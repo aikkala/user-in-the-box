@@ -118,7 +118,7 @@ class BaseModule(ABC):
     pass
 
   def _get_observation_range(self):
-    """ Return limits for the observations. These limits aren't currently used for anything (AFAIK, not in gym or
+    """ Return limits for the observations. These limits aren't currently used for anything (AFAIK, not in gym(nasium) or
     stable-baselines3; only to initialise the observation space required by gym.Env), so let's just use a default of
     -inf to inf. Overwrite this method to use different ranges.
 

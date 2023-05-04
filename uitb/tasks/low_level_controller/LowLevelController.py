@@ -32,7 +32,7 @@ class LowLevelController(BaseTask):
                                   f"{joint} is of type {mujoco.mjtJoint(model.jnt_type[joint_id]).name}")
       self._independent_dofs.append(model.jnt_qposadr[joint_id])
       self._independent_joints.append(joint_id)
-    
+
 
     # Get joint range for normalisation
     self._jnt_range = model.jnt_range[self._independent_joints]
@@ -132,7 +132,7 @@ class LowLevelController(BaseTask):
 
     self._info = {"target_hit": False, "inside_target": False, "target_sampled": False,
                   "terminated": False, "truncated": False,
-                  "termination": False, "mean_dist": 0, "acc_dist":0}
+                  "termination": False, "mean_dist": 0, "acc_dist": 0}
 
     self._sample_target_qpos(model, data)
 

@@ -42,16 +42,10 @@ rl:
       initial_value: 5e-5
       min_value: 1e-7
       threshold: 0.8
-  total_timesteps: 15_000_000
+  total_timesteps: 50_000_000
   device: "cuda"
   num_workers: 10
   nsteps: 4000
   batch_size: 500
   target_kl: 1.0
   save_freq: 5_000_000
-  
-llc:
-    llc_ratio: 1
-    simulator_name: "mobl_arms_llc"
-    checkpoint: "model_270000000_steps.zip"
-    joints: ["elv_angle", "shoulder_elv", "shoulder_rot", "elbow_flexion", "pro_sup"]

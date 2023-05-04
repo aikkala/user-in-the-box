@@ -35,7 +35,7 @@ rl:
       initial_value: 5e-5
       min_value: 1e-7
       threshold: 0.8
-  total_timesteps: 50_000_000
+  total_timesteps: 200_000_000
   device: "cuda"
   num_workers: 10
   nsteps: 4000

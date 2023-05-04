@@ -52,10 +52,10 @@ rl:
       initial_value: 5e-5
       min_value: 1e-7
       threshold: 0.8
-  total_timesteps: 25_000_000
+  total_timesteps: 100_000_000
   device: "cuda"
   num_workers: 10
-  nsteps: 200
+  nsteps: 4000
   batch_size: 500
   target_kl: 1.0
-  save_freq: 250_000
+  save_freq: 5_000_000
