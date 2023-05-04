@@ -25,6 +25,7 @@ setup(
        "pygame",
        "pynput",
        "mujoco>=2.2.0",
+       "imageio",
        "stable_baselines3>=2.0.0a1",
        "torch",
        "wandb", "tensorboard",
