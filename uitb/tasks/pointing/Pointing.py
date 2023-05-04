@@ -155,7 +155,6 @@ class Pointing(BaseTask):
 
     self._info = {"target_hit": False, "inside_target": False, "target_spawned": False,
                   "terminated": False, "truncated": False, "termination": False, "llc_dist_from_target": 0, "dist_from_target": 0, "acc_dist": 0}
-                  "terminated": False, "truncated": False, "termination": False}
 
     # Spawn a new location
     self._spawn_target(model, data)
