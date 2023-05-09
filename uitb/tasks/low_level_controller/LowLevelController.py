@@ -16,12 +16,15 @@ class LowLevelController(BaseTask):
 
     self._target_radius = 0.05  #maximum permitted distance between target and current joint posture (using the Euclidean norm)
     self._steps_inside_target = 0
-    self._dwell_threshold = int(0.5*self._action_sample_freq)
+    self._dwell_threshold = int(kwargs.get("dwell_time", 0.5)*self._action_sample_freq)
 
     # Use early termination if target is not hit in time
     self._steps_since_last_hit = 0
-    self._max_steps_without_hit = self._action_sample_freq*2
+    self._max_steps_without_hit = self._action_sample_freq*kwargs.get("max_trial_time",  2)
 
+    # Whether to penalize distance of all joints (including dependent/virtual joints), or only of joints that are actively actuated
+    self._track_all_joints = kwargs.get("track_all_joints", False)
+    
     # Get independent dofs -- would be easier to just grab these from the bm model
     self._independent_dofs = []
     self._independent_joints = []
@@ -35,7 +38,10 @@ class LowLevelController(BaseTask):
 
 
     # Get joint range for normalisation
-    self._jnt_range = model.jnt_range[self._independent_joints]
+    if self._track_all_joints:
+      self._jnt_range = model.jnt_range.copy()
+    else:
+      self._jnt_range = model.jnt_range[self._independent_joints]
 
     # Initialise qpos
     self._qpos = None
@@ -127,11 +133,14 @@ class LowLevelController(BaseTask):
     return (qpos/2 + 0.5) * (self._jnt_range[:, 1] - self._jnt_range[:, 0]) + self._jnt_range[:, 0]
 
   def _get_qpos(self, model, data):
-    qpos = data.qpos[self._independent_dofs].copy()
+    if self._track_all_joints:
+      qpos = data.qpos.copy()
+    else:
+      qpos = data.qpos[self._independent_dofs].copy()
     self._qpos = self._normalise_qpos(qpos)
   
   @staticmethod
-  def _ensure_joint_eq_constraints(model, data):
+  def _ensure_joint_eq_constraints(model, qpos):
     # adjust virtual joints according to active constraints:
     _eq_constraints = zip(model.eq_obj1id[
                         (model.eq_type == 2) & (model.eq_active == 1)],
@@ -140,7 +149,7 @@ class LowLevelController(BaseTask):
                     model.eq_data[(model.eq_type == 2) &
                                   (model.eq_active == 1), 4::-1])
     for (virtual_joint_id, physical_joint_id, poly_coefs) in _eq_constraints:
-        data.qpos[virtual_joint_id] = np.polyval(poly_coefs, data.qpos[physical_joint_id])
+      qpos[virtual_joint_id] = np.polyval(poly_coefs, qpos[physical_joint_id])
 
   def _reset(self, model, data):
     self._steps_since_last_hit = 0
@@ -161,6 +170,12 @@ class LowLevelController(BaseTask):
                           [0, 2.27],
                           [-0.6, 0.6]])
     target_qpos = self._rng.uniform(low=jnt_range[:,0], high=jnt_range[:,1], size=(len(self._independent_dofs,)))
+    if self._track_all_joints:
+      dummy_qpos = np.zeros(model.nq)
+      dummy_qpos[self._independent_dofs] = target_qpos
+      # ensure that joint equality constraints hold for target qpos
+      self._ensure_joint_eq_constraints(model, dummy_qpos)
+      target_qpos = dummy_qpos
     self._target_qpos = self._normalise_qpos(target_qpos)
 
   def get_stateful_information(self, model, data):
