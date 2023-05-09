@@ -14,7 +14,7 @@ class LowLevelController(BaseTask):
     self._targets_hit = 0
     self._trials_ep = 0
 
-    self._target_radius = 0.05
+    self._target_radius = 0.05  #maximum permitted distance between target and current joint posture (using the Euclidean norm)
     self._steps_inside_target = 0
     self._dwell_threshold = int(0.5*self._action_sample_freq)
 
@@ -60,10 +60,10 @@ class LowLevelController(BaseTask):
     self._info["target_sampled"] = False
 
     # Distance to target
-    dist = np.abs(self._target_qpos - self._qpos)
+    dist = np.linalg.norm(self._target_qpos - self._qpos)
 
     # Check if target is close enough
-    if np.all(dist < self._target_radius):
+    if dist < self._target_radius:
       self._steps_inside_target += 1
       self._info["inside_target"] = True
     else:
@@ -100,18 +100,21 @@ class LowLevelController(BaseTask):
       self._info["mean_dist"] = self._info["acc_dist"]/self._trial_idx
       truncated = True
       self._info["termination"] = "max_trials_reached"
-
+   
     reward = self.get_reward_with_hit_bonus(dist-self._target_radius, self._info.copy())
 
     return reward, terminated, truncated, self._info
 
   def get_reward_with_hit_bonus(self, dist, info):
     if info["target_hit"]:
-      return 8
-    elif info["inside_target"]:
-      return 0
+      _reward = 8
     else:
-      return np.prod(np.exp(-dist*3))
+      _reward = np.exp(-dist * 3) / 10
+    # elif info["inside_target"]:
+    #   return 0
+    # else:
+    #   return np.prod(np.exp(-dist*3))
+    return _reward
 
   def _normalise_qpos(self, qpos):
     # Normalise to [0, 1]
@@ -119,10 +122,25 @@ class LowLevelController(BaseTask):
     # Normalise to [-1, 1]
     qpos = (qpos - 0.5) * 2
     return qpos
+  
+  def _unnormalise_qpos(self, qpos):
+    return (qpos/2 + 0.5) * (self._jnt_range[:, 1] - self._jnt_range[:, 0]) + self._jnt_range[:, 0]
 
   def _get_qpos(self, model, data):
     qpos = data.qpos[self._independent_dofs].copy()
     self._qpos = self._normalise_qpos(qpos)
+  
+  @staticmethod
+  def _ensure_joint_eq_constraints(model, data):
+    # adjust virtual joints according to active constraints:
+    _eq_constraints = zip(model.eq_obj1id[
+                        (model.eq_type == 2) & (model.eq_active == 1)],
+                    model.eq_obj2id[
+                        (model.eq_type == 2) & (model.eq_active == 1)],
+                    model.eq_data[(model.eq_type == 2) &
+                                  (model.eq_active == 1), 4::-1])
+    for (virtual_joint_id, physical_joint_id, poly_coefs) in _eq_constraints:
+        data.qpos[virtual_joint_id] = np.polyval(poly_coefs, data.qpos[physical_joint_id])
 
   def _reset(self, model, data):
     self._steps_since_last_hit = 0
