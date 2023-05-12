@@ -78,9 +78,13 @@ if __name__=="__main__":
   run_params = dict()
   run_params["action_sample_freq"] = 20
   run_params["evaluate"] = True
+  run_params["unity_record_gameplay"] = False
+  run_params["unity_logging"] = True
+  run_params["unity_output_folder"] = evaluate_dir
+#  run_params["unity_random_seed"] = 123
 
   # Use deterministic actions?
-  deterministic = False
+  deterministic = True
 
   # Initialise simulator
   simulator = Simulator.get(args.simulator_folder, run_parameters=run_params)
