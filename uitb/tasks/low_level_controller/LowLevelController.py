@@ -113,11 +113,12 @@ class LowLevelController(BaseTask):
 
   def get_reward_with_hit_bonus(self, dist, info):
     if info["target_hit"]:
-      _reward = 8
+      #_reward = 8
+      _reward = (self._max_steps_without_hit / self._max_trials) / 10
     else:
       _reward = np.exp(-dist * 3) / 10
-    # elif info["inside_target"]:
-    #   return 0
+    if info["inside_target"]:
+      _reward += 1 / 10
     # else:
     #   return np.prod(np.exp(-dist*3))
     return _reward

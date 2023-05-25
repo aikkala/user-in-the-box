@@ -1,5 +1,5 @@
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 import pygame
 import mujoco
 import os
@@ -13,7 +13,9 @@ import inspect
 import pathlib
 from datetime import datetime
 import copy
-from stable_baselines3 import PPO
+
+from stable_baselines3 import PPO  #required to load a trained LLC policy in HRL approach
+
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
 from .utils.functions import output_path, parent_path, is_suitable_package_name, parse_yaml, write_yaml
@@ -87,7 +89,7 @@ class Simulator(gym.Env):
       simulator_folder = os.path.normpath(config["simulator_folder"])
     else:
       simulator_folder = os.path.join(output_path(), config["simulator_name"])
-    
+
     # If 'package_name' is not defined use 'simulator_name'
     if "package_name" not in config:
       config["package_name"] = config["simulator_name"]
@@ -171,7 +173,7 @@ class Simulator(gym.Env):
     # Create __init__.py with env registration
     with open(os.path.join(dst, "__init__.py"), "w") as file:
       file.write("from .simulator import Simulator\n\n")
-      file.write("from gym.envs.registration import register\n")
+      file.write("from gymnasium.envs.registration import register\n")
       file.write("import pathlib\n\n")
       file.write("module_folder = pathlib.Path(__file__).parent\n")
       file.write("simulator_folder = module_folder.parent\n")
@@ -245,7 +247,7 @@ class Simulator(gym.Env):
     return model, data, task, bm_model, perception, callbacks
 
   @classmethod
-  def get(cls, simulator_folder, render_mode="rgb_array_list", render_show_depths=False, run_parameters=None, use_cloned=True):
+  def get(cls, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None, use_cloned=True):
     """ Returns a Simulator that is located in given folder.
 
     Args:
@@ -352,8 +354,7 @@ class Simulator(gym.Env):
     self._render_window = None  #only used if render_mode == "human"
     self._render_clock = None  #only used if render_mode == "human"
 
-    
-    if 'llc' in self.config: # If HRL approach is used
+    if 'llc' in self.config:  #if HRL approach is used
         llc_simulator_folder = os.path.join(output_path(), self.config["llc"]["simulator_name"])
         if llc_simulator_folder not in sys.path:
             sys.path.insert(0, llc_simulator_folder)
@@ -361,8 +362,8 @@ class Simulator(gym.Env):
             raise FileNotFoundError(f"Simulator folder {llc_simulator_folder} does not exists")
         llccheckpoint_dir = os.path.join(llc_simulator_folder, 'checkpoints')
         # Load policy TODO should create a load method for uitb.rl.BaseRLModel
-        print(f'Loading model: {os.path.join(llccheckpoint_dir, "model_270000000_steps.zip")}\n')
-        self.llc_model = PPO.load(os.path.join(llccheckpoint_dir, "model_270000000_steps.zip"))
+        print(f'Loading model: {os.path.join(llccheckpoint_dir, self.config["llc"]["checkpoint"])}\n')
+        self.llc_model = PPO.load(os.path.join(llccheckpoint_dir, self.config["llc"]["checkpoint"]))
         self.action_space = self._initialise_HRL_action_space()
         self._max_steps = self.config["llc"]["llc_ratio"]
         self._dwell_threshold = int(0.5*self._max_steps)
@@ -395,7 +396,7 @@ class Simulator(gym.Env):
     return spaces.Box(low=np.float32(actuator_limits[:, 0]), high=np.float32(actuator_limits[:, 1]))
 
   def _initialise_HRL_action_space(self):
-    bm_jnt_range = np.ones((5,2)) * np.array([-1.0, 1.0])  # For 5 muscle actuated joints trained on Low Level Controller
+    bm_jnt_range = np.ones((num_actuators,2)) * np.array([-1.0, 1.0])
     perception_nu = self.perception.nu
     perception_jnt_range = np.ones((perception_nu,2)) * np.array([-1.0, 1.0])
     jnt_range = np.concatenate((bm_jnt_range, perception_jnt_range), axis=0)
@@ -424,7 +425,7 @@ class Simulator(gym.Env):
     Args:
       action: Actions sampled from a policy. Limited to range [-1, 1].
     """
-    if 'llc' in self.config: # If HRL approach is used
+    if 'llc' in self.config:  #if HRL approach is used
         self.task._target_qpos = action # action to pass to LLC
         self._steps = 0 # Initialise loop control to 0
         #acc_reward = 0 #To be used when rewards are being accumulated in llc steps
@@ -517,7 +518,7 @@ class Simulator(gym.Env):
           self._GUI_rendering_pygame()
 
         return obs, reward, terminated, truncated, info
-        
+  
 
   def get_observation(self):
     """ Returns an observation from the perception model.
@@ -557,6 +558,7 @@ class Simulator(gym.Env):
       observation["stateful_information"] = stateful_information
     
     return observation
+
 
   def reset(self):
     """ Reset the simulator and return an observation. """

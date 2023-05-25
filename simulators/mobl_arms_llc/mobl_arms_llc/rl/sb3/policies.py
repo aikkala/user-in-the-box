@@ -3,7 +3,7 @@ import warnings
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-import gym
+import gymnasium as gym
 import numpy as np
 import torch as th
 from torch import nn
@@ -276,7 +276,7 @@ class ActorCriticPolicyStdDecay(BasePolicy):
         for the actor, the value function and for gSDE function
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs)
+    features = self.extract_features(obs, self.features_extractor)
     latent_pi, latent_vf = self.mlp_extractor(features)
 
     # Features for sde
@@ -550,7 +550,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
     :return: action, value and log probability of the action
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs)
+    features = self.extract_features(obs, self.features_extractor)
     latent_pi, latent_vf = self.mlp_extractor(features)
     # Evaluate the values for the given observations
     values = self.value_net(latent_vf)
@@ -606,7 +606,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
         and entropy of the action distribution.
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs)
+    features = self.extract_features(obs, self.features_extractor)
     latent_pi, latent_vf = self.mlp_extractor(features)
     distribution = self._get_action_dist_from_latent(latent_pi)
     log_prob = distribution.log_prob(actions)
@@ -620,7 +620,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
     :param obs:
     :return: the action distribution.
     """
-    features = self.extract_features(obs)
+    features = self.extract_features(obs, self.features_extractor)
     latent_pi = self.mlp_extractor.forward_actor(features)
     return self._get_action_dist_from_latent(latent_pi)
 
@@ -631,7 +631,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
     :param obs:
     :return: the estimated values.
     """
-    features = self.extract_features(obs)
+    features = self.extract_features(obs, self.features_extractor)
     latent_vf = self.mlp_extractor.forward_critic(features)
     return self.value_net(latent_vf)
 

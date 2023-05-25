@@ -14,7 +14,7 @@ class LowLevelController(BaseTask):
     self._targets_hit = 0
     self._trials_ep = 0
 
-    self._target_radius = 0.05
+    self._target_radius = 0.05  #maximum permitted distance between target and current joint posture (using the Euclidean norm)
     self._steps_inside_target = 0
     self._dwell_threshold = int(0.5*self._action_sample_freq)
 
@@ -32,7 +32,7 @@ class LowLevelController(BaseTask):
                                   f"{joint} is of type {mujoco.mjtJoint(model.jnt_type[joint_id]).name}")
       self._independent_dofs.append(model.jnt_qposadr[joint_id])
       self._independent_joints.append(joint_id)
-    
+
 
     # Get joint range for normalisation
     self._jnt_range = model.jnt_range[self._independent_joints]
@@ -60,10 +60,10 @@ class LowLevelController(BaseTask):
     self._info["target_sampled"] = False
 
     # Distance to target
-    dist = np.abs(self._target_qpos - self._qpos)
+    dist = np.linalg.norm(self._target_qpos - self._qpos)
 
     # Check if target is close enough
-    if np.all(dist < self._target_radius):
+    if dist < self._target_radius:
       self._steps_inside_target += 1
       self._info["inside_target"] = True
     else:
@@ -100,18 +100,21 @@ class LowLevelController(BaseTask):
       self._info["mean_dist"] = self._info["acc_dist"]/self._trial_idx
       truncated = True
       self._info["termination"] = "max_trials_reached"
-
+    
     reward = self.get_reward_with_hit_bonus(dist-self._target_radius, self._info.copy())
 
     return reward, terminated, truncated, self._info
 
   def get_reward_with_hit_bonus(self, dist, info):
     if info["target_hit"]:
-      return 8
-    elif info["inside_target"]:
-      return 0
+      _reward = 8
     else:
-      return np.prod(np.exp(-dist*3))
+      _reward = np.exp(-dist * 3) / 10
+    # elif info["inside_target"]:
+    #   return 0
+    # else:
+    #   return np.prod(np.exp(-dist*3))
+    return _reward
 
   def _normalise_qpos(self, qpos):
     # Normalise to [0, 1]
@@ -132,7 +135,7 @@ class LowLevelController(BaseTask):
 
     self._info = {"target_hit": False, "inside_target": False, "target_sampled": False,
                   "terminated": False, "truncated": False,
-                  "termination": False, "mean_dist": 0, "acc_dist":0}
+                  "termination": False, "mean_dist": 0, "acc_dist": 0}
 
     self._sample_target_qpos(model, data)
 

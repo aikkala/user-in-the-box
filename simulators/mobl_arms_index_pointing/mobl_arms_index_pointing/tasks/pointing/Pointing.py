@@ -8,7 +8,7 @@ class Pointing(BaseTask):
 
   def __init__(self, model, data, end_effector, shoulder, **kwargs):
     super().__init__(model, data, **kwargs)
-    
+
     # This task requires an end-effector to be defined
     if not isinstance(end_effector, list) and len(end_effector) != 2:
       raise RuntimeError("'end_effector' must be a list with two elements: first defining what type of mujoco element "
@@ -23,7 +23,7 @@ class Pointing(BaseTask):
 
     # Use early termination if target is not hit in time
     self._steps_since_last_hit = 0
-    self._max_steps_without_hit = self._action_sample_freq*2
+    self._max_steps_without_hit = self._action_sample_freq*4
 
     # Used for logging states
     self._info = {"target_hit": False, "inside_target": False, "target_spawned": False, "terminated": False,
@@ -36,11 +36,11 @@ class Pointing(BaseTask):
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
     self._steps_inside_target = 0
-    self._dwell_threshold = int(0.25*self._action_sample_freq)
+    self._dwell_threshold = int(0.5*self._action_sample_freq)  #for HRL: int(0.25*self._action_sample_freq)
 
     # Radius limits for target
     self._target_radius_limit = kwargs.get('target_radius_limit', np.array([0.05, 0.15]))
-    self._target_radius = 0.15
+    self._target_radius = self._target_radius_limit[0]  #for HRL: self._target_radius_limit[1]
 
     # Minimum distance to new spawned targets is twice the max target radius limit
     self._new_target_distance_threshold = 2*self._target_radius_limit[1]
@@ -59,7 +59,7 @@ class Pointing(BaseTask):
     self._target_limits_y = np.array([-0.3, 0.3])
     self._target_limits_z = np.array([-0.3, 0.3])
     
-    # For LLC policy
+    # For LLC policy  #TODO: remove?
     self._target_qpos = [0,0,0,0,0]
     
     # Update plane location
@@ -106,7 +106,7 @@ class Pointing(BaseTask):
       self._targets_hit += 1
       self._steps_since_last_hit = 0
       self._steps_inside_target = 0
-      self._info["acc_dist"] +=(dist)
+      self._info["acc_dist"] += dist
       self._spawn_target(model, data)
       self._info["target_spawned"] = True
 
@@ -120,7 +120,7 @@ class Pointing(BaseTask):
         # Spawn a new target
         self._steps_since_last_hit = 0
         self._trial_idx += 1
-        self._info["acc_dist"] += (dist)
+        self._info["acc_dist"] += dist
         self._spawn_target(model, data)
         self._info["target_spawned"] = True
 
@@ -133,6 +133,7 @@ class Pointing(BaseTask):
     # Calculate reward; note, inputting distance to surface into reward function, hence distance can be negative if
     # fingertip is inside target
     reward = self._reward_function.get(self, dist-self._target_radius, self._info.copy())
+
     return reward, terminated, truncated, self._info.copy()
 
   def _get_state(self, model, data):
@@ -153,7 +154,7 @@ class Pointing(BaseTask):
     self._targets_hit = 0
 
     self._info = {"target_hit": False, "inside_target": False, "target_spawned": False,
-                  "terminated": False, "truncated": False, "termination": False, "llc_dist_from_target": 0, "dist_from_target": 0,                            "acc_dist":0}
+                  "terminated": False, "truncated": False, "termination": False, "llc_dist_from_target": 0, "dist_from_target": 0, "acc_dist": 0}
 
     # Spawn a new location
     self._spawn_target(model, data)

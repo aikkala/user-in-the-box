@@ -6,8 +6,6 @@ import argparse
 import scipy.ndimage
 from collections import defaultdict
 import matplotlib.pyplot as pp
-import mujoco
-
 
 from uitb.utils.logger import StateLogger, ActionLogger
 from uitb.simulator import Simulator
@@ -100,7 +98,7 @@ if __name__ == "__main__":
         model_file = files[-1]
 
     # Load policy TODO should create a load method for uitb.rl.BaseRLModel
-    print(f'heloLoading model: {os.path.join(checkpoint_dir, model_file)}\n')
+    print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}\n')
     model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
     # Set callbacks to match the value used for this training point (if the simulator had any)
@@ -141,73 +139,20 @@ if __name__ == "__main__":
             # Get actions from policy
             action, _states = model.predict(obs, deterministic=deterministic)
 
-            
-            simulator.task._target_qpos = action
-            simulator._steps = 0
-            obs = simulator.get_observation()
-            acc_reward = 0
-    
-            while simulator._steps <= simulator._max_steps:
-        
-                llc_action, _states = simulator.llc_model.predict(simulator.get_llcobservation(action), deterministic=True)
-                # Set control for the bm model
-                simulator.bm_model.set_ctrl(simulator._model, simulator._data, llc_action)
+            # Take a step
+            obs, r, terminated, truncated, info = simulator.step(action)
+            reward += r
 
-                # Set control for perception modules (e.g. eye movements)
-                simulator.perception.set_ctrl(simulator._model, simulator._data, action[simulator.bm_model.nu:])
-
-                # Advance the simulation
-                mujoco.mj_step(simulator._model, simulator._data, nstep=int(simulator._run_parameters["frame_skip"]))
-
-                # Update bm model (e.g. update constraints); updates also effort model
-                simulator.bm_model.update(simulator._model, simulator._data)
-
-                # Update perception modules
-                simulator.perception.update(simulator._model, simulator._data)
-   
-                dist = np.abs(action - simulator._get_qpos(simulator._model, simulator._data))
-
-                # Update environment        
-                r, terminated, truncated, info = simulator.task.update(simulator._model, simulator._data)
-        
-                # Add an effort cost to reward
-                r -= simulator.bm_model.get_effort_cost(simulator._model, simulator._data)
-                
-                #acc_reward += reward
-                # Get observation
-                obs = simulator.get_observation()
-
-                # Add frame to stack
-                if simulator._render_mode == "rgb_array_list":
-                  simulator._render_stack.append(simulator._GUI_rendering())
-                elif simulator._render_mode == "human":
-                  simulator._GUI_rendering_pygame()
-                
-                if truncated or terminated:
-                    break
-        
-                if info["new_button_generated"] or info["target_hit"]:
-                    break
-            
-                simulator._steps += 1
-                if np.all(dist < simulator._target_radius):
-                    break
-   
-            
-                # Take a step
-                #obs, r, terminated, truncated, info = simulator.step(action)
-                reward += r
-
-                if args.logging:
-                    action_logger.log(episode_idx,
+            if args.logging:
+                action_logger.log(episode_idx,
                                   {"steps": state["steps"], "timestep": state["timestep"], "action": action.copy(),
                                    "reward": r})
-                    state = simulator.get_state()
-                    state.update(info)
-                    state_logger.log(episode_idx, state)
+                state = simulator.get_state()
+                state.update(info)
+                state_logger.log(episode_idx, state)
 
-                if args.record and not terminated and not truncated:
-                    simulator._GUI_camera.write_video_add_frame(simulator.render())
+            if args.record and not terminated and not truncated:
+                simulator._GUI_camera.write_video_add_frame(simulator.render())
 
         # print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
 
