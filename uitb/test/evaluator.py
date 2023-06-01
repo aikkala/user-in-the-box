@@ -10,6 +10,8 @@ import matplotlib.pyplot as pp
 from uitb.utils.logger import StateLogger, ActionLogger
 from uitb.simulator import Simulator
 
+from uitb.bm_models.effort_models import CumulativeFatigue3CCr, ConsumedEndurance
+
 
 def natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -88,6 +90,9 @@ if __name__=="__main__":
 
   # Initialise simulator
   simulator = Simulator.get(args.simulator_folder, run_parameters=run_params)
+
+  ## Change effort model #TODO: delete
+  simulator.bm_model._effort_model = CumulativeFatigue3CCr(simulator.bm_model, dt=simulator._run_parameters["dt"])
 
   print(f"run parameters are: {simulator.run_parameters}")
 

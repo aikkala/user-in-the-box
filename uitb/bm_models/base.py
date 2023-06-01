@@ -281,6 +281,7 @@ class BaseBMModel(ABC):
     """ Returns the state of the biomechanical model (as a dict). """
     state = dict()
     state.update(self._get_state(model, data))
+    state.update(self._effort_model._get_state(model, data))
     return state
 
   @final
