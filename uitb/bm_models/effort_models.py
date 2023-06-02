@@ -204,25 +204,35 @@ class ConsumedEndurance(BaseEffortModel):
     #applied_shoulder_torque = np.linalg.norm(data.qfrc_inverse[:])
     #applied_shoulder_torque = np.linalg.norm(data.qfrc_actuator[:])
     lifting_indices = [model.actuator(_i).id for _i in self.lifting_muscles]
-    applied_shoulder_torque = data.actuator_force[lifting_indices]
-    maximum_shoulder_torque = model.actuator_gainprm[lifting_indices, 2]  #TODO: compute maximum shoulder torque differently?
+    applied_shoulder_torques = data.actuator_force[lifting_indices]
+    maximum_shoulder_torques = model.actuator_gainprm[lifting_indices, 2]
     #assert np.all(applied_shoulder_torque <= 0), "Expected only negative values in data.actuator_force."
-    strength = np.mean((applied_shoulder_torque/maximum_shoulder_torque)**2)
-    #print(applied_shoulder_torque)
+    #strength = np.mean((applied_shoulder_torques/maximum_shoulder_torques)**2)
+    strength = np.abs(applied_shoulder_torques/maximum_shoulder_torques)  #compute strength per muscle
+    # assert np.all(strength <= 1), f"Applied torque is larger than maximum torque! strength:{strength}, applied:{applied_shoulder_torques}, max:{maximum_shoulder_torques}"
+    strength = strength.clip(0, 1)
     
-    if strength > 0.15:
-        endurance = (1236.5/((strength*100 - 15)**0.618)) - 72.5
-    else:
-        endurance = np.inf
-    return endurance
+    # if strength > 0.15:
+    #     endurance = (1236.5/((strength*100 - 15)**0.618)) - 72.5
+    # else:
+    #     endurance = np.inf
+    
+    endurance = np.inf * np.ones_like(strength)
+    endurance[strength > 0.15] = (1236.5/((strength[strength > 0.15]*100 - 15)**0.618)) - 72.5
+    
+    minimum_endurance = np.min(endurance)
+    # TODO: take minimum of each muscle synergy, and then apply sum/mean
+    
+    return minimum_endurance
     
   def cost(self, model, data):
     # Calculate consumed endurance
     self._endurance = self.get_endurance(model, data)
-    total_time = data.time
+    #total_time = data.time
+    consumed_time = self._dt
     
     if self._endurance < np.inf:
-        self._consumed_endurance = (total_time/self._endurance)*100
+        self._consumed_endurance = (consumed_time/self._endurance)*100
     else:
         self._consumed_endurance = 0.0
     
@@ -235,6 +245,10 @@ class ConsumedEndurance(BaseEffortModel):
 
   def update(self, model, data):
     pass
+
+  def _get_state(self, model, data):
+    state = {"consumed_endurance": self._consumed_endurance}
+    return state
 
     
 class MuscleState(BaseEffortModel):
