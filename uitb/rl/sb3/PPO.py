@@ -1,5 +1,7 @@
 import os
 import importlib
+import numpy as np
+import pathlib
 
 from stable_baselines3 import PPO as PPO_sb3
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -38,7 +40,10 @@ class PPO(BaseRLModel):
                          batch_size=rl_config["batch_size"], target_kl=rl_config["target_kl"],
                          learning_rate=rl_config["lr"], device=rl_config["device"])
 
-
+    if "policy_init" in rl_config:
+        params = os.path.join(pathlib.Path(__file__).parent, rl_config["policy_init"])
+        self.model.policy.load_from_vector(np.load(params))
+    
     # Create a checkpoint callback
     save_freq = rl_config["save_freq"] // rl_config["num_workers"]
     checkpoint_folder = os.path.join(simulator_folder, 'checkpoints')
