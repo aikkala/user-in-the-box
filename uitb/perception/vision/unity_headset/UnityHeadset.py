@@ -4,7 +4,7 @@ from collections import deque
 import cv2
 
 from ...base import BaseModule
-from ..encoders import small_cnn
+#from ..encoders import small_cnn
 
 
 class UnityHeadset(BaseModule):
@@ -106,10 +106,14 @@ class UnityHeadset(BaseModule):
   def _reset(self, model, data):
     if self._buffer is not None:
       self._buffer.clear()
-
+  
   @property
-  def encoder(self):
-    return small_cnn(observation_shape=self._observation_shape, out_features=256)
+  def _default_encoder(self):
+    return {"module": "rl.encoders", "cls": "SmallCNN", "kwargs": {"out_features": 256}}
+  
+  # @property
+  # def encoder(self):
+  #   return small_cnn(observation_shape=self._observation_shape, out_features=256)
 
   def render(self):
     # Return only rgb channels

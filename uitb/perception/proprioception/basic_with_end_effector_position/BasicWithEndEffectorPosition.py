@@ -30,7 +30,7 @@ class BasicWithEndEffectorPosition(BaseModule):
   def _default_encoder(self):
     return {"module": "rl.encoders", "cls": "OneLayer", "kwargs": {"out_features": 128}}
 
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
 
     # Normalise qpos
     jnt_range = model.jnt_range[self._bm_model.independent_joints]

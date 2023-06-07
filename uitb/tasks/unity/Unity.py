@@ -61,6 +61,10 @@ class Unity(BaseTask):
                       "timeScale": kwargs["time_scale"]}
       self.initial_state = self._unity_client.handshake(time_options)
 
+      # Used for logging states
+      self._info = {"terminated": False,
+                  "truncated": False, "unity_image": None}
+
     # This task requires an end-effector to be defined; also, it must be a body
     # Would be nicer to have this check in the "initialise" method of this class, but not currently possible because
     # of the order in which mujoco xml files are merged (task -> bm_model -> perception).
@@ -202,7 +206,6 @@ class Unity(BaseTask):
 
   def _update(self, model, data):
 
-    info = {}
     is_finished = False
 
     # Update timestep
@@ -220,7 +223,14 @@ class Unity(BaseTask):
     if is_finished and not is_app_finished:
       raise RuntimeError("User simulation has terminated an episode but Unity app has not")
 
-    return reward, is_app_finished, {"unity_image": obs["image"]}
+    terminated = is_app_finished
+    truncated = False  #TODO: should we allow for truncation (using self._max_trials)?
+  
+    self._info["terminated"] = terminated
+    self._info["truncated"] = truncated
+    self._info["unity_image"] = obs["image"]
+
+    return reward, terminated, truncated, self._info 
 
   def get_stateful_information(self, model, data):
     return np.array([self._time])
@@ -288,7 +298,11 @@ class Unity(BaseTask):
     # Reset time feature
     self._time = obs["time"]
 
-    return {"unity_image": obs["image"]}
+    # Used for logging states
+    self._info = {"terminated": False,
+                "truncated": False, "unity_image": obs["image"]}
+
+    return self._info
 
   def close(self, evaluate_dir=None):
 
