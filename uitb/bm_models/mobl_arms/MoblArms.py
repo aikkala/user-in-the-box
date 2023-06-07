@@ -32,7 +32,7 @@ class MoblArms(BaseBMModel):
 
       # Initialise pos and quat according to the relpose for each found body.
       for idx in idxs:
-        initialise_pos_and_quat(model, data, "skull", model.eq_data[idx],
+        initialise_pos_and_quat(model, data, "skull", model.eq_data[idx][3:10],
                                 mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_BODY, model.eq_obj1id[idx]))
 
   def _update(self, model, data):
