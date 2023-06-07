@@ -55,6 +55,10 @@ class UnityHeadset(BaseModule):
 
     super().__init__(model, data, bm_model, **kwargs)
 
+    # Append the mock-up Unity camera to self._cameras to be able to display
+    # their outputs in human-view/GUI mode (used by simulator.py)
+    self._cameras.append(self)  #TODO: create a (mock-up) Camera instance that "renders" the rgb array obtained from Unity, instead of pretending that self would be a Camera (see self.render())
+
   @staticmethod
   def insert(simulation, **kwargs):
     pass
@@ -117,4 +121,11 @@ class UnityHeadset(BaseModule):
 
   def render(self):
     # Return only rgb channels
-    return self._last_obs[:,:,:3].copy()
+    # NOTE: need to return (rgb_image, depth_image) to keep the format of utils.rendering.Camera.render()
+    if self._last_obs is not None:
+      rgb_image = self._last_obs[:,:,:3].copy()
+    else:
+      rgb_image = None
+    depth_image = None
+
+    return rgb_image, depth_image

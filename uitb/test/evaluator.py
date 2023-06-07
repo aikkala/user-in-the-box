@@ -93,7 +93,7 @@ if __name__ == "__main__":
     deterministic = False
 
     # Initialise simulator
-    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array", run_parameters=run_params)
+    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array_list", run_parameters=run_params)
 
     # ## Change effort model #TODO: delete
     # simulator.bm_model._effort_model = CumulativeFatigue3CCr(simulator.bm_model, dt=simulator._run_parameters["dt"])
@@ -121,9 +121,6 @@ if __name__ == "__main__":
         # Actions are logged separately to make things easier
         action_logger = ActionLogger(args.num_episodes)
 
-    if args.record:
-        simulator._GUI_camera.write_video_set_path(os.path.join(evaluate_dir, args.out_file))
-
     # Visualise evaluations
     statistics = defaultdict(list)
     for episode_idx in range(args.num_episodes):
@@ -139,9 +136,6 @@ if __name__ == "__main__":
         if args.logging:
             state = simulator.get_state()
             state_logger.log(episode_idx, state)
-
-        if args.record:
-            simulator._GUI_camera.write_video_add_frame(simulator.render())
 
         # Loop until episode ends
         while not terminated and not truncated:
@@ -163,9 +157,6 @@ if __name__ == "__main__":
                 state.update(info)
                 state_logger.log(episode_idx, state)
 
-            if args.record and not terminated and not truncated:
-                simulator._GUI_camera.write_video_add_frame(simulator.render())
-
         # print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
 
         # episode_statistics = simulator.get_episode_statistics()
@@ -183,8 +174,14 @@ if __name__ == "__main__":
               f'{os.path.join(evaluate_dir, args.action_log_file)}.pickle')
 
     if args.record:
+        simulator._GUI_camera.write_video_set_path(os.path.join(evaluate_dir, args.out_file))
+        
         # Write the video
         # simulator._camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
+        _imgs = simulator.render()
+        for _img in _imgs:
+            simulator._GUI_camera.write_video_add_frame(_img)
+        
         simulator._GUI_camera.write_video_close()
         print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')
 

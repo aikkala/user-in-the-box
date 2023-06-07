@@ -459,7 +459,7 @@ class Simulator(gym.Env):
     if self._render_mode == "rgb_array_list":
       render_stack = self._render_stack
       if self._render_stack_pop:
-        self.render_stack = []
+        self._render_stack = []
       return render_stack
     elif self._render_mode == "rgb_array":
       return self._GUI_rendering()
