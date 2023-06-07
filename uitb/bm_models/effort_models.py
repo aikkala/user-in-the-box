@@ -199,6 +199,7 @@ class ConsumedEndurance(BaseEffortModel):
     self._weight = weight
     self._endurance = None
     self._consumed_endurance = None
+    self._effort_cost = None
     
   def get_endurance(self, model, data):
     #applied_shoulder_torque = np.linalg.norm(data.qfrc_inverse[:])
@@ -236,8 +237,8 @@ class ConsumedEndurance(BaseEffortModel):
     else:
         self._consumed_endurance = 0.0
     
-    return self._weight*self._consumed_endurance
-
+    self._effort_cost = self._weight*self._consumed_endurance
+    return self._effort_cost
 
   def reset(self, model, data):
     #WARNING: bm_model.reset() should reset simulation time (i.e., data.time==0 before the next costs are calculated)
@@ -247,7 +248,8 @@ class ConsumedEndurance(BaseEffortModel):
     pass
 
   def _get_state(self, model, data):
-    state = {"consumed_endurance": self._consumed_endurance}
+    state = {"consumed_endurance": self._consumed_endurance,
+             "effort_cost": self._effort_cost}
     return state
 
     
