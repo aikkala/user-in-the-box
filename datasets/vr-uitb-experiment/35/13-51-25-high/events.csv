@@ -1,0 +1,393 @@
+554.9979, target plane transform 0.1573811 1.397387 0.3196238 -0.3826834 0 0 0.9238796
+554.9979, grid mapping [0 0 0 -0.125  0.125 0.03238115 1.503453 0.2489131] [3 1 0 -0.125  0 0.03238115 1.415065 0.3373014] [6 2 0 -0.125  -0.125 0.03238115 1.326676 0.4256898] [1 0 1 0  0.125 0.1573811 1.503453 0.2489131] [4 1 1 0  0 0.1573811 1.415065 0.3373014] [7 2 1 0  -0.125 0.1573811 1.326676 0.4256898] [2 0 2 0.125  0.125 0.2823811 1.503453 0.2489131] [5 1 2 0.125  0 0.2823811 1.415065 0.3373014] [8 2 2 0.125  -0.125 0.2823811 1.326676 0.4256898]
+559.0215, target_spawn, target ID 0, grid ID 4
+559.3975, target_spawn, target ID 1, grid ID 7
+559.7316, target_spawn, target ID 2, grid ID 6
+560.1143, target_miss, target ID 0, grid ID 4
+560.4, target_hit, target ID 2, grid ID 6, velocity -0.03036356 -0.4704232 0.9200323
+560.4419, target_spawn, target ID 3, grid ID 3
+560.4857, target_miss, target ID 1, grid ID 7
+560.734, target_spawn, target ID 4, grid ID 2
+560.8715, target_hit, target ID 3, grid ID 3, velocity -0.327828 0.09424296 0.8851794
+561.1714, target_hit, target ID 4, grid ID 2, velocity 0.5195645 0.5024787 0.6393018
+561.1797, target_spawn, target ID 5, grid ID 6
+561.3329, target_spawn, target ID 6, grid ID 8
+561.6429, target_hit, target ID 5, grid ID 6, velocity 0.02991759 -0.5846746 1.30982
+561.8063, target_spawn, target ID 7, grid ID 0
+561.9143, target_hit, target ID 6, grid ID 8, velocity 0.5783705 -0.3081957 1.054914
+561.9594, target_spawn, target ID 8, grid ID 4
+562.2656, target_spawn, target ID 9, grid ID 7
+562.4714, target_hit, target ID 8, grid ID 4, velocity 0.4117987 -0.4412632 0.7582554
+562.6857, target_hit, target ID 9, grid ID 7, velocity 0.1226705 -1.035772 1.043316
+562.7949, target_spawn, target ID 10, grid ID 1
+562.9, target_miss, target ID 7, grid ID 0
+563.2143, target_hit, target ID 10, grid ID 1, velocity 0.5737714 0.2920759 0.5170382
+563.2543, target_spawn, target ID 11, grid ID 7
+563.4214, target_spawn, target ID 12, grid ID 6
+563.5714, target_hit, target ID 11, grid ID 7, velocity -0.06120805 -1.224454 1.169951
+563.8286, target_hit, target ID 12, grid ID 6, velocity -0.4489154 -0.4458457 0.8719988
+563.9088, target_spawn, target ID 13, grid ID 5
+564.2291, target_spawn, target ID 14, grid ID 0
+564.2571, target_hit, target ID 13, grid ID 5, velocity 0.3869959 0.216096 0.6015604
+564.5493, target_spawn, target ID 15, grid ID 4
+564.6572, target_hit, target ID 14, grid ID 0, velocity -0.2578422 0.3801457 0.6212717
+564.9429, target_hit, target ID 15, grid ID 4, velocity 0.4505799 -0.5309373 1.06602
+565.0507, target_spawn, target ID 16, grid ID 3
+565.0925, target_spawn, target ID 17, grid ID 6
+565.3986, target_spawn, target ID 18, grid ID 7
+565.4429, target_hit, target ID 16, grid ID 3, velocity 0.4030103 0.2815378 0.2882394
+565.6, target_hit, target ID 17, grid ID 6, velocity -0.02043115 -0.7482148 0.9162824
+565.7606, target_spawn, target ID 19, grid ID 1
+565.8286, target_hit, target ID 18, grid ID 7, velocity 0.4415556 -0.05508216 0.482606
+566.0808, target_spawn, target ID 20, grid ID 4
+566.1572, target_hit, target ID 19, grid ID 1, velocity 0.4243166 0.5355273 0.4338036
+566.1923, target_spawn, target ID 21, grid ID 5
+566.4, target_hit, target ID 20, grid ID 4, velocity 0.1926978 -0.7311183 1.107616
+566.4847, target_spawn, target ID 22, grid ID 0
+566.6286, target_hit, target ID 21, grid ID 5, velocity 0.4857719 0.03130127 0.7183471
+566.7214, target_spawn, target ID 23, grid ID 2
+566.9429, target_hit, target ID 22, grid ID 0, velocity -0.150862 0.1843919 0.6433274
+566.944, target_spawn, target ID 24, grid ID 4
+567.1714, target_hit, target ID 23, grid ID 2, velocity 0.8892425 -0.09438486 0.685384
+567.3618, target_spawn, target ID 25, grid ID 3
+567.3857, target_hit, target ID 24, grid ID 4, velocity 0.177481 -0.6343871 0.8317401
+567.4873, target_spawn, target ID 26, grid ID 5
+567.7656, target_spawn, target ID 27, grid ID 8
+567.7857, target_hit, target ID 25, grid ID 3, velocity -0.4166967 -0.4607126 0.8563349
+568.0428, target_hit, target ID 26, grid ID 5, velocity 0.9227597 -0.1008971 0.5334886
+568.0998, target_spawn, target ID 28, grid ID 6
+568.2429, target_hit, target ID 27, grid ID 8, velocity 0.3334871 -1.091807 1.171418
+568.5143, target_hit, target ID 28, grid ID 6, velocity -0.001732811 -0.3086436 0.6235273
+568.5872, target_spawn, target ID 29, grid ID 8
+568.643, target_spawn, target ID 30, grid ID 2
+568.9351, target_spawn, target ID 31, grid ID 4
+568.9429, target_hit, target ID 29, grid ID 8, velocity 0.2991208 -0.9574339 1.146716
+569.2, target_hit, target ID 30, grid ID 2, velocity 0.4039043 0.4552703 0.3277363
+569.3668, target_spawn, target ID 32, grid ID 5
+569.3857, target_hit, target ID 31, grid ID 4, velocity -0.1411383 -0.5923972 0.8952366
+569.5201, target_spawn, target ID 33, grid ID 0
+569.6857, target_hit, target ID 32, grid ID 5, velocity 0.7342819 -0.1356238 0.5713722
+569.8263, target_spawn, target ID 34, grid ID 6
+569.9714, target_hit, target ID 33, grid ID 0, velocity -0.1509004 0.2995374 0.5138103
+570.0211, target_spawn, target ID 35, grid ID 4
+570.2429, target_hit, target ID 34, grid ID 6, velocity 0.03448557 -1.279085 0.9696187
+570.2858, target_spawn, target ID 36, grid ID 2
+570.4572, target_hit, target ID 35, grid ID 4, velocity 0.462526 0.3583484 0.259819
+570.7714, target_hit, target ID 36, grid ID 2, velocity 0.5748639 0.3891718 0.3669864
+570.7869, target_spawn, target ID 37, grid ID 1
+571.1352, target_spawn, target ID 38, grid ID 0
+571.2286, target_hit, target ID 37, grid ID 1, velocity 0.1447923 0.5764068 0.1110108
+571.4136, target_spawn, target ID 39, grid ID 4
+571.5571, target_hit, target ID 38, grid ID 0, velocity -0.1551728 0.3001853 0.2797295
+571.7062, target_spawn, target ID 40, grid ID 6
+571.8428, target_hit, target ID 39, grid ID 4, velocity 0.4375523 -0.7677604 1.080364
+572.0542, target_spawn, target ID 41, grid ID 3
+572.1, target_hit, target ID 40, grid ID 6, velocity -0.08895785 -0.8484089 0.8987154
+572.3605, target_spawn, target ID 42, grid ID 4
+572.4163, target_spawn, target ID 43, grid ID 2
+572.4429, target_hit, target ID 41, grid ID 3, velocity -0.2284795 0.208385 0.5913931
+572.7286, target_hit, target ID 42, grid ID 4, velocity 0.3132523 -0.3222713 0.8870283
+572.8757, target_spawn, target ID 44, grid ID 3
+572.9857, target_hit, target ID 43, grid ID 2, velocity 0.6698813 0.2630553 0.5133712
+573.0427, target_spawn, target ID 45, grid ID 4
+573.2857, target_hit, target ID 44, grid ID 3, velocity -0.322836 -0.3223445 0.887437
+573.3715, target_hit, target ID 45, grid ID 4, velocity 0.1841626 0.1626977 -0.148424
+573.4466, target_spawn, target ID 46, grid ID 2
+573.9479, target_spawn, target ID 47, grid ID 3
+573.962, target_spawn, target ID 48, grid ID 7
+574, target_hit, target ID 46, grid ID 2, velocity 0.4484754 0.532367 0.3267192
+574.3236, target_spawn, target ID 49, grid ID 5
+574.3857, target_hit, target ID 48, grid ID 7, velocity 0.1961407 -0.7683926 0.8449231
+574.6572, target_hit, target ID 47, grid ID 3, velocity -0.03862408 -0.006474108 0.4658414
+574.7135, target_spawn, target ID 50, grid ID 4
+574.9, target_hit, target ID 49, grid ID 5, velocity 0.4885325 -0.2895533 0.6927066
+575.1143, target_hit, target ID 50, grid ID 4, velocity 0.01776803 -0.1194748 0.7561914
+575.1451, target_spawn, target ID 51, grid ID 0
+575.2567, target_spawn, target ID 52, grid ID 5
+575.4374, target_spawn, target ID 53, grid ID 1
+575.6429, target_hit, target ID 51, grid ID 0, velocity 0.0110043 0.4022912 0.4877239
+575.7143, target_hit, target ID 53, grid ID 1, velocity 0.4443639 0.03646089 -0.1709781
+575.8857, target_hit, target ID 52, grid ID 5, velocity 0.2895419 -0.4961125 0.8421587
+575.9669, target_spawn, target ID 54, grid ID 2
+576.1339, target_spawn, target ID 55, grid ID 6
+576.3982, target_spawn, target ID 56, grid ID 8
+576.4, target_hit, target ID 54, grid ID 2, velocity 0.2528943 0.1567235 0.3373722
+576.6714, target_hit, target ID 55, grid ID 6, velocity 0.262344 -0.7318408 0.7575978
+576.7185, target_spawn, target ID 57, grid ID 2
+576.8715, target_hit, target ID 56, grid ID 8, velocity 0.6423249 -0.3830382 0.4393559
+576.9971, target_spawn, target ID 58, grid ID 3
+577.2286, target_hit, target ID 57, grid ID 2, velocity 0.2089112 0.447533 0.1619959
+577.3312, target_spawn, target ID 59, grid ID 8
+577.4572, target_hit, target ID 58, grid ID 3, velocity -0.2951113 -0.547173 0.9573984
+577.5958, target_spawn, target ID 60, grid ID 0
+577.7714, target_hit, target ID 59, grid ID 8, velocity 0.3829558 -0.8638412 0.8909951
+577.9996, target_spawn, target ID 61, grid ID 5
+578.1, target_hit, target ID 60, grid ID 0, velocity -0.3646737 0.205522 0.461407
+578.3755, target_spawn, target ID 62, grid ID 7
+578.3857, target_hit, target ID 61, grid ID 5, velocity 0.7505753 -0.5816836 0.8011746
+578.7286, target_hit, target ID 62, grid ID 7, velocity 0.02161404 -1.051828 0.7943364
+578.8769, target_spawn, target ID 63, grid ID 0
+579.044, target_spawn, target ID 64, grid ID 4
+579.1692, target_spawn, target ID 65, grid ID 6
+579.2714, target_hit, target ID 63, grid ID 0, velocity 0.02708755 0.750447 0.3501588
+579.5143, target_hit, target ID 64, grid ID 4, velocity 0.672924 -0.6071525 0.8072312
+579.5867, target_spawn, target ID 66, grid ID 8
+579.7286, target_hit, target ID 65, grid ID 6, velocity 0.02323033 -0.5429943 0.8078914
+579.8375, target_spawn, target ID 67, grid ID 4
+580.0143, target_hit, target ID 66, grid ID 8, velocity 0.492215 -0.5472488 0.8439368
+580.13, target_spawn, target ID 68, grid ID 1
+580.2571, target_hit, target ID 67, grid ID 4, velocity 0.01445308 0.1701909 0.4899906
+580.3387, target_spawn, target ID 69, grid ID 0
+580.5286, target_hit, target ID 68, grid ID 1, velocity 0.4376404 0.3961364 0.3480317
+580.8122, target_spawn, target ID 70, grid ID 5
+580.993, target_spawn, target ID 71, grid ID 8
+581.2, target_hit, target ID 69, grid ID 0, velocity -0.05216078 0.09781283 0.6677306
+581.4143, target_hit, target ID 70, grid ID 5, velocity 0.575928 -0.6792545 1.074547
+581.5223, target_spawn, target ID 72, grid ID 0
+581.6286, target_hit, target ID 71, grid ID 8, velocity -0.03779404 -1.118996 0.9672221
+581.7311, target_spawn, target ID 73, grid ID 2
+582.0714, target_hit, target ID 72, grid ID 0, velocity 0.0641042 0.1448036 0.5178904
+582.0792, target_spawn, target ID 74, grid ID 1
+582.3428, target_hit, target ID 73, grid ID 2, velocity 0.4815686 0.084567 0.5744268
+582.4272, target_spawn, target ID 75, grid ID 8
+582.5428, target_hit, target ID 74, grid ID 1, velocity 0.06107606 -0.1102964 0.7172012
+582.8312, target_spawn, target ID 76, grid ID 5
+582.8571, target_hit, target ID 75, grid ID 8, velocity 0.4148241 -1.12255 1.098514
+583.0122, target_spawn, target ID 77, grid ID 6
+583.1572, target_hit, target ID 76, grid ID 5, velocity 0.2797403 -0.02639521 0.6733532
+583.3044, target_spawn, target ID 78, grid ID 0
+583.4572, target_hit, target ID 77, grid ID 6, velocity -0.300615 -0.7612494 0.7321671
+583.4716, target_spawn, target ID 79, grid ID 4
+583.7778, target_spawn, target ID 80, grid ID 7
+583.8143, target_hit, target ID 78, grid ID 0, velocity -0.002485586 0.2971008 0.4524532
+584.0286, target_hit, target ID 79, grid ID 4, velocity 0.4753799 -0.73985 0.9346474
+584.0714, target_hit, target ID 80, grid ID 7, velocity 0.431101 -0.6017697 0.2439711
+584.2376, target_spawn, target ID 81, grid ID 0
+584.5019, target_spawn, target ID 82, grid ID 4
+584.6, target_hit, target ID 81, grid ID 0, velocity -0.4254876 0.6287305 0.2648817
+584.8571, target_hit, target ID 82, grid ID 4, velocity 0.4968881 -0.6435899 0.436543
+584.9057, target_spawn, target ID 83, grid ID 6
+585.1285, target_spawn, target ID 84, grid ID 5
+585.2143, target_hit, target ID 83, grid ID 6, velocity -0.3126097 -0.7755675 0.882085
+585.5184, target_spawn, target ID 85, grid ID 0
+585.5323, target_spawn, target ID 86, grid ID 7
+585.5857, target_hit, target ID 84, grid ID 5, velocity 0.1693931 0.06034122 0.4532625
+585.9, target_hit, target ID 86, grid ID 7, velocity 0.3517384 -1.168074 1.375611
+585.9639, target_spawn, target ID 87, grid ID 3
+586.2283, target_spawn, target ID 88, grid ID 6
+586.2286, target_hit, target ID 85, grid ID 0, velocity -0.04638302 0.3087116 0.669322
+586.4286, target_hit, target ID 87, grid ID 3, velocity 0.01693295 -0.8525736 0.9380659
+586.4572, target_hit, target ID 88, grid ID 6, velocity 0.1976327 -0.9489992 0.7605689
+586.5488, target_spawn, target ID 89, grid ID 7
+586.7436, target_spawn, target ID 90, grid ID 0
+586.9143, target_hit, target ID 89, grid ID 7, velocity 0.3523226 -0.2374551 0.5646085
+586.9804, target_spawn, target ID 91, grid ID 6
+587.2286, target_hit, target ID 90, grid ID 0, velocity -0.1152906 0.4282303 0.7200332
+587.4121, target_spawn, target ID 92, grid ID 8
+587.4286, target_hit, target ID 91, grid ID 6, velocity 0.1043869 -1.319564 1.039921
+587.7184, target_spawn, target ID 93, grid ID 3
+587.7429, target_hit, target ID 92, grid ID 8, velocity 0.9859246 -0.5803053 1.037883
+588.0714, target_hit, target ID 93, grid ID 3, velocity -0.2896641 0.6939186 -0.06975359
+588.1222, target_spawn, target ID 94, grid ID 7
+588.4143, target_hit, target ID 94, grid ID 7, velocity 0.7631252 -0.7441184 0.8490723
+588.4704, target_spawn, target ID 95, grid ID 2
+588.8715, target_hit, target ID 95, grid ID 2, velocity 0.4888139 0.5485333 0.5573175
+588.916, target_spawn, target ID 96, grid ID 0
+589.0552, target_spawn, target ID 97, grid ID 5
+589.3428, target_hit, target ID 96, grid ID 0, velocity 0.018962 0.3773161 0.4423669
+589.4589, target_spawn, target ID 98, grid ID 8
+589.6, target_hit, target ID 97, grid ID 5, velocity 0.9267468 -0.6433805 0.7803914
+589.8143, target_hit, target ID 98, grid ID 8, velocity 0.4941863 -0.9646167 0.7245237
+589.8765, target_spawn, target ID 99, grid ID 6
+589.9324, target_spawn, target ID 100, grid ID 1
+590.2429, target_hit, target ID 99, grid ID 6, velocity -0.1171076 -0.849502 1.009987
+590.4057, target_spawn, target ID 101, grid ID 5
+590.5143, target_hit, target ID 100, grid ID 1, velocity 0.3892509 0.3961951 0.4730625
+590.726, target_spawn, target ID 102, grid ID 3
+590.7571, target_hit, target ID 101, grid ID 5, velocity 0.6400548 -0.6487548 0.9956641
+590.9766, target_spawn, target ID 103, grid ID 7
+591.1857, target_hit, target ID 102, grid ID 3, velocity 0.04338303 -0.1852696 0.6367642
+591.4143, target_hit, target ID 103, grid ID 7, velocity 0.6924942 -0.8565533 0.8208811
+591.4359, target_spawn, target ID 104, grid ID 2
+591.8143, target_hit, target ID 104, grid ID 2, velocity 0.5401084 0.5101613 0.3239297
+591.8956, target_spawn, target ID 105, grid ID 3
+592.2857, target_hit, target ID 105, grid ID 3, velocity 0.1172227 0.2412617 -0.0441311
+592.3272, target_spawn, target ID 106, grid ID 2
+592.4386, target_spawn, target ID 107, grid ID 4
+592.6055, target_spawn, target ID 108, grid ID 8
+592.7571, target_hit, target ID 107, grid ID 4, velocity -0.1094099 -0.2437903 0.8803117
+593.0286, target_hit, target ID 106, grid ID 2, velocity 0.5786659 0.2424664 0.4629207
+593.079, target_spawn, target ID 109, grid ID 5
+593.2286, target_hit, target ID 109, grid ID 5, velocity 0.2777612 -1.390026 1.293025
+593.2429, target_hit, target ID 108, grid ID 8, velocity 0.1186565 -1.497944 1.443493
+593.3437, target_spawn, target ID 110, grid ID 0
+593.5524, target_spawn, target ID 111, grid ID 4
+593.8, target_hit, target ID 110, grid ID 0, velocity -0.1809712 0.2903638 0.5578038
+594, target_hit, target ID 111, grid ID 4, velocity 0.563122 -0.6785294 0.7051512
+594.012, target_spawn, target ID 112, grid ID 5
+594.3428, target_hit, target ID 112, grid ID 5, velocity 0.6272402 -0.2139063 0.7973021
+594.4297, target_spawn, target ID 113, grid ID 7
+594.5688, target_spawn, target ID 114, grid ID 4
+594.6662, target_spawn, target ID 115, grid ID 5
+594.7286, target_hit, target ID 113, grid ID 7, velocity 0.2775469 -0.7815586 0.9558447
+594.9857, target_hit, target ID 114, grid ID 4, velocity 0.1726694 0.3192437 0.2534334
+595.0562, target_spawn, target ID 116, grid ID 2
+595.1857, target_hit, target ID 115, grid ID 5, velocity 0.5000253 -0.2289655 0.5538691
+595.3904, target_spawn, target ID 117, grid ID 7
+595.4429, target_hit, target ID 116, grid ID 2, velocity 0.1839415 0.4455209 0.2018272
+595.5015, target_spawn, target ID 118, grid ID 4
+595.7286, target_hit, target ID 117, grid ID 7, velocity -0.06421919 -1.498573 1.456403
+595.7661, target_spawn, target ID 119, grid ID 6
+595.9714, target_hit, target ID 118, grid ID 4, velocity 0.1440709 0.3836805 0.2661161
+596.1005, target_spawn, target ID 120, grid ID 5
+596.1857, target_hit, target ID 119, grid ID 6, velocity -0.2832313 -1.125664 0.8921456
+596.4625, target_spawn, target ID 121, grid ID 1
+596.4714, target_hit, target ID 120, grid ID 5, velocity 0.8867754 0.1530476 0.4697187
+596.6295, target_spawn, target ID 122, grid ID 0
+596.7857, target_hit, target ID 121, grid ID 1, velocity 0.2277754 0.4373063 0.460016
+597.0286, target_hit, target ID 122, grid ID 0, velocity -0.2358646 -0.2071789 0.8152213
+597.0333, target_spawn, target ID 123, grid ID 7
+597.3536, target_spawn, target ID 124, grid ID 5
+597.3571, target_hit, target ID 123, grid ID 7, velocity 0.0468498 -1.30846 1.115974
+597.5764, target_spawn, target ID 125, grid ID 1
+597.6857, target_hit, target ID 124, grid ID 5, velocity 0.6287377 -0.1103887 0.7745071
+597.9524, target_spawn, target ID 126, grid ID 8
+597.9572, target_hit, target ID 125, grid ID 1, velocity 0.2385693 0.5431569 0.2264677
+598.0081, target_spawn, target ID 127, grid ID 6
+598.2725, target_spawn, target ID 128, grid ID 4
+598.3286, target_hit, target ID 126, grid ID 8, velocity 0.5554797 -1.207038 1.113276
+598.5714, target_hit, target ID 127, grid ID 6, velocity -0.3741771 -0.5635723 0.8170307
+598.6857, target_hit, target ID 128, grid ID 4, velocity 0.4042557 0.640963 -0.5395764
+598.7321, target_spawn, target ID 129, grid ID 5
+598.9548, target_spawn, target ID 130, grid ID 3
+599.0286, target_hit, target ID 129, grid ID 5, velocity 0.8271526 -0.2194522 0.6987373
+599.3286, target_hit, target ID 130, grid ID 3, velocity -0.5396206 -0.3146178 0.639987
+599.4005, target_spawn, target ID 131, grid ID 5
+599.6788, target_spawn, target ID 132, grid ID 3
+599.7571, target_hit, target ID 131, grid ID 5, velocity 0.7670102 -0.1444509 0.8010885
+600.027, target_spawn, target ID 133, grid ID 8
+600.0428, target_hit, target ID 132, grid ID 3, velocity -0.2972142 -0.2370723 0.5703652
+600.4, target_hit, target ID 133, grid ID 8, velocity 0.2240663 -0.8089654 0.8044686
+600.4168, target_spawn, target ID 134, grid ID 6
+600.8346, target_spawn, target ID 135, grid ID 7
+600.8571, target_hit, target ID 134, grid ID 6, velocity 0.1424389 -0.9171934 0.7204731
+600.9181, target_spawn, target ID 136, grid ID 0
+601.1825, target_spawn, target ID 137, grid ID 8
+601.2429, target_hit, target ID 135, grid ID 7, velocity -0.06183385 -0.8543732 0.9253544
+601.5286, target_hit, target ID 136, grid ID 0, velocity 0.03868798 0.182262 0.4601657
+601.5584, target_spawn, target ID 138, grid ID 7
+601.7714, target_hit, target ID 137, grid ID 8, velocity 0.7975478 -1.204263 1.072872
+601.8511, target_spawn, target ID 139, grid ID 3
+602.0714, target_hit, target ID 138, grid ID 7, velocity 0.2725428 -0.122281 0.3899727
+602.0876, target_spawn, target ID 140, grid ID 2
+602.3857, target_hit, target ID 139, grid ID 3, velocity 0.03804637 0.04369454 0.5546608
+602.5471, target_spawn, target ID 141, grid ID 5
+602.6714, target_hit, target ID 140, grid ID 2, velocity 0.3396744 -0.08710402 0.6973027
+602.7001, target_spawn, target ID 142, grid ID 4
+602.9286, target_hit, target ID 141, grid ID 5, velocity 0.6719418 -0.5985157 0.8008935
+602.9927, target_spawn, target ID 143, grid ID 1
+603.1714, target_hit, target ID 142, grid ID 4, velocity -0.1156516 -0.007549902 0.4517601
+603.4572, target_hit, target ID 143, grid ID 1, velocity 0.1010258 0.2554214 0.1973359
+603.4939, target_spawn, target ID 144, grid ID 3
+603.8701, target_spawn, target ID 145, grid ID 8
+603.8715, target_hit, target ID 144, grid ID 3, velocity -0.1780098 -0.2660714 0.5842539
+603.9119, target_spawn, target ID 146, grid ID 6
+604.2458, target_spawn, target ID 147, grid ID 1
+604.2571, target_hit, target ID 145, grid ID 8, velocity 0.3377037 -0.8921704 1.019034
+604.4857, target_hit, target ID 146, grid ID 6, velocity -0.5894094 -0.5608823 0.7783627
+604.7192, target_spawn, target ID 148, grid ID 2
+604.7429, target_hit, target ID 147, grid ID 1, velocity 0.3358616 0.5949369 0.0934661
+605.1714, target_hit, target ID 148, grid ID 2, velocity 0.4551194 0.3699585 0.4116855
+605.1927, target_spawn, target ID 149, grid ID 5
+605.2206, target_spawn, target ID 150, grid ID 0
+605.5825, target_spawn, target ID 151, grid ID 3
+605.6714, target_hit, target ID 150, grid ID 0, velocity 0.02609207 0.2620656 0.437906
+605.8715, target_hit, target ID 149, grid ID 5, velocity 0.8511099 -0.7232389 0.762464
+605.9863, target_spawn, target ID 152, grid ID 7
+606.1429, target_hit, target ID 151, grid ID 3, velocity -0.3580559 -0.1375253 0.5294532
+606.3428, target_hit, target ID 152, grid ID 7, velocity 0.5101001 -0.8313823 0.5751082
+606.4319, target_spawn, target ID 153, grid ID 0
+606.7661, target_spawn, target ID 154, grid ID 4
+606.8428, target_hit, target ID 153, grid ID 0, velocity -0.1124618 0.3246806 0.6225088
+607.0865, target_spawn, target ID 155, grid ID 1
+607.1286, target_hit, target ID 154, grid ID 4, velocity 0.5224538 -0.6534271 0.8641874
+607.1699, target_spawn, target ID 156, grid ID 3
+607.4482, target_spawn, target ID 157, grid ID 0
+607.5571, target_hit, target ID 155, grid ID 1, velocity -0.06054794 0.3598007 0.5024585
+607.7286, target_hit, target ID 156, grid ID 3, velocity 0.07268511 -0.6565941 0.8884574
+607.88, target_spawn, target ID 158, grid ID 1
+607.9857, target_hit, target ID 157, grid ID 0, velocity 0.08676529 0.4003059 0.2271733
+608.0471, target_spawn, target ID 159, grid ID 7
+608.3116, target_spawn, target ID 160, grid ID 5
+608.4, target_hit, target ID 158, grid ID 1, velocity 0.2774353 0.6105427 0.2348865
+608.6572, target_hit, target ID 159, grid ID 7, velocity 0.219681 -1.506224 1.017753
+608.7571, target_spawn, target ID 161, grid ID 4
+608.8857, target_hit, target ID 160, grid ID 5, velocity 0.3816083 0.3124506 0.1580094
+608.9799, target_spawn, target ID 162, grid ID 6
+609.1286, target_hit, target ID 161, grid ID 4, velocity -0.07815961 -0.2240771 0.4890468
+609.2584, target_spawn, target ID 163, grid ID 5
+609.4429, target_hit, target ID 162, grid ID 6, velocity 0.2586932 0.01250832 0.2496255
+609.5229, target_spawn, target ID 164, grid ID 7
+609.7714, target_hit, target ID 163, grid ID 5, velocity 0.484031 -0.2480341 0.7104223
+609.9268, target_spawn, target ID 165, grid ID 8
+609.9714, target_hit, target ID 164, grid ID 7, velocity -0.07906251 -0.8721613 0.8755969
+610.2888, target_spawn, target ID 166, grid ID 4
+610.4, target_hit, target ID 165, grid ID 8, velocity 0.2360349 -1.159293 1.132068
+610.6369, target_spawn, target ID 167, grid ID 2
+610.6714, target_hit, target ID 166, grid ID 4, velocity 0.02226175 0.1527381 0.2717459
+611.0286, target_hit, target ID 167, grid ID 2, velocity 0.2477627 0.4890168 0.4785327
+611.0406, target_spawn, target ID 168, grid ID 1
+611.1243, target_spawn, target ID 169, grid ID 8
+611.3428, target_hit, target ID 168, grid ID 1, velocity 0.2192703 0.01123266 0.7803357
+611.3468, target_spawn, target ID 170, grid ID 0
+611.6286, target_hit, target ID 169, grid ID 8, velocity 0.333745 -1.191692 0.8535093
+611.8343, target_spawn, target ID 171, grid ID 6
+611.9572, target_hit, target ID 170, grid ID 0, velocity -0.2683936 0.1806645 0.5493916
+612.0153, target_spawn, target ID 172, grid ID 8
+612.2, target_hit, target ID 171, grid ID 6, velocity -0.04320062 -1.429025 1.121341
+612.2797, target_spawn, target ID 173, grid ID 2
+612.4857, target_hit, target ID 172, grid ID 8, velocity 0.6890845 -0.2919158 0.4896999
+612.5165, target_spawn, target ID 174, grid ID 1
+612.7857, target_hit, target ID 173, grid ID 2, velocity 0.3585846 0.3779462 0.2890381
+612.8088, target_spawn, target ID 175, grid ID 8
+612.8715, target_hit, target ID 174, grid ID 1, velocity -0.5660278 0.1999983 -0.321071
+613.2405, target_spawn, target ID 176, grid ID 1
+613.2429, target_hit, target ID 175, grid ID 8, velocity 0.4837473 -1.184715 1.019835
+613.6857, target_hit, target ID 176, grid ID 1, velocity -0.03650322 0.3991624 0.1224592
+613.7281, target_spawn, target ID 177, grid ID 3
+614.0202, target_spawn, target ID 178, grid ID 8
+614.0621, target_spawn, target ID 179, grid ID 5
+614.1429, target_hit, target ID 177, grid ID 3, velocity -0.06137301 -0.07942658 0.6400625
+614.4659, target_spawn, target ID 180, grid ID 3
+614.5143, target_hit, target ID 179, grid ID 5, velocity 0.4301411 -0.1307313 0.1315926
+614.6286, target_hit, target ID 178, grid ID 8, velocity 0.1624022 -0.631897 0.4115702
+614.8419, target_spawn, target ID 181, grid ID 4
+614.9532, target_spawn, target ID 182, grid ID 8
+615.0571, target_hit, target ID 180, grid ID 3, velocity -0.1462238 0.1678556 0.5792276
+615.2571, target_hit, target ID 181, grid ID 4, velocity 0.4810952 -0.3463969 0.5921979
+615.3849, target_spawn, target ID 183, grid ID 2
+615.4572, target_hit, target ID 182, grid ID 8, velocity 0.5302202 -0.8453209 0.7546997
+615.5797, target_spawn, target ID 184, grid ID 4
+615.8286, target_hit, target ID 183, grid ID 2, velocity 0.3302973 0.4851948 0.3327787
+615.9557, target_spawn, target ID 185, grid ID 8
+616.0286, target_hit, target ID 184, grid ID 4, velocity -0.1583294 -0.824371 1.012722
+616.1507, target_spawn, target ID 186, grid ID 2
+616.3286, target_hit, target ID 185, grid ID 8, velocity 0.1481851 -1.006273 1.027885
+616.3874, target_spawn, target ID 187, grid ID 6
+616.6429, target_hit, target ID 186, grid ID 2, velocity 0.3044943 0.5183846 0.2864764
+616.6518, target_spawn, target ID 188, grid ID 5
+616.9286, target_hit, target ID 187, grid ID 6, velocity -0.1750404 -1.233519 1.02732
+617.0975, target_spawn, target ID 189, grid ID 0
+617.1714, target_hit, target ID 188, grid ID 5, velocity 0.6821524 -0.02055343 0.5167677
+617.4594, target_spawn, target ID 190, grid ID 6
+617.4857, target_hit, target ID 189, grid ID 0, velocity -0.1947989 0.07456723 0.6992012
+617.724, target_spawn, target ID 191, grid ID 4
+617.8076, target_spawn, target ID 192, grid ID 5
+617.9, target_hit, target ID 190, grid ID 6, velocity 0.1492748 -0.4971569 0.7250846
+618.1, target_hit, target ID 191, grid ID 4, velocity 0.4631453 -0.001484782 0.4925842
+618.2253, target_spawn, target ID 193, grid ID 2
+618.3286, target_hit, target ID 192, grid ID 5, velocity 0.5480397 -0.2474522 0.6665744
+618.6143, target_hit, target ID 193, grid ID 2, velocity 0.3280044 0.3860135 0.3350696
+618.6709, target_spawn, target ID 194, grid ID 3
+618.838, target_spawn, target ID 195, grid ID 0
+619.0188, episode statistics, contacts 0, hits 191, misses 3, hit rate 0.9845361

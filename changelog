@@ -1,0 +1,8 @@
+1.0.1
+  - Added a uitb.rl.encoders.BaseEncoder. Encoders that are used with stable baselines training should inherit from this class.
+  - Added a convenience function `importer` to uitb.utils.functions, which can be used to import and instantiate classes and functions from modules.
+  - get_stateful_information should now return an empty array instead of a None when there are no stateful information used in a task
+
+
+1.1.0
+- Breaking change: Added kwargs to close(**kwars) method. Previous versions do not accept arguments for close() method.

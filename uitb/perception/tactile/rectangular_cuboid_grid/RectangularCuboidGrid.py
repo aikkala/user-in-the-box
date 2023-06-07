@@ -89,7 +89,7 @@ class RectangularCuboidGrid(BaseModule):
       # Add sensors
       sensors.append(ET.Element("touch", name=f"{kwargs['geom']}-touch-{i}", site=site_name))
 
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
     obs = np.zeros(len(self._sensors),)
     for idx, sensor in enumerate(self._sensors):
       obs[idx] = data.sensor(sensor).data / 100

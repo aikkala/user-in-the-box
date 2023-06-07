@@ -10,6 +10,8 @@
     </default>
     <asset>
         <mesh name="thorax" file="assets/thorax.stl" />
+        <mesh name="skull" file="assets/skull.stl" />
+        <mesh name="spine" file="assets/spine.stl" />
         <mesh name="clavicle" file="assets/clavicle.stl" />
         <mesh name="scapula" file="assets/scapula.stl" />
         <mesh name="humerus" file="assets/humerus.stl" />
@@ -46,9 +48,14 @@
     <worldbody>
         <camera name="for_testing" pos="-0.8 -0.6 1.5" euler="0.7 -1.0 -0.7"/>
         <body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0" childclass="mobl-arms">
-            <inertial pos="-0.0194693 -0.124635 3.52071e-05" quat="0.982593 0.00053772 0.000250291 0.185769" mass="8.01418" diaginertia="0.0768128 0.0574863 0.0458735" />
+            <!-- The original inertial properties are commented out because I have added a spine and a skull into this body. MuJoCo will estimate the inertial properties !-->
+            <!--inertial pos="-0.0194693 -0.124635 3.52071e-05" quat="0.982593 0.00053772 0.000250291 0.185769" mass="8.01418" diaginertia="0.0768128 0.0574863 0.0458735" /!-->
             <joint name="r_z" pos="0 0 0" axis="0 0 1" stiffness="0" range="-6.28319 6.28319" armature="0" damping="0" />
             <geom name="thorax" type="mesh" mesh="thorax" />
+            <geom name="spine" type="mesh" mesh="spine"/>
+            <body name="skull">
+                <geom name="skull" type="mesh" mesh="skull"/>
+            </body>
             <site name="PECM1-P3" pos="-7e-05 0.00821 0.10454" />
             <site name="PECM2-P4" pos="0.03091 -0.03922 0.09705" />
             <site name="PECM2-P5" pos="0.02769 -0.04498 0.02271" />

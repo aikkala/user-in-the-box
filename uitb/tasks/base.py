@@ -97,7 +97,7 @@ class BaseTask(ABC):
     Returns:
       A dict containing information about the states of the task/environment
     """
-    pass
+    return dict()
 
 
   ############ The methods below are overwritable but often don't need to be overwritten ############
@@ -184,6 +184,7 @@ class BaseTask(ABC):
     shutil.copyfile(base_file, os.path.join(dst, base_file.name))
 
     # Create an __init__.py file with the relevant import
+    # Create an __init__.py file with the relevant import
     modules = cls.__module__.split(".")
     with open(os.path.join(dst, "__init__.py"), "w") as file:
       file.write("from ." + ".".join(modules[2:]) + " import " + cls.__name__)
@@ -211,6 +212,8 @@ class BaseTask(ABC):
     # Parse xml file and return the tree
     return ET.parse(cls.get_xml_file())
 
+  def close(self, **kwargs):
+    pass
 
   ############ The methods below you should not overwrite ############
 
@@ -225,7 +228,9 @@ class BaseTask(ABC):
   def reset(self, model, data):
     """ Resets the number of steps taken and the task/environment. """
     self._steps = 0
-    self._reset(model, data)
+    info = self._reset(model, data)
+    mujoco.mj_forward(model, data)
+    return info
 
   @final
   def get_state(self, model, data):

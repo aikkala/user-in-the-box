@@ -92,6 +92,9 @@ if __name__=="__main__":
                          timeout=30, default="")
     config["simulator_name"] = name.replace("-", "_")
 
+  # Get project name
+  project = config.get("project", "uitb")
+
   # Prepare evaluation by storing custom log tags
   with_evaluation = args.eval is not None
   eval_freq = args.eval
@@ -100,7 +103,7 @@ if __name__=="__main__":
   # Initialise wandb
   if wandb_id is None:
     wandb_id = wandb.util.generate_id()
-  run = wandb.init(id=wandb_id, resume="allow", project="uitb", name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
+  run = wandb.init(id=wandb_id, resume="allow", project=project, name=name, config=config, sync_tensorboard=True, save_code=True, dir=output_path())
 
   # Initialise RL model
   rl_cls = simulator.get_class("rl", config["rl"]["algorithm"])
@@ -112,6 +115,7 @@ if __name__=="__main__":
   #           base_path=os.path.join(model_folder, run.name, 'checkpoints'))
 
   # Start the training
+  # rl_model.learn(WandbCallback(verbose=2))
   rl_model.learn(WandbCallback(verbose=2),
                  with_evaluation=with_evaluation, eval_freq=eval_freq, eval_info_keywords=eval_info_keywords)
   run.finish()

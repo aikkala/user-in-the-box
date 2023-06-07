@@ -97,7 +97,7 @@ class FixedEye(BaseModule):
       assert eye_body is not None, f"Body with name {body} was not found"
       eye_body.append(eye)
 
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
 
     # Get rgb and depth arrays
     rgb, depth = self.camera_fixed_eye.render()
@@ -133,3 +133,12 @@ class FixedEye(BaseModule):
   def _reset(self, model, data):
     if self._buffer is not None:
       self._buffer.clear()
+
+  @property
+  def encoder(self):
+    return small_cnn(observation_shape=self._observation_shape, out_features=256)
+
+  # Should perhaps create a base class for vision modules and define an abstract render function
+  def render(self):
+    img, _ = self._camera.render()
+    return img

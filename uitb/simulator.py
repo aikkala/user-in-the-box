@@ -131,7 +131,7 @@ class Simulator(gym.Env):
 
     # Initialise the simulator
     model, _, _, _, _, _ = \
-      cls._initialise(config, simulator_folder, run_parameters)
+      cls._initialise(config, simulator_folder, {**run_parameters, "build": True})
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
     # mujoco only is able to save the latest loaded xml file (which is either the task or bm model xml files which are
@@ -213,11 +213,18 @@ class Simulator(gym.Env):
       module_kwargs = module_cfg.get("kwargs", {})
       perception_modules[module_cls] = module_kwargs
 
-    # Get xml file
-    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation.xml")
+    # Get simulation file
+    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation")
 
-    # Load the mujoco model
-    model = mujoco.MjModel.from_xml_path(simulation_file)
+    # Load the mujoco model; try first with the binary model (faster, contains some parameters that may be lost when
+    # re-saving xml files like body mass). For some reason the binary model fails to load in some situations (like
+    # when the simulator has been built on a different computer)
+    # TODO loading from binary disabled, weird problems (like a body not found from model when loaded from binary, but
+    #  found correctly when model loaded from xml)
+    # try:
+    #  model = mujoco.MjModel.from_binary_path(simulation_file + ".mjcf")
+    # except: # TODO what was the exception type
+    model = mujoco.MjModel.from_xml_path(simulation_file + ".xml")
 
     # Initialise MjData
     data = mujoco.MjData(model)
@@ -398,7 +405,7 @@ class Simulator(gym.Env):
     reward -= self.bm_model.get_effort_cost(self._model, self._data)
 
     # Get observation
-    obs = self.get_observation()
+    obs = self.get_observation(info)
 
     # Add frame to stack
     if self._render_mode == "rgb_array_list":
@@ -408,7 +415,7 @@ class Simulator(gym.Env):
 
     return obs, reward, terminated, truncated, info
 
-  def get_observation(self):
+  def get_observation(self, info=None):
     """ Returns an observation from the perception model.
 
     Returns:
@@ -416,7 +423,7 @@ class Simulator(gym.Env):
     """
 
     # Get observation from perception
-    observation = self.perception.get_observation(self._model, self._data)
+    observation = self.perception.get_observation(self._model, self._data, info)
 
     # Add any stateful information that is required
     stateful_information = self.task.get_stateful_information(self._model, self._data)
@@ -602,3 +609,13 @@ class Simulator(gym.Env):
     state.update(self.perception.get_state(self._model, self._data))
 
     return state
+
+  def close(self, **kwargs):
+    """ Perform any necessary clean up.
+
+    This function is inherited from gym.Env. It should be automatically called when this object is garbage collected
+     or the program exists, but that doesn't seem to be the case. This function will be called if this object has been
+     initialised in the context manager fashion (i.e. using the 'with' statement). """
+    self.task.close(**kwargs)
+    self.perception.close(**kwargs)
+    self.bm_model.close(**kwargs)

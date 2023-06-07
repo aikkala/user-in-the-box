@@ -72,7 +72,7 @@ class BaseModule(ABC):
     pass
 
   @abstractmethod
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
     """ Return an observation from this perception module. These observations are used for RL training.
 
     Returns:
@@ -167,6 +167,9 @@ class BaseModule(ABC):
       shutil.copytree(os.path.join(src, "assets"), os.path.join(simulator_folder, package_name, "assets"),
                       dirs_exist_ok=True)
 
+  def close(self, **kwargs):
+    """ Perform any necessary clean up. """
+    pass
 
   ############ The methods below you should not overwrite ############
 
@@ -175,6 +178,7 @@ class BaseModule(ABC):
     """ Reset (and update) the perception module. """
     self._reset(model, data)
     self._update(model, data)
+    mujoco.mj_forward(model, data)
 
   @final
   def update(self, model, data):
@@ -312,12 +316,17 @@ class Perception:
       state.update(module.get_state(model, data))
     return state
 
-  def get_observation(self, model, data):
+  def get_observation(self, model, data, info=None):
     """ Return the observation from all perception modules. These observations are used for RL training. """
     observations = {}
     for module in self.perception_modules:
-      observations[module.modality] = module.get_observation(model, data)
+      observations[module.modality] = module.get_observation(model, data, info)
     return observations
+
+  def close(self, **kwargs):
+    """ Perform any necessary clean up. """
+    for module in self.perception_modules:
+      module.close(**kwargs)
 
   @property
   def cameras(self):

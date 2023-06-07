@@ -10,6 +10,8 @@ import matplotlib.pyplot as pp
 from uitb.utils.logger import StateLogger, ActionLogger
 from uitb.simulator import Simulator
 
+#from uitb.bm_models.effort_models import CumulativeFatigue3CCr, ConsumedEndurance
+
 
 def natural_sort(l):
     convert = lambda text: int(text) if text.isdigit() else text.lower()
@@ -81,6 +83,11 @@ if __name__ == "__main__":
     run_params = dict()
     run_params["action_sample_freq"] = args.action_sample_freq
     run_params["evaluate"] = True
+    
+    run_params["unity_record_gameplay"] = False
+    run_params["unity_logging"] = True
+    run_params["unity_output_folder"] = evaluate_dir
+    # run_params["unity_random_seed"] = 123
 
     # Use deterministic actions?
     deterministic = False
@@ -88,7 +95,10 @@ if __name__ == "__main__":
     # Initialise simulator
     simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array", run_parameters=run_params)
 
-    print(f"run parameters are: {simulator.run_parameters}\n")
+    # ## Change effort model #TODO: delete
+    # simulator.bm_model._effort_model = CumulativeFatigue3CCr(simulator.bm_model, dt=simulator._run_parameters["dt"])
+
+    print(f"run parameters are: {simulator.run_parameters}")
 
     # Load latest model if filename not given
     if args.checkpoint is not None:
@@ -135,6 +145,8 @@ if __name__ == "__main__":
 
         # Loop until episode ends
         while not terminated and not truncated:
+            # #print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
+            # print(reward)
 
             # Get actions from policy
             action, _states = model.predict(obs, deterministic=deterministic)
@@ -172,5 +184,8 @@ if __name__ == "__main__":
 
     if args.record:
         # Write the video
+        # simulator._camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
         simulator._GUI_camera.write_video_close()
         print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')
+
+    simulator.close()
