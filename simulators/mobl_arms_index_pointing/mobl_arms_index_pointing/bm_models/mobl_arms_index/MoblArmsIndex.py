@@ -15,6 +15,8 @@ class MoblArmsIndex(BaseBMModel):
     # Set shoulder variant; use "none" as default, use "patch-v1" for a qualitatively more reasonable looking movements (not thoroughly tested)
     self.shoulder_variant = kwargs.get("shoulder_variant", "none")
 
+    self.shoulder_variant = kwargs.get("shoulder_variant", "none")
+
   def _update(self, model, data):
 
     # Update shoulder equality constraints

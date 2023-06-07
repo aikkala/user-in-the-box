@@ -75,7 +75,18 @@ class BaseBMModel(ABC):
 
     # Get the effort model; some models might need to know dt
     self._effort_model = self.get_effort_model(kwargs.get("effort_model", {"cls": "Zero"}), dt=kwargs["dt"])
-
+    
+    # Define signal-dependent noise
+    self._sigdepnoisetype = kwargs.get("sigdepnoisetype", None)  #"white")
+    self._sigdepnoise = kwargs.get("sigdepnoise", 0.103)
+    self._sigdepnoise_rng = np.random.default_rng(kwargs.get("random_seed", None))
+    self._sigdepnoise_acc = 0  #only used for red/Brownian noise
+    
+    # Define constant (i.e., signal-independent) noise
+    self._constantnoisetype = kwargs.get("constantnoisetype", None)  #"white")
+    self._constantnoise = kwargs.get("constantnoise", 0.185)
+    self._constantnoise_rng = np.random.default_rng(kwargs.get("random_seed", None))
+    self._constantnoise_acc = 0  #only used for red/Brownian noise
 
   ############ The methods below you should definitely overwrite as they are important ############
 
@@ -139,9 +150,37 @@ class BaseBMModel(ABC):
       action: Action values between [-1, 1]
 
     """
-    data.ctrl[self._motor_actuators] = np.clip(self._motor_smooth_avg + action[:self._nm], 0, 1)
-    data.ctrl[self._muscle_actuators] = np.clip(data.act[self._muscle_actuators] + action[self._nm:], 0, 1)
-
+    
+    _selected_motor_control = self._motor_smooth_avg + action[:self._nm]
+    _selected_muscle_control = np.clip(data.act[self._muscle_actuators] + action[self._nm:], 0, 1)
+    
+    if self._sigdepnoisetype is not None:
+        if self._sigdepnoisetype == "white":
+            _added_noise = self._sigdepnoise*self._sigdepnoise_rng.normal(scale=_selected_muscle_control)
+            _selected_muscle_control += _added_noise  #self._sigdepnoise*self._sigdepnoise_rng.normal(scale=_selected_muscle_control)
+        elif self._sigdepnoisetype == "whiteonly":  #only for debugging purposes
+            _selected_muscle_control = self._sigdepnoise*self._sigdepnoise_rng.normal(scale=_selected_muscle_control)
+        elif self._sigdepnoisetype == "red":
+            # self._sigdepnoise_acc *= 1 - 0.1
+            self._sigdepnoise_acc += self._sigdepnoise*self._sigdepnoise_rng.normal(scale=_selected_muscle_control)
+            _selected_muscle_control += self._sigdepnoise_acc
+        else:
+            raise NotImplementedError(f"{self._sigdepnoisetype}")
+    if self._constantnoisetype is not None:
+        if self._constantnoisetype == "white":
+            _selected_muscle_control += self._constantnoise*self._constantnoise_rng.normal(scale=1)
+        elif self._constantnoisetype == "whiteonly":  #only for debugging purposes
+            _selected_muscle_control = self._constantnoise*self._constantnoise_rng.normal(scale=1)
+        elif self._constantnoisetype == "red":
+            self._constantnoise_acc += self._constantnoise*self._constantnoise_rng.normal(scale=1)
+            _selected_muscle_control += self._constantnoise_acc
+        else:
+            raise NotImplementedError(f"{self._constantnoisetype}")
+    
+    data.ctrl[self._motor_actuators] = np.clip(_selected_motor_control, 0, 1)
+    data.ctrl[self._muscle_actuators] = np.clip(_selected_muscle_control, 0, 1)
+    # data.ctrl[self._muscle_actuators] = _selected_muscle_control
+    
     # Update smoothed online estimate of motor actuation
     self._motor_smooth_avg = (1 - self._motor_alpha) * self._motor_smooth_avg \
                              + self._motor_alpha * data.ctrl[self._motor_actuators]
@@ -256,6 +295,8 @@ class BaseBMModel(ABC):
     self._reset(model, data)
     self._effort_model.reset(model, data)
     self.update(model, data)
+    self._sigdepnoise_acc = 0
+    self._constantnoise_acc = 0
 
   @final
   def get_state(self, model, data):

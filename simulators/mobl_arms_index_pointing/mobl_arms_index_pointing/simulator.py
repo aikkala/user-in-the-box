@@ -376,7 +376,6 @@ class Simulator(gym.Env):
       action: Actions sampled from a policy. Limited to range [-1, 1].
     """
 
-
     # Set control for the bm model
     self.bm_model.set_ctrl(self._model, self._data, action[:self.bm_model.nu])
 

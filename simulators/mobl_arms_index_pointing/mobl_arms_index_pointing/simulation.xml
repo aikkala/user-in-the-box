@@ -54,13 +54,13 @@
   <worldbody>
     <camera name="for_testing" pos="-0.8 -0.6 1.5" quat="0.718027 0.437104 -0.31987 -0.437104"/>
     <light name="scene_directional_light" pos="0.9 0.3 2.5" dir="0 0 -1" directional="true" castshadow="false" cutoff="4" exponent="20" diffuse="1 1 1" specular="0 0 0"/>
-    <body name="target" pos="0.5 0 0.8">
+    <body name="target" pos="0.5 0 0.8" gravcomp="0">
       <geom name="target" size="0.025" rgba="0.1 0.8 0.1 1"/>
     </body>
-    <body name="target-plane" pos="0.532445 -0.27 0.993">
+    <body name="target-plane" pos="0.532445 -0.27 0.993" gravcomp="0">
       <geom name="target-plane" size="0.005 0.3 0.3" type="box" rgba="0.1 0.8 0.1 0"/>
     </body>
-    <body name="thorax" childclass="mobl-arms" pos="0 0 1" quat="0.707107 0.707107 0 0">
+    <body name="thorax" childclass="mobl-arms" pos="0 0 1" quat="0.707107 0.707107 0 0" gravcomp="0">
       <inertial pos="-0.0194693 -0.124635 3.52071e-05" quat="0.982593 0.00053772 0.000250291 0.185769" mass="8.01418" diaginertia="0.0768128 0.0574863 0.0458735"/>
       <joint name="r_z" pos="0 0 0" axis="0 0 1" stiffness="0" range="-6.28319 6.28319" armature="0" damping="0"/>
       <geom name="thorax" type="mesh" mesh="thorax"/>
@@ -79,7 +79,7 @@
       <site name="LAT3-P5" pos="-0.07117 -0.24858 0.00907"/>
       <light name="default" pos="0 0 4" dir="0 0 -1" mode="trackcom"/>
       <light name="additional" pos="4 0.8 0" dir="-1 0 0" active="false" mode="trackcom"/>
-      <body name="clavicle" pos="0.006325 0.00693 0.025465">
+      <body name="clavicle" pos="0.006325 0.00693 0.025465" gravcomp="0">
         <inertial pos="-0.011096 0.0063723 0.054168" quat="0.906292 0.0334036 0.164622 -0.387838" mass="0.156" diaginertia="0.001 0.001 0.001"/>
         <joint name="sternoclavicular_r2" pos="0 0 0" axis="0.0153 0.989299 -0.1451" limited="false" range="-99999.9 99999.9"/>
         <joint name="sternoclavicular_r3" pos="0 0 0" axis="-0.994473 0 -0.104997" limited="false" range="-99999.9 99999.9"/>
@@ -87,11 +87,11 @@
         <site name="DELT1-P4" pos="-0.014 0.01106 0.08021"/>
         <site name="DELT2-P2" pos="0.0191703 0.0244002 0.162891"/>
         <site name="PECM1-P4" pos="0.00321 -0.00013 0.05113"/>
-        <body name="clavphant" pos="-0.01433 0.02007 0.135535">
+        <body name="clavphant" pos="-0.01433 0.02007 0.135535" gravcomp="0">
           <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
           <joint name="unrotscap_r3" pos="0 0 0" axis="-0.994473 0 -0.104997" limited="false" range="-99999.9 99999.9"/>
           <joint name="unrotscap_r2" pos="0 0 0" axis="0.0153 0.989299 -0.1451" limited="false" range="-99999.9 99999.9"/>
-          <body name="scapula" pos="0 0 0">
+          <body name="scapula" pos="0 0 0" gravcomp="0">
             <inertial pos="-0.054694 -0.035032 -0.043734" quat="0.453021 0.77921 0.0744129 0.426692" mass="0.70396" diaginertia="0.00199576 0.00103993 0.001"/>
             <joint name="acromioclavicular_r2" pos="0 0 0" axis="0.157095 0.947269 -0.279291" limited="false" range="-99999.9 99999.9"/>
             <joint name="acromioclavicular_r3" pos="0 0 0" axis="-0.754084 0.297594 0.585487" limited="false" range="-99999.9 99999.9"/>
@@ -124,19 +124,19 @@
             <site name="BIClong-P2" pos="-0.02094 -0.01309 -0.00461"/>
             <site name="BICshort-P1" pos="0.01268 -0.03931 -0.02625"/>
             <site name="BICshort-P2" pos="0.00093 -0.06704 -0.01593"/>
-            <body name="scapphant" pos="-0.00955 -0.034 0.009">
+            <body name="scapphant" pos="-0.00955 -0.034 0.009" gravcomp="0">
               <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
               <joint name="unrothum_r1" pos="0 0 0" axis="0.6377 0.1186 0.7611" limited="false" range="-99999.9 99999.9"/>
               <joint name="unrothum_r3" pos="0 0 0" axis="-0.754084 0.297594 0.585487" limited="false" range="-99999.9 99999.9"/>
               <joint name="unrothum_r2" pos="0 0 0" axis="0.157095 0.947269 -0.279291" limited="false" range="-99999.9 99999.9"/>
-              <body name="humphant" pos="0 0 0">
+              <body name="humphant" pos="0 0 0" gravcomp="0">
                 <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
                 <joint name="elv_angle" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.5708 2.26893" user="1"/>
-                <body name="humphant1" pos="0 0 0">
+                <body name="humphant1" pos="0 0 0" gravcomp="0">
                   <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
                   <joint name="shoulder_elv" pos="0 0 0" axis="-0.998261 0.0023 0.058898" range="0 3.14159" user="1"/>
                   <joint name="shoulder1_r2" pos="0 0 0" axis="0.0048 0.999089 0.0424" limited="false" range="-99999.9 99999.9"/>
-                  <body name="humerus" pos="0 0 0">
+                  <body name="humerus" pos="0 0 0" gravcomp="0">
                     <inertial pos="0.018064 -0.140141 -0.012746" quat="0.407851 0.343714 -0.567755 0.627034" mass="1.99757" diaginertia="0.0128576 0.0121576 0.00239265"/>
                     <joint name="shoulder_rot" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.57 0.349066" user="1"/>
                     <geom name="humerus" type="mesh" mesh="humerus"/>
@@ -197,7 +197,7 @@
                     <site name="EDCM-P1" pos="0.00051 -0.28984 0.01949"/>
                     <site name="EDCI-P1" pos="0.00065 -0.28898 0.01869"/>
                     <site name="EDM-P1" pos="0.00089 -0.28919 0.01847"/>
-                    <body name="ulna" pos="0.0061 -0.2904 -0.0123">
+                    <body name="ulna" pos="0.0061 -0.2904 -0.0123" gravcomp="0">
                       <inertial pos="0.00971783 -0.0959509 0.024286" quat="0.792048 0.609078 0.0156735 0.0379256" mass="1.1053" diaginertia="0.00543663 0.00523521 0.001"/>
                       <joint name="elbow_flexion" pos="0 0 0" axis="0.0494 0.0366 0.998108" range="0 2.26893" user="1"/>
                       <geom name="ulna" type="mesh" mesh="ulna"/>
@@ -225,7 +225,7 @@
                       <site name="EIP-P1" pos="-0.00394 -0.16652 0.03682"/>
                       <site name="EIP-P2" pos="0.00171 -0.17469 0.04049"/>
                       <site name="EPL-P1" pos="-0.01412 -0.09706 0.02952"/>
-                      <body name="radius" pos="0.0004 -0.011503 0.019999">
+                      <body name="radius" pos="0.0004 -0.011503 0.019999" gravcomp="0">
                         <inertial pos="0.0336341 -0.181559 0.0156" quat="0.770264 0.63559 0.0119833 0.0507376" mass="0.23359" diaginertia="0.001 0.001 0.001"/>
                         <joint name="pro_sup" pos="0 0 0" axis="-0.017161 0.992666 -0.119668" range="-1.5708 1.5708" user="1"/>
                         <geom name="radius" type="mesh" mesh="radius"/>
@@ -284,13 +284,13 @@
                         <site name="APL-P3" pos="0.03993 -0.16072 0.034"/>
                         <site name="APL-P4" pos="0.04397 -0.17845 0.03134"/>
                         <site name="APL-P5" pos="0.05505 -0.23084 0.02368"/>
-                        <body name="proximal_row" pos="0.018 -0.242 0.025">
+                        <body name="proximal_row" pos="0.018 -0.242 0.025" gravcomp="0">
                           <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                           <geom name="lunate" type="mesh" mesh="lunate"/>
                           <geom name="sdfastSCAPHOIDw" type="mesh" mesh="sdfastSCAPHOIDw"/>
                           <geom name="sdfastPISIFORMw" type="mesh" mesh="sdfastPISIFORMw"/>
                           <geom name="sdfastTRIQUETRALw" type="mesh" mesh="sdfastTRIQUETRALw"/>
-                          <body name="hand" pos="0.003992 -0.015054 0.002327">
+                          <body name="hand" pos="0.003992 -0.015054 0.002327" gravcomp="0">
                             <inertial pos="-0.00301314 -0.0424993 -0.00112205" quat="0.526799 0.470642 -0.462095 0.536141" mass="0.5819" diaginertia="0.001 0.001 0.001"/>
                             <geom name="sdfast_1seg_hand_fr_c_5mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_5mc"/>
                             <geom name="sdfast_1seg_hand_fr_c_4mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_4mc"/>
@@ -438,16 +438,16 @@
                             <site name="APL-P8" pos="0.02878 -0.00674 -0.0187"/>
                             <site name="APL-P9" pos="0.03076 -0.01583 -0.01885"/>
                             <site name="APL-P6" pos="0.0332244 0.00608975 -0.00870125"/>
-                            <body name="index0" pos="0 0 0">
+                            <body name="index0" pos="0 0 0" gravcomp="0">
                               <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                               <geom name="sdfast_1seg_hand_fr_c_2mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_2mc"/>
-                              <body name="index1" pos="0 0 0">
+                              <body name="index1" pos="0 0 0" gravcomp="0">
                                 <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                                 <geom name="hand_2proxph" type="mesh" mesh="hand_2proxph"/>
-                                <body name="index2" pos="0 0 0">
+                                <body name="index2" pos="0 0 0" gravcomp="0">
                                   <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                                   <geom name="hand_2midph" type="mesh" mesh="hand_2midph"/>
-                                  <body name="index3" pos="0 0 0">
+                                  <body name="index3" pos="0 0 0" gravcomp="0">
                                     <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                                     <geom name="hand_2distph" type="mesh" mesh="hand_2distph"/>
                                     <site name="fingertip" pos="0.024 -0.149 -0.0065" size="0.004" rgba="0.1 0.8 0.1 0"/>
@@ -467,7 +467,7 @@
         </body>
       </body>
     </body>
-    <body name="fixed-eye" pos="0 0 1.2" quat="0.583833 0.399104 -0.399421 -0.583368">
+    <body name="fixed-eye" pos="0 0 1.2" quat="0.583833 0.399104 -0.399421 -0.583368" gravcomp="0">
       <geom name="fixed-eye" quat="0.7106 0.25537 0.616985 0.221728" type="mesh" material="blue-eye" rgba="1 1 1 1" mesh="eye"/>
       <camera name="fixed-eye" pos="0 0 0" fovy="90"/>
     </body>
@@ -650,31 +650,31 @@
     </spatial>
   </tendon>
   <actuator>
-    <general name="DELT1" class="mobl-arms" tendon="DELT1_tendon" lengthrange="0.138246 0.273986" gainprm="0.5 2 1218.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1218.9 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="DELT2" class="mobl-arms" tendon="DELT2_tendon" lengthrange="0.161563 0.317754" gainprm="0.5 2 1103.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1103.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="DELT3" class="mobl-arms" tendon="DELT3_tendon" lengthrange="0.103005 0.298019" gainprm="0.5 2 201.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 201.6 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="SUPSP" class="mobl-arms" tendon="SUPSP_tendon" lengthrange="0.0733458 0.174883" gainprm="0.5 2 499.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 499.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="INFSP" class="mobl-arms" tendon="INFSP_tendon" lengthrange="0.0664933 0.173573" gainprm="0.5 2 1075.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1075.8 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="SUBSC" class="mobl-arms" tendon="SUBSC_tendon" lengthrange="0.0740175 0.19707" gainprm="0.5 2 1306.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1306.9 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="TMIN" class="mobl-arms" tendon="TMIN_tendon" lengthrange="0.105147 0.206687" gainprm="0.5 2 269.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 269.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="TMAJ" class="mobl-arms" tendon="TMAJ_tendon" lengthrange="0.0980544 0.332218" gainprm="0.5 2 144 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 144 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="PECM1" class="mobl-arms" tendon="PECM1_tendon" lengthrange="0.0717495 0.278598" gainprm="0.5 2 444.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 444.3 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="PECM2" class="mobl-arms" tendon="PECM2_tendon" lengthrange="0.151241 0.337966" gainprm="0.5 2 658.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 658.3 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="PECM3" class="mobl-arms" tendon="PECM3_tendon" lengthrange="0.194762 0.383047" gainprm="0.5 2 498.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 498.1 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="LAT1" class="mobl-arms" tendon="LAT1_tendon" lengthrange="0.235101 0.580404" gainprm="0.5 2 290.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 290.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="LAT2" class="mobl-arms" tendon="LAT2_tendon" lengthrange="0.286369 0.615977" gainprm="0.5 2 317.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 317.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="LAT3" class="mobl-arms" tendon="LAT3_tendon" lengthrange="0.270488 0.661051" gainprm="0.5 2 189 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 189 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="CORB" class="mobl-arms" tendon="CORB_tendon" lengthrange="0.138521 0.263084" gainprm="0.5 2 208.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 208.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="TRIlong" class="mobl-arms" tendon="TRIlong_tendon" lengthrange="0.208536 0.405144" gainprm="0.5 2 771.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 771.8 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="TRIlat" class="mobl-arms" tendon="TRIlat_tendon" lengthrange="0.154199 0.322798" gainprm="0.5 2 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="TRImed" class="mobl-arms" tendon="TRImed_tendon" lengthrange="0.146999 0.315598" gainprm="0.5 2 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="ANC" class="mobl-arms" tendon="ANC_tendon" lengthrange="0.0314998 0.072" gainprm="0.5 2 283.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 283.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="SUP" class="mobl-arms" tendon="SUP_tendon" lengthrange="0.0445 0.0939999" gainprm="0.5 2 379.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 379.6 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="BIClong" class="mobl-arms" tendon="BIClong_tendon" lengthrange="0.33015 0.5037" gainprm="0.5 2 525.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 525.1 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="BICshort" class="mobl-arms" tendon="BICshort_tendon" lengthrange="0.25835 0.4565" gainprm="0.5 2 316.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 316.8 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="BRA" class="mobl-arms" tendon="BRA_tendon" lengthrange="0.0963999 0.2251" gainprm="0.5 2 1177.37 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1177.37 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="BRD" class="mobl-arms" tendon="BRD_tendon" lengthrange="0.2193 0.4782" gainprm="0.5 2 276 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 276 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="PT" class="mobl-arms" tendon="PT_tendon" lengthrange="0.122226 0.194905" gainprm="0.5 2 557.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 557.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
-    <general name="PQ" class="mobl-arms" tendon="PQ_tendon" lengthrange="0.0188858 0.0605431" gainprm="0.5 2 284.7 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 284.7 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="DELT1" class="mobl-arms" tendon="DELT1_tendon" lengthrange="0.138246 0.273986" actdim="1" gainprm="0.5 2 1218.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1218.9 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="DELT2" class="mobl-arms" tendon="DELT2_tendon" lengthrange="0.161563 0.317754" actdim="1" gainprm="0.5 2 1103.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1103.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="DELT3" class="mobl-arms" tendon="DELT3_tendon" lengthrange="0.103005 0.298019" actdim="1" gainprm="0.5 2 201.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 201.6 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="SUPSP" class="mobl-arms" tendon="SUPSP_tendon" lengthrange="0.0733458 0.174883" actdim="1" gainprm="0.5 2 499.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 499.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="INFSP" class="mobl-arms" tendon="INFSP_tendon" lengthrange="0.0664933 0.173573" actdim="1" gainprm="0.5 2 1075.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1075.8 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="SUBSC" class="mobl-arms" tendon="SUBSC_tendon" lengthrange="0.0740175 0.19707" actdim="1" gainprm="0.5 2 1306.9 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1306.9 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="TMIN" class="mobl-arms" tendon="TMIN_tendon" lengthrange="0.105147 0.206687" actdim="1" gainprm="0.5 2 269.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 269.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="TMAJ" class="mobl-arms" tendon="TMAJ_tendon" lengthrange="0.0980544 0.332218" actdim="1" gainprm="0.5 2 144 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 144 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="PECM1" class="mobl-arms" tendon="PECM1_tendon" lengthrange="0.0717495 0.278598" actdim="1" gainprm="0.5 2 444.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 444.3 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="PECM2" class="mobl-arms" tendon="PECM2_tendon" lengthrange="0.151241 0.337966" actdim="1" gainprm="0.5 2 658.3 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 658.3 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="PECM3" class="mobl-arms" tendon="PECM3_tendon" lengthrange="0.194762 0.383047" actdim="1" gainprm="0.5 2 498.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 498.1 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="LAT1" class="mobl-arms" tendon="LAT1_tendon" lengthrange="0.235101 0.580404" actdim="1" gainprm="0.5 2 290.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 290.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="LAT2" class="mobl-arms" tendon="LAT2_tendon" lengthrange="0.286369 0.615977" actdim="1" gainprm="0.5 2 317.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 317.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="LAT3" class="mobl-arms" tendon="LAT3_tendon" lengthrange="0.270488 0.661051" actdim="1" gainprm="0.5 2 189 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 189 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="CORB" class="mobl-arms" tendon="CORB_tendon" lengthrange="0.138521 0.263084" actdim="1" gainprm="0.5 2 208.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 208.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="TRIlong" class="mobl-arms" tendon="TRIlong_tendon" lengthrange="0.208536 0.405144" actdim="1" gainprm="0.5 2 771.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 771.8 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="TRIlat" class="mobl-arms" tendon="TRIlat_tendon" lengthrange="0.154199 0.322798" actdim="1" gainprm="0.5 2 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="TRImed" class="mobl-arms" tendon="TRImed_tendon" lengthrange="0.146999 0.315598" actdim="1" gainprm="0.5 2 717.5 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 717.5 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="ANC" class="mobl-arms" tendon="ANC_tendon" lengthrange="0.0314998 0.072" actdim="1" gainprm="0.5 2 283.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 283.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="SUP" class="mobl-arms" tendon="SUP_tendon" lengthrange="0.0445 0.0939999" actdim="1" gainprm="0.5 2 379.6 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 379.6 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="BIClong" class="mobl-arms" tendon="BIClong_tendon" lengthrange="0.33015 0.5037" actdim="1" gainprm="0.5 2 525.1 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 525.1 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="BICshort" class="mobl-arms" tendon="BICshort_tendon" lengthrange="0.25835 0.4565" actdim="1" gainprm="0.5 2 316.8 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 316.8 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="BRA" class="mobl-arms" tendon="BRA_tendon" lengthrange="0.0963999 0.2251" actdim="1" gainprm="0.5 2 1177.37 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 1177.37 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="BRD" class="mobl-arms" tendon="BRD_tendon" lengthrange="0.2193 0.4782" actdim="1" gainprm="0.5 2 276 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 276 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="PT" class="mobl-arms" tendon="PT_tendon" lengthrange="0.122226 0.194905" actdim="1" gainprm="0.5 2 557.2 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 557.2 2000 0.5 1.6 1.5 1.3 1.2 0"/>
+    <general name="PQ" class="mobl-arms" tendon="PQ_tendon" lengthrange="0.0188858 0.0605431" actdim="1" gainprm="0.5 2 284.7 2000 0.4327 1.595 10 0.725016 1.4 0" biasprm="0.75 1.05 284.7 2000 0.5 1.6 1.5 1.3 1.2 0"/>
   </actuator>
 </mujoco>
