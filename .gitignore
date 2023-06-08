@@ -5,6 +5,8 @@ uitb.egg-info/
 uitb/utils/__simulatorsdir__.py
 wandb/
 
+uitb/tasks/unity/build*/
+
 simulators/
 #simulators/mobl_arms_index_choice_reaction
 #simulators/mobl_arms_index_pointing
