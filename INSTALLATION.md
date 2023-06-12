@@ -19,5 +19,5 @@
 
 ### Run via SSH on virtual display (using Xvfb)
 - create virtual display and let it run in background
--- `export DISPLAY=:1`
--- `xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1920x1090x24 &`
+  - `export DISPLAY=:1`
+  - `xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1920x1090x24 &`
