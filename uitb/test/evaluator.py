@@ -93,7 +93,7 @@ if __name__ == "__main__":
     deterministic = False
 
     # Initialise simulator
-    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array_list", run_parameters=run_params)
+    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array_list", run_parameters=run_params, use_cloned=False)
 
     # ## Change effort model #TODO: delete
     # simulator.bm_model._effort_model = CumulativeFatigue3CCr(simulator.bm_model, dt=simulator._run_parameters["dt"])
