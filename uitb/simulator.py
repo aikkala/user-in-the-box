@@ -285,7 +285,12 @@ class Simulator(gym.Env):
 
     # Get Simulator class
     gen_cls_cloned = getattr(importlib.import_module(config["package_name"]), "Simulator")
-    gen_cls_cloned_version = gen_cls_cloned.version.split("-v")[-1]
+    if hasattr(gen_cls_cloned, "version"):
+      _legacy_mode = False
+      gen_cls_cloned_version = gen_cls_cloned.version.split("-v")[-1]
+    else:
+      _legacy_mode = True
+      gen_cls_cloned_version = gen_cls_cloned.id.split("-v")[-1]  #deprecated
     if use_cloned:
       gen_cls = gen_cls_cloned
     else:
@@ -299,8 +304,11 @@ class Simulator(gym.Env):
         print(
           f"""WARNING: Version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_version}, set 'use_cloned=True'.""")
 
-    _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
-                         run_parameters=run_parameters)
+    if _legacy_mode:
+      _simulator = gen_cls(simulator_folder, run_parameters=run_parameters)
+    else:
+      _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
+                          run_parameters=run_parameters)
 
     # Return Simulator object
     return _simulator
