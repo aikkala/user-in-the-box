@@ -440,9 +440,11 @@ class Simulator(gym.Env):
 
     return observation
 
-  def reset(self):
+  def reset(self, seed=None):
     """ Reset the simulator and return an observation. """
 
+    super().reset(seed=seed)
+    
     # Reset sim
     mujoco.mj_resetData(self._model, self._data)
 
