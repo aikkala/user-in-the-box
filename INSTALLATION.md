@@ -12,8 +12,12 @@
 4. Prepare environment variables (Linux Bash)
 - `echo 'export MUJOCO_GL=egl' >> ~/.bashrc`
 - `source ~/.bashrc`
+- `conda activate uitb_env`
 
 ### Run via SSH on remote display
-- make sure that $DISPLAY is set to ':0' or ':1' if remote desktop should be used (list of running user sessions: `w -oush)
-- TODO: is a non-remote GUI session required to run in background?
-- TODO: do we need to run `xhost +local:` on remote workstation?
+- make sure that $DISPLAY is set to ':0' or ':1' if remote desktop should be used (a list of running user sessions can be obtained via `w -oush`)
+
+### Run via SSH on virtual display (using Xvfb)
+- create virtual display and let it run in background
+-- `export DISPLAY=:1`
+-- `xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1920x1090x24 &`
