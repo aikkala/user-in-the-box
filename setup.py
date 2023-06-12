@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(__file__), "uitb/utils/__simulatorsdir__.
 
 setup(
    name='uitb',
-   version='0.5.0a1',
+   version='0.5.0a2',
    author='Aleksi Ikkala',
    author_email='aleksi.ikkala@gmail.com',
    packages=['uitb'],

@@ -6,6 +6,7 @@ uitb/utils/__simulatorsdir__.py
 wandb/
 
 uitb/tasks/unity/build_*/
+uitb/tasks/unity/build*/app_logs/
 
 simulators/
 #simulators/mobl_arms_index_choice_reaction
