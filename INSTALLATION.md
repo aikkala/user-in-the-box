@@ -15,7 +15,8 @@
 - `conda activate uitb_env`
 
 ### Run via SSH on remote display
-- make sure that $DISPLAY is set to ':0' or ':1' if remote desktop should be used (a list of running user sessions can be obtained via `w -oush`)
+- make sure that `$DISPLAY` is set to ':0' or ':1' if remote desktop should be used (a list of running user sessions can be obtained via `w -oush`)
+- TODO: check if `xhost +local:` is required
 
 ### Run via SSH on virtual display (using Xvfb)
 - create virtual display and let it run in background
