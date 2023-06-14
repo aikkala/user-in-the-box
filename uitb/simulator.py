@@ -467,8 +467,10 @@ class Simulator(gym.Env):
     # Grab images
     img, _ = self._GUI_camera.render()
 
-    perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
-                                for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
+    # perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
+    #                             for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
+    perception_camera_images = self.perception.get_renders()
+
     # TODO: add text annotations to perception camera images
     if len(perception_camera_images) > 0:
       _img_size = img.shape[:2]  #(height, width)

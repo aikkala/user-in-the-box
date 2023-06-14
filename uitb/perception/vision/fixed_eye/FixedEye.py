@@ -54,6 +54,8 @@ class FixedEye(BaseModule):
     # Initialise camera
     self.camera_fixed_eye = Camera(context=self._context, model=model, data=data,
                           resolution=resolution, rgb=True, depth=True, camera_id="fixed-eye")
+    self._camera_active = True
+
     # Append all cameras to self._cameras to be able to display
     # their outputs in human-view/GUI mode (used by simulator.py)
     self._cameras.append(self.camera_fixed_eye)
@@ -125,6 +127,10 @@ class FixedEye(BaseModule):
       obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=0)
 
     return obs
+  
+  @property
+  def camera_active(self):
+    return self._camera_active
 
   @property
   def _default_encoder(self):
