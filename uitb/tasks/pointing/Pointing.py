@@ -76,7 +76,6 @@ class Pointing(BaseTask):
     #model.cam_quat[model.camera_name2id('for_testing')] = np.array(
     #  [0.718027, 0.4371043, -0.31987, -0.4371043])
 
-
   def _update(self, model, data):
 
     # Set some defaults
