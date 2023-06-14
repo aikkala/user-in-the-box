@@ -227,7 +227,6 @@ class Simulator(gym.Env):
     # Add frame skip and dt to run parameters
     run_parameters["frame_skip"] = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
     run_parameters["dt"] = model.opt.timestep*run_parameters["frame_skip"]
-    
 
     # Initialise a rendering context, required for e.g. some vision modules
     run_parameters["rendering_context"] = Context(model,
@@ -560,8 +559,10 @@ class Simulator(gym.Env):
     return observation
 
 
-  def reset(self):
+  def reset(self, seed=None):
     """ Reset the simulator and return an observation. """
+
+    super().reset(seed=seed)
 
     # Reset sim
     mujoco.mj_resetData(self._model, self._data)
@@ -600,8 +601,10 @@ class Simulator(gym.Env):
     # Grab images
     img, _ = self._GUI_camera.render()
 
-    perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
-                                for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
+    # perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
+    #                             for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
+    perception_camera_images = self.perception.get_renders()
+
     # TODO: add text annotations to perception camera images
     if len(perception_camera_images) > 0:
       _img_size = img.shape[:2]  #(height, width)

@@ -1,6 +1,11 @@
 **/__pycache__/
 .ipynb_checkpoints
-#simulators/mobl_arms_index_choice_reaction
-#simulators/mobl_arms_index_pointing
-#simulators/mobl_arms_index_remote_driving
-#simulators/mobl_arms_index_tracking
+simulators/mobl_arms_index_choice_reaction
+simulators/mobl_arms_index_pointing
+simulators/mobl_arms_index_remote_driving
+simulators/mobl_arms_index_tracking
+wandb/
+
+simulators/mobl_arms_index_pointing_timereward
+simulators/mobl_arms_index_pointing_whitenoise
+simulators/mobl_arms_llc
