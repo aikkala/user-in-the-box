@@ -65,7 +65,7 @@ class CumulativeFatigue(BaseEffortModel):
       self._MA = np.zeros((model.na,))
       self._MR = np.ones((model.na,))
 
-    # Get target load (actual activation, which might be reached only with some "effort", depending on how many muscles can be activated (fast enough) and how many are in fatigue state)
+    # Get target load
     TL = data.act.copy()
 
     # Calculate C(t)

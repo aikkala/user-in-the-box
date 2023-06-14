@@ -30,10 +30,6 @@ class BaseRLModel(ABC):
     base_file = pathlib.Path(__file__)
     shutil.copyfile(base_file, os.path.join(dst, base_file.name))
 
-    # Copy the file with encoders
-    encoder_file = os.path.join(base_file.parent, "encoders.py")
-    shutil.copyfile(encoder_file, os.path.join(dst, "encoders.py"))
-
     # Create an __init__.py file with the relevant import
     modules = cls.__module__.split(".")
     with open(os.path.join(dst, "__init__.py"), "w") as file:

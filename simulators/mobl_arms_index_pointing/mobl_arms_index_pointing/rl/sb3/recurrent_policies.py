@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-import gymnasium as gym
+import gym
 import numpy as np
 import torch as th
 from stable_baselines3.common.distributions import Distribution
@@ -181,7 +181,7 @@ class RecurrentActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
     :return: action, value and log probability of the action
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     # latent_pi, latent_vf = self.mlp_extractor(features)
     latent_pi, lstm_states_pi = self._process_sequence(features, lstm_states.pi, episode_starts, self.lstm_actor)
     if self.lstm_critic is not None:
@@ -219,7 +219,7 @@ class RecurrentActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
         or not (we reset the lstm states in that case).
     :return: the action distribution and new hidden states.
     """
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     latent_pi, lstm_states = self._process_sequence(features, lstm_states, episode_starts, self.lstm_actor)
     latent_pi = self.mlp_extractor.forward_actor(latent_pi)
     return self._get_action_dist_from_latent(latent_pi), lstm_states
@@ -239,7 +239,7 @@ class RecurrentActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
         or not (we reset the lstm states in that case).
     :return: the estimated values.
     """
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     if self.lstm_critic is not None:
       latent_vf, lstm_states_vf = self._process_sequence(features, lstm_states, episode_starts, self.lstm_critic)
     elif self.shared_lstm:
@@ -272,7 +272,7 @@ class RecurrentActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
         and entropy of the action distribution.
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     latent_pi, _ = self._process_sequence(features, lstm_states.pi, episode_starts, self.lstm_actor)
 
     if self.lstm_critic is not None:

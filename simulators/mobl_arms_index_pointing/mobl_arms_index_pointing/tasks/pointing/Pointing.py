@@ -36,11 +36,11 @@ class Pointing(BaseTask):
 
     # Dwelling based selection -- fingertip needs to be inside target for some time
     self._steps_inside_target = 0
-    self._dwell_threshold = int(0.5*self._action_sample_freq)  #for HRL: int(0.25*self._action_sample_freq)
+    self._dwell_threshold = int(0.5*self._action_sample_freq)
 
     # Radius limits for target
     self._target_radius_limit = kwargs.get('target_radius_limit', np.array([0.05, 0.15]))
-    self._target_radius = self._target_radius_limit[0]  #for HRL: self._target_radius_limit[1]
+    self._target_radius = self._target_radius_limit[0]
 
     # Minimum distance to new spawned targets is twice the max target radius limit
     self._new_target_distance_threshold = 2*self._target_radius_limit[1]
@@ -58,10 +58,7 @@ class Pointing(BaseTask):
     self._target_position = self._target_origin.copy()
     self._target_limits_y = np.array([-0.3, 0.3])
     self._target_limits_z = np.array([-0.3, 0.3])
-    
-    # For LLC policy  #TODO: remove?
-    self._target_qpos = [0,0,0,0,0]
-    
+
     # Update plane location
     model.geom("target-plane").size = np.array([0.005,
                                                 (self._target_limits_y[1] - self._target_limits_y[0])/2,
@@ -75,7 +72,6 @@ class Pointing(BaseTask):
     #model.cam_pos[model.camera_name2id('for_testing')] = np.array([-0.8, -0.6, 1.5])
     #model.cam_quat[model.camera_name2id('for_testing')] = np.array(
     #  [0.718027, 0.4371043, -0.31987, -0.4371043])
-
 
   def _update(self, model, data):
 
@@ -106,7 +102,6 @@ class Pointing(BaseTask):
       self._targets_hit += 1
       self._steps_since_last_hit = 0
       self._steps_inside_target = 0
-      self._info["acc_dist"] += dist
       self._spawn_target(model, data)
       self._info["target_spawned"] = True
 
@@ -120,13 +115,11 @@ class Pointing(BaseTask):
         # Spawn a new target
         self._steps_since_last_hit = 0
         self._trial_idx += 1
-        self._info["acc_dist"] += dist
         self._spawn_target(model, data)
         self._info["target_spawned"] = True
 
     # Check if max number trials reached
     if self._trial_idx >= self._max_trials:
-      self._info["dist_from_target"] = self._info["acc_dist"]/self._trial_idx
       truncated = True
       self._info["termination"] = "max_trials_reached"
 
@@ -154,7 +147,7 @@ class Pointing(BaseTask):
     self._targets_hit = 0
 
     self._info = {"target_hit": False, "inside_target": False, "target_spawned": False,
-                  "terminated": False, "truncated": False, "termination": False, "llc_dist_from_target": 0, "dist_from_target": 0, "acc_dist": 0}
+                  "terminated": False, "truncated": False, "termination": False}
 
     # Spawn a new location
     self._spawn_target(model, data)

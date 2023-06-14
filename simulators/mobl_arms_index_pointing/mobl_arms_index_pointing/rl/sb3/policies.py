@@ -3,7 +3,7 @@ import warnings
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
-import gymnasium as gym
+import gym
 import numpy as np
 import torch as th
 from torch import nn
@@ -86,7 +86,6 @@ class ActorCriticPolicyStdDecay(BasePolicy):
       normalize_images: bool = True,
       optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
       optimizer_kwargs: Optional[Dict[str, Any]] = None,
-      wandb_id: str = None
   ):
 
     if optimizer_kwargs is None:
@@ -276,7 +275,7 @@ class ActorCriticPolicyStdDecay(BasePolicy):
         for the actor, the value function and for gSDE function
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     latent_pi, latent_vf = self.mlp_extractor(features)
 
     # Features for sde
@@ -392,7 +391,6 @@ class ActorCriticPolicyTanhActions(BasePolicy):
       normalize_images: bool = True,
       optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
       optimizer_kwargs: Optional[Dict[str, Any]] = None,
-      wandb_id: str = None
   ):
 
     if optimizer_kwargs is None:
@@ -408,7 +406,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
       features_extractor_kwargs,
       optimizer_class=optimizer_class,
       optimizer_kwargs=optimizer_kwargs,
-      squash_output=squash_output
+      squash_output=squash_output,
     )
 
     # Default network architecture, from stable-baselines
@@ -550,7 +548,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
     :return: action, value and log probability of the action
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     latent_pi, latent_vf = self.mlp_extractor(features)
     # Evaluate the values for the given observations
     values = self.value_net(latent_vf)
@@ -606,7 +604,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
         and entropy of the action distribution.
     """
     # Preprocess the observation if needed
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     latent_pi, latent_vf = self.mlp_extractor(features)
     distribution = self._get_action_dist_from_latent(latent_pi)
     log_prob = distribution.log_prob(actions)
@@ -620,7 +618,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
     :param obs:
     :return: the action distribution.
     """
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     latent_pi = self.mlp_extractor.forward_actor(features)
     return self._get_action_dist_from_latent(latent_pi)
 
@@ -631,7 +629,7 @@ class ActorCriticPolicyTanhActions(BasePolicy):
     :param obs:
     :return: the estimated values.
     """
-    features = self.extract_features(obs, self.features_extractor)
+    features = self.extract_features(obs)
     latent_vf = self.mlp_extractor.forward_critic(features)
     return self.value_net(latent_vf)
 
@@ -688,7 +686,6 @@ class MultiInputActorCriticPolicyTanhActions(ActorCriticPolicyTanhActions):
       normalize_images: bool = True,
       optimizer_class: Type[th.optim.Optimizer] = th.optim.Adam,
       optimizer_kwargs: Optional[Dict[str, Any]] = None,
-      wandb_id: str = None
   ):
     super(MultiInputActorCriticPolicyTanhActions, self).__init__(
       observation_space,

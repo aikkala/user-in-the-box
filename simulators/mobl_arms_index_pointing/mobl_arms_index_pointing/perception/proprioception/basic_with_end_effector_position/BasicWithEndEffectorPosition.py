@@ -1,4 +1,6 @@
 from ...base import BaseModule
+from ....utils.functions import parent_path
+from ..encoders import one_layer
 
 import numpy as np
 
@@ -25,10 +27,6 @@ class BasicWithEndEffectorPosition(BaseModule):
   @staticmethod
   def insert(task, **kwargs):
     pass
-
-  @property
-  def _default_encoder(self):
-    return {"module": "rl.encoders", "cls": "OneLayer", "kwargs": {"out_features": 128}}
 
   def get_observation(self, model, data):
 
@@ -57,3 +55,7 @@ class BasicWithEndEffectorPosition(BaseModule):
     state = {f"{self._end_effector[1]}_xpos": getattr(data, self._end_effector[0])(self._end_effector[1]).xpos.copy(),
              f"{self._end_effector[1]}_xmat": getattr(data, self._end_effector[0])(self._end_effector[1]).xmat.copy()}
     return state
+
+  @property
+  def encoder(self):
+    return one_layer(observation_shape=self._observation_shape, out_features=128)

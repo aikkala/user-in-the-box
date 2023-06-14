@@ -1,5 +1,5 @@
-import gymnasium as gym
-from gymnasium import spaces
+import gym
+from gym import spaces
 import pygame
 import mujoco
 import os
@@ -13,8 +13,6 @@ import inspect
 import pathlib
 from datetime import datetime
 import copy
-
-from stable_baselines3 import PPO  #required to load a trained LLC policy in HRL approach
 
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
@@ -173,7 +171,7 @@ class Simulator(gym.Env):
     # Create __init__.py with env registration
     with open(os.path.join(dst, "__init__.py"), "w") as file:
       file.write("from .simulator import Simulator\n\n")
-      file.write("from gymnasium.envs.registration import register\n")
+      file.write("from gym.envs.registration import register\n")
       file.write("import pathlib\n\n")
       file.write("module_folder = pathlib.Path(__file__).parent\n")
       file.write("simulator_folder = module_folder.parent\n")
@@ -227,7 +225,6 @@ class Simulator(gym.Env):
     # Add frame skip and dt to run parameters
     run_parameters["frame_skip"] = int(1 / (model.opt.timestep * run_parameters["action_sample_freq"]))
     run_parameters["dt"] = model.opt.timestep*run_parameters["frame_skip"]
-    
 
     # Initialise a rendering context, required for e.g. some vision modules
     run_parameters["rendering_context"] = Context(model,
@@ -354,54 +351,11 @@ class Simulator(gym.Env):
     self._render_window = None  #only used if render_mode == "human"
     self._render_clock = None  #only used if render_mode == "human"
 
-    if 'llc' in self.config:  #if HRL approach is used
-        llc_simulator_folder = os.path.join(output_path(), self.config["llc"]["simulator_name"])
-        if llc_simulator_folder not in sys.path:
-            sys.path.insert(0, llc_simulator_folder)
-        if not os.path.exists(llc_simulator_folder):
-            raise FileNotFoundError(f"Simulator folder {llc_simulator_folder} does not exists")
-        llccheckpoint_dir = os.path.join(llc_simulator_folder, 'checkpoints')
-        # Load policy TODO should create a load method for uitb.rl.BaseRLModel
-        print(f'Loading model: {os.path.join(llccheckpoint_dir, self.config["llc"]["checkpoint"])}\n')
-        self.llc_model = PPO.load(os.path.join(llccheckpoint_dir, self.config["llc"]["checkpoint"]))
-        self.action_space = self._initialise_HRL_action_space()
-        self._max_steps = self.config["llc"]["llc_ratio"]
-        self._dwell_threshold = int(0.5*self._max_steps)
-        self._target_radius = 0.05
-        self._independent_dofs = []
-        self._independent_joints = []
-        joints = self.config["llc"]["joints"]
-        for joint in joints:
-          joint_id = mujoco.mj_name2id(self._model, mujoco.mjtObj.mjOBJ_JOINT, joint)
-          if self._model.jnt_type[joint_id] not in [mujoco.mjtJoint.mjJNT_HINGE, mujoco.mjtJoint.mjJNT_SLIDE]:
-            raise NotImplementedError(f"Only 'hinge' and 'slide' joints are supported, joint "
-                                  f"{joint} is of type {mujoco.mjtJoint(self._model.jnt_type[joint_id]).name}")
-          self._independent_dofs.append(self._model.jnt_qposadr[joint_id])
-          self._independent_joints.append(joint_id)
-        self._jnt_range = self._model.jnt_range[self._independent_joints]
-
-    
-    #To normalize joint ranges for llc
-  def _normalise_qpos(self, qpos):
-    # Normalise to [0, 1]
-    qpos = (qpos - self._jnt_range[:, 0]) / (self._jnt_range[:, 1] - self._jnt_range[:, 0])
-    # Normalise to [-1, 1]
-    qpos = (qpos - 0.5) * 2
-    return qpos  
-
   def _initialise_action_space(self):
     """ Initialise action space. """
     num_actuators = self.bm_model.nu + self.perception.nu
     actuator_limits = np.ones((num_actuators,2)) * np.array([-1.0, 1.0])
     return spaces.Box(low=np.float32(actuator_limits[:, 0]), high=np.float32(actuator_limits[:, 1]))
-
-  def _initialise_HRL_action_space(self):
-    bm_jnt_range = np.ones((num_actuators,2)) * np.array([-1.0, 1.0])
-    perception_nu = self.perception.nu
-    perception_jnt_range = np.ones((perception_nu,2)) * np.array([-1.0, 1.0])
-    jnt_range = np.concatenate((bm_jnt_range, perception_jnt_range), axis=0)
-    action_space = gym.spaces.Box(low=jnt_range[:,0], high=jnt_range[:,1])
-    return action_space
 
   def _initialise_observation_space(self):
     """ Initialise observation space. """
@@ -412,12 +366,8 @@ class Simulator(gym.Env):
     if "stateful_information" in observation:
       obs_dict["stateful_information"] = spaces.Box(dtype=np.float32,
                                                     **self.task.get_stateful_information_space_params())
-    return spaces.Dict(obs_dict)
 
-  def _get_qpos(self, model, data):
-    qpos = data.qpos[self._independent_dofs].copy()
-    qpos = self._normalise_qpos(qpos)
-    return qpos
+    return spaces.Dict(obs_dict)
 
   def step(self, action):
     """ Step simulation forward with given actions.
@@ -425,100 +375,39 @@ class Simulator(gym.Env):
     Args:
       action: Actions sampled from a policy. Limited to range [-1, 1].
     """
-    if 'llc' in self.config:  #if HRL approach is used
-        self.task._target_qpos = action # action to pass to LLC
-        self._steps = 0 # Initialise loop control to 0
-        #acc_reward = 0 #To be used when rewards are being accumulated in llc steps
-    
-        while self._steps < self._max_steps: # loop for llc controls based on llc_ratio
-        
-            llc_action, _states = self.llc_model.predict(self.get_llcobservation(action), deterministic=True) # Get BM action from LLC
-            # Set control for the bm model
-            self.bm_model.set_ctrl(self._model, self._data, llc_action)
 
-            # Set control for perception modules (e.g. eye movements)
-            self.perception.set_ctrl(self._model, self._data, action[self.bm_model.nu:])
 
-            # Advance the simulation
-            mujoco.mj_step(self._model, self._data, nstep=int(self._run_parameters["frame_skip"])) # Number of timesteps to skip for LLC
+    # Set control for the bm model
+    self.bm_model.set_ctrl(self._model, self._data, action[:self.bm_model.nu])
 
-            # Update bm model (e.g. update constraints); updates also effort model
-            self.bm_model.update(self._model, self._data)
+    # Set control for perception modules (e.g. eye movements)
+    self.perception.set_ctrl(self._model, self._data, action[self.bm_model.nu:])
 
-            # Update perception modules
-            self.perception.update(self._model, self._data)
-   
-            dist = np.abs(action - self._get_qpos(self._model, self._data))
+    # Advance the simulation
+    mujoco.mj_step(self._model, self._data, nstep=self._run_parameters["frame_skip"])
 
-            # Update environment        
-            reward, terminated, truncated, info = self.task.update(self._model, self._data)
+    # Update bm model (e.g. update constraints); updates also effort model
+    self.bm_model.update(self._model, self._data)
 
-            # Add an effort cost to reward
-            reward -= self.bm_model.get_effort_cost(self._model, self._data)
-        
-            #acc_reward += reward #To be used when rewards are being accumulated in llc steps
-                        
-            # Get observation
-            obs = self.get_observation()
+    # Update perception modules
+    self.perception.update(self._model, self._data)
 
-            # Add frame to stack
-            if self._render_mode == "rgb_array_list":
-              self._render_stack.append(self._GUI_rendering())
-            elif self._render_mode == "human":
-              self._GUI_rendering_pygame()
-                
-            if truncated or terminated:
-                break
-        
-            # Pointing
-            if "target_spawned" in info: 
-                if info["target_spawned"] or info["target_hit"]:
-                    break
-            
-            # Choice Reaction
-            elif "new_button_generated" in info: 
-                if info["new_button_generated"] or info["target_hit"]:
-                    break
-            
-            self._steps += 1
-            if np.all(dist < self._target_radius):
-                break
-   
-        return obs, reward, terminated, truncated, info
+    # Update environment
+    reward, terminated, truncated, info = self.task.update(self._model, self._data)
 
-    else:
-            # Set control for the bm model
-        self.bm_model.set_ctrl(self._model, self._data, action[:self.bm_model.nu])
+    # Add an effort cost to reward
+    reward -= self.bm_model.get_effort_cost(self._model, self._data)
 
-        # Set control for perception modules (e.g. eye movements)
-        self.perception.set_ctrl(self._model, self._data, action[self.bm_model.nu:])
+    # Get observation
+    obs = self.get_observation()
 
-        # Advance the simulation
-        mujoco.mj_step(self._model, self._data, nstep=self._run_parameters["frame_skip"])
+    # Add frame to stack
+    if self._render_mode == "rgb_array_list":
+      self._render_stack.append(self._GUI_rendering())
+    elif self._render_mode == "human":
+      self._GUI_rendering_pygame()
 
-        # Update bm model (e.g. update constraints); updates also effort model
-        self.bm_model.update(self._model, self._data)
-
-        # Update perception modules
-        self.perception.update(self._model, self._data)
-
-        # Update environment
-        reward, terminated, truncated, info = self.task.update(self._model, self._data)
-
-        # Add an effort cost to reward
-        reward -= self.bm_model.get_effort_cost(self._model, self._data)
-
-        # Get observation
-        obs = self.get_observation()
-
-        # Add frame to stack
-        if self._render_mode == "rgb_array_list":
-          self._render_stack.append(self._GUI_rendering())
-        elif self._render_mode == "human":
-          self._GUI_rendering_pygame()
-
-        return obs, reward, terminated, truncated, info
-  
+    return obs, reward, terminated, truncated, info
 
   def get_observation(self):
     """ Returns an observation from the perception model.
@@ -536,29 +425,6 @@ class Simulator(gym.Env):
       observation["stateful_information"] = stateful_information
 
     return observation
-
-  def get_llcobservation(self,action):
-    """ Returns an observation from the perception model.
-
-    Returns:
-      A dict with observations from individual perception modules. May also contain stateful information from a task.
-    """
-
-    # Get observation from perception
-    observation = self.perception.get_observation(self._model, self._data)
-    
-    # Remove Vision for LLC
-    observation.pop("vision")
-    qpos = self._get_qpos(self._model, self._data)
-    qpos_diff = action - qpos
-    
-    # Stateful Information for LLC policy
-    stateful_information = qpos_diff
-    if stateful_information is not None:
-      observation["stateful_information"] = stateful_information
-    
-    return observation
-
 
   def reset(self):
     """ Reset the simulator and return an observation. """
