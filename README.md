@@ -17,6 +17,7 @@ Please cite this paper if you use this *User-in-the-Box* repository in your rese
 
 ```
 @inproceedings{ikkala2022,
+
 author = {Ikkala, Aleksi and Fischer, Florian and Klar, Markus and Bachinski, Miroslav and Fleig, Arthur and Howes, Andrew and H\"{a}m\"{a}l\"{a}inen, Perttu and M\"{u}ller, J\"{o}rg and Murray-Smith, Roderick and Oulasvirta, Antti},
 title = {Breathing Life Into Biomechanical User Models},
 year = {2022},

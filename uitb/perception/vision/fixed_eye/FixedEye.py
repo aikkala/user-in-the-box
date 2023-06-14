@@ -127,7 +127,7 @@ class FixedEye(BaseModule):
       obs = np.concatenate([self._buffer[0], self._buffer[-1], self._buffer[-1] - self._buffer[0]], axis=0)
 
     return obs
-  
+
   @property
   def camera_active(self):
     return self._camera_active

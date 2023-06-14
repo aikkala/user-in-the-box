@@ -8,6 +8,8 @@ import pathlib
 from typing import final
 
 from ..utils.functions import parent_path
+from ..utils.functions import importer
+from ..rl.encoders import BaseEncoder
 
 
 class BaseModule(ABC):
@@ -32,8 +34,9 @@ class BaseModule(ABC):
     # Get modality  TODO this modality layer is somewhat unnecessary and may be removed in the future
     self._modality = parent_path(inspect.getfile(self.__class__)).parent.stem
 
-    # Observation shape will be set later
+    # Observation shape and encoder will be set in the subclass hook
     self._observation_shape = None
+    self._encoder = None
 
     # List of cameras provided by the module (cameras should be appended by subclasses)
     self._cameras = []
@@ -45,7 +48,14 @@ class BaseModule(ABC):
     super().__init_subclass__(*args, **kwargs)
     def init_with_hook(self, model, data, bm_model, init=cls.__init__, **init_kwargs):
       init(self, model, data, bm_model, **init_kwargs)
+
+      # Set observation shape
       self._observation_shape = self.get_observation(model, data).shape
+
+      # Initialise encoder: use Identity encoder by default (which is no-op) if encoder has not been defined in config
+      encoder_info = init_kwargs.get("encoder", None) or self._default_encoder
+      self._initialise_encoder(encoder_info)
+
     cls.__init__ = init_with_hook
 
 
@@ -70,6 +80,12 @@ class BaseModule(ABC):
         property 'encoder' must be implemented.
     """
     pass
+
+  @property
+  def _default_encoder(self):
+    """ Returns default encoder info as a dict. Overwrite this property in perception modules to use different encoders
+    by default. """
+    return {"module": "rl.encoders", "cls": "Identity"}
 
 
   ############ The methods below are overwritable but often don't need to be overwritten ############
@@ -100,12 +116,6 @@ class BaseModule(ABC):
       action: An action value from a policy, limited to range [-1, 1]
     """
     pass
-
-  @property
-  def encoder(self):
-    """ An encoder (typically a PyTorch neural network) that maps the observations from higher dimensional arrays into
-    vectors. """
-    return None
 
   def _get_observation_range(self):
     """ Return limits for the observations. These limits aren't currently used for anything (AFAIK, not in gym or
@@ -143,11 +153,6 @@ class BaseModule(ABC):
     # Create upper level folder (if needed)
     modality = os.path.join(dst, src.parent.stem)
     os.makedirs(modality, exist_ok=True)
-
-    # Copy the encoders file (if it exists)
-    encoders_file = os.path.join(src.parent, "encoders.py")
-    if os.path.isfile(encoders_file):
-      shutil.copyfile(encoders_file, os.path.join(modality, "encoders.py"))
 
     # Create an __init__.py file with the relevant import
     modules = cls.__module__.split(".")
@@ -187,6 +192,21 @@ class BaseModule(ABC):
   def get_observation_space_params(self):
     """ Returns the observation space parameters. """
     return {**self._get_observation_range(), "shape": self._observation_shape}
+
+  @final
+  def _initialise_encoder(self, encoder_info):
+    """ Import an encoder. We assume the encoder inherits from uitb.rl.encoders.BaseEncoder. """
+    encoder_cls = importer(encoder_info)
+    if not issubclass(encoder_cls, BaseEncoder):
+      raise RuntimeError(f"Encoder {encoder_cls} does not inherit from uitb.rl.encoders.BaseEncoder")
+    self._encoder = encoder_cls(observation_shape=self._observation_shape, **encoder_info.get("kwargs", {}))
+
+  @final
+  @property
+  def encoder(self):
+    """ An encoder (typically a PyTorch neural network) that encodes observations into a latent space. If observations
+    are higher dimensional (dim > 1), then the encoder must encode those observations into one dimensional vectors. """
+    return self._encoder
 
   @final
   @property

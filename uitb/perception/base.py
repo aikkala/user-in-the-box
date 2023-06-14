@@ -15,7 +15,7 @@ from ..rl.encoders import BaseEncoder
 class BaseModule(ABC):
 
   def __init__(self, model, data, bm_model, **kwargs):
-    """ Initialises a new `BaseModule`. One module represents one perception capability.
+    """ Initialises aF new `BaseModule`. One module represents one perception capability.
 
     Args:
       model: Mujoco model instance of the simulator.
@@ -318,7 +318,7 @@ class Perception:
     for module in self.perception_modules:
       observations[module.modality] = module.get_observation(model, data)
     return observations
-  
+
   def get_renders(self):
     """ Return rgb and/or depth arrays from all registered cameras."""
     perception_camera_images = []
@@ -333,7 +333,7 @@ class Perception:
               rgb_or_depth_array *= 0
             perception_camera_images.append(rgb_or_depth_array)
     return perception_camera_images
-    
+
   @property
   def cameras(self):
     return [_cam for cameras in self._cameras.values() for _cam in cameras]

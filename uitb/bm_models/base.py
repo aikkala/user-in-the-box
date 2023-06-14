@@ -75,13 +75,13 @@ class BaseBMModel(ABC):
 
     # Get the effort model; some models might need to know dt
     self._effort_model = self.get_effort_model(kwargs.get("effort_model", {"cls": "Zero"}), dt=kwargs["dt"])
-    
+
     # Define signal-dependent noise
     self._sigdepnoise_type = kwargs.get("sigdepnoise_type", None)  #"white")
     self._sigdepnoise_level = kwargs.get("sigdepnoise_level", 0.103)
     self._sigdepnoise_rng = np.random.default_rng(kwargs.get("random_seed", None))
     self._sigdepnoise_acc = 0  #only used for red/Brownian noise
-    
+
     # Define constant (i.e., signal-independent) noise
     self._constantnoise_type = kwargs.get("constantnoise_type", None)  #"white")
     self._constantnoise_level = kwargs.get("constantnoise_level", 0.185)
@@ -123,11 +123,10 @@ class BaseBMModel(ABC):
 
     # Reset smoothed average of motor actuator activation
     self._motor_smooth_avg = np.zeros((self._nm,))
-    
+
     # Reset accumulative noise
     self._sigdepnoise_acc = 0
     self._constantnoise_acc = 0
-    
 
   def _update(self, model, data):
     """ Update the biomechanical model after a step has been taken in the simulator. """
@@ -155,10 +154,10 @@ class BaseBMModel(ABC):
       action: Action values between [-1, 1]
 
     """
-    
+
     _selected_motor_control = self._motor_smooth_avg + action[:self._nm]
     _selected_muscle_control = np.clip(data.act[self._muscle_actuators] + action[self._nm:], 0, 1)
-    
+
     if self._sigdepnoise_type is not None:
         if self._sigdepnoise_type == "white":
             _added_noise = self._sigdepnoise_level*self._sigdepnoise_rng.normal(scale=_selected_muscle_control)
@@ -181,10 +180,10 @@ class BaseBMModel(ABC):
             _selected_muscle_control += self._constantnoise_acc
         else:
             raise NotImplementedError(f"{self._constantnoise_type}")
-    
+
     data.ctrl[self._motor_actuators] = np.clip(_selected_motor_control, 0, 1)
     data.ctrl[self._muscle_actuators] = np.clip(_selected_muscle_control, 0, 1)
-    
+
     # Update smoothed online estimate of motor actuation
     self._motor_smooth_avg = (1 - self._motor_alpha) * self._motor_smooth_avg \
                              + self._motor_alpha * data.ctrl[self._motor_actuators]

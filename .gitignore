@@ -9,4 +9,3 @@ wandb/
 simulators/mobl_arms_index_pointing_timereward
 simulators/mobl_arms_index_pointing_whitenoise
 simulators/mobl_arms_llc
-

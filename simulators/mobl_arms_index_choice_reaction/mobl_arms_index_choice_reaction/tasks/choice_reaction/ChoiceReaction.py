@@ -15,6 +15,10 @@ class ChoiceReaction(BaseTask):
     assert end_effector[0] == "geom", "end-effector must be a geom because contacts are between geoms"
     self._end_effector = end_effector[1]
     self._shoulder = shoulder
+    
+    # For LLC policy
+    self._target_qpos = [0,0,0,0,0]
+    
 
     # Get buttons
     self._buttons = [f"button-{idx}" for idx in range(4)]
@@ -84,12 +88,20 @@ class ChoiceReaction(BaseTask):
 
     # Check if the correct button has been pressed with suitable force
     force = data.sensor(self._current_button).data
+    
+    # Get end-effector position and target position
+    ee_position = data.geom(self._end_effector).xpos
+    target_position = data.geom(self._current_button).xpos
+
+    # Distance to target
+    dist = np.linalg.norm(target_position - ee_position)
 
     if 50 > force > 25:
       self._info["target_hit"] = True
       self._trial_idx += 1
       self._targets_hit += 1
       self._steps_since_last_hit = 0
+      self._info["acc_dist"] +=(dist)
       self._choose_button(model, data)
       self._info["new_button_generated"] = True
 
@@ -103,20 +115,16 @@ class ChoiceReaction(BaseTask):
         # Choose a new button
         self._steps_since_last_hit = 0
         self._trial_idx += 1
+        self._info["acc_dist"] +=(dist)
         self._choose_button(model, data)
         self._info["new_button_generated"] = True
 
     # Check if max number trials reached
     if self._trial_idx >= self._max_trials:
+      self._info["dist_from_target"] = self._info["acc_dist"]/self._trial_idx
       truncated = True
       self._info["termination"] = "max_trials_reached"
 
-    # Get end-effector position and target position
-    ee_position = data.geom(self._end_effector).xpos
-    target_position = data.geom(self._current_button).xpos
-
-    # Distance to target
-    dist = np.linalg.norm(target_position - ee_position)
 
     # Calculate reward
     reward = self._reward_function.get(self, dist, self._info.copy())
@@ -153,7 +161,7 @@ class ChoiceReaction(BaseTask):
     self._targets_hit = 0
 
     self._info = {"target_hit": False, "new_button_generated": False, "terminated": False, "truncated": False,
-                  "termination": False}
+                  "termination": False, "dist_from_target": 0, "acc_dist":0}
 
     # Choose a new button
     self._choose_button(model, data)
