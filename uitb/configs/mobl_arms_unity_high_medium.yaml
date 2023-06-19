@@ -51,7 +51,7 @@ rl:
     log_std_init: 0.0
     features_extractor_class: "feature_extractor.FeatureExtractor"
     normalize_images: False
-  policy_init: "policies/unity_high_easy/parameters-15mil.npy"
+  policy_init: "policies/unity_high_difficulty_easy/parameters-15mil.npy"
   lr: 
     function: "schedule.linear_schedule"
     kwargs:
