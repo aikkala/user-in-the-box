@@ -14,7 +14,7 @@ simulation:
   task:
     cls: "Unity"
     kwargs:
-      unity_executable: "beats-vr-linux/build.x86_64"
+      unity_executable: "apps/beats-vr-linux/build.x86_64"
       # app_args: ["-condition", "easy"]
       # override_headset_orientation: [0.9659258, 0, 0.258819, 0] # effort-level1; wrt to global coordinates
 #      override_headset_orientation: [0.9659258, 0, -0.258819, 0] # effort-level3; wrt to global coordinates

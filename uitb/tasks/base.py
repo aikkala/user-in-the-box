@@ -167,12 +167,14 @@ class BaseTask(ABC):
     return getattr(module, specs["cls"])(**specs.get("kwargs", {}))
 
   @classmethod
-  def clone(cls, simulator_folder, package_name):
+  def clone(cls, simulator_folder, package_name, app_executable=None):
     """ Clones (i.e. copies) the relevant python files into a new location.
 
     Args:
        simulator_folder: Location of the simulator.
        package_name: Name of the simulator (which is a python package)
+       app_executable: (relative) path of app executable, if an external application
+        is used by the task instance (e.g., a Unity app)
     """
 
     # Create 'tasks' folder
@@ -184,14 +186,19 @@ class BaseTask(ABC):
     shutil.copyfile(base_file, os.path.join(dst, base_file.name))
 
     # Create an __init__.py file with the relevant import
-    # Create an __init__.py file with the relevant import
     modules = cls.__module__.split(".")
     with open(os.path.join(dst, "__init__.py"), "w") as file:
       file.write("from ." + ".".join(modules[2:]) + " import " + cls.__name__)
 
-    # Copy env folder
+    # Copy env folder (without apps subdirectory)
     src = parent_path(inspect.getfile(cls))
-    shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
+    # shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
+    shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True, ignore=shutil.ignore_patterns('apps'))
+
+    # Copy application subdir (optional)
+    if app_executable is not None:
+      src_app = parent_path(os.path.join(src, app_executable))
+      shutil.copytree(src_app, os.path.join(dst, src.stem, os.path.dirname(app_executable)), dirs_exist_ok=True)
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):

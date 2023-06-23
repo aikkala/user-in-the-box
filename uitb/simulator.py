@@ -104,7 +104,7 @@ class Simulator(gym.Env):
 
     # Load task class
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
-    task_cls.clone(simulator_folder, config["package_name"])
+    task_cls.clone(simulator_folder, config["package_name"], app_executable=config["simulation"]["task"].get("kwargs", {}).get("unity_executable", None))
     simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
 
     # Load biomechanical model class
