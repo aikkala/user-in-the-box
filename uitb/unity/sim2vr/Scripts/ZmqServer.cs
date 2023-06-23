@@ -36,7 +36,6 @@ namespace UserInTheBox
         public bool isFinished;
         public float reward;
         public byte[] image;
-        public float timeFeature;
     }
 
     public class ZmqServer
@@ -95,13 +94,12 @@ namespace UserInTheBox
             state = JsonUtility.FromJson<TMessage>(strMessage);
         }
 
-        public void SendObservation(bool isFinished, float reward, byte[] image, float timeFeature)
+        public void SendObservation(bool isFinished, float reward, byte[] image)
         {
             // Populate reply
             _gameObservation.isFinished = isFinished;
             _gameObservation.reward = reward;
             _gameObservation.image = image;
-            _gameObservation.timeFeature = timeFeature;
 
             // Send to simulator
             _socket.SendFrame(JsonUtility.ToJson(_gameObservation));
@@ -115,7 +113,7 @@ namespace UserInTheBox
             Debug.Log("Connection confirmed");
             
             // Send an empty message to confirm connection
-            SendObservation(false, 0, null, -1);
+            SendObservation(false, 0, null);
 
             return _timeOptions;
         }
