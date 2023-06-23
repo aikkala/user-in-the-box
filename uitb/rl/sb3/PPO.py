@@ -52,9 +52,9 @@ class PPO(BaseRLModel):
                              learning_rate=rl_config["lr"], device=rl_config["device"])
         self.training_resumed = False
 
-    if "policy_init" in rl_config:
-        params = os.path.join(pathlib.Path(__file__).parent, rl_config["policy_init"])
-        self.model.policy.load_from_vector(np.load(params))
+        if "policy_init" in rl_config:
+            params = os.path.join(pathlib.Path(__file__).parent, rl_config["policy_init"])
+            self.model.policy.load_from_vector(np.load(params))
     
     # Create a checkpoint callback
     save_freq = rl_config["save_freq"] // self.n_envs
