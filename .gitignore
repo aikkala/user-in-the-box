@@ -5,8 +5,8 @@ uitb.egg-info/
 uitb/utils/__simulatorsdir__.py
 wandb/
 
-uitb/tasks/unity/apps/build_*/
-uitb/tasks/unity/apps/build*/app_logs/
+#uitb/tasks/unity/apps/build_*/
+uitb/tasks/unity/apps/*/app_logs/
 
 simulators/
 #simulators/mobl_arms_index_choice_reaction

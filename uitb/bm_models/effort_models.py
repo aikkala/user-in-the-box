@@ -274,15 +274,21 @@ class Neural(BaseEffortModel):
   def __init__(self, bm_model, weight=1e-4, **kwargs):
     super().__init__(bm_model)
     self._weight = weight
+    self._effort_cost = None
 
   def cost(self, model, data):
-    return self._weight * np.sum(data.ctrl ** 2)
+    self._effort_cost = self._weight * np.sum(data.ctrl ** 2)
+    return self._effort_cost
 
   def reset(self, model, data):
     pass
 
   def update(self, model, data):
     pass
+  
+  def _get_state(self, model, data):
+    state = {"effort_cost": self._effort_cost}
+    return state
 
 
 class Zero(BaseEffortModel):

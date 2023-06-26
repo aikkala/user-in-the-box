@@ -601,11 +601,12 @@ class Simulator(gym.Env):
       A dict with one float or numpy vector per keyword.
     """
 
-    # Get time, qpos, qvel, qacc, act, ctrl of the current simulation
+    # Get time, qpos, qvel, qacc, act_force, act, ctrl of the current simulation
     state = {"timestep": self._data.time,
              "qpos": self._data.qpos.copy(),
              "qvel": self._data.qvel.copy(),
              "qacc": self._data.qacc.copy(),
+             "act_force": self._data.actuator_force.copy(),
              "act": self._data.act.copy(),
              "ctrl": self._data.ctrl.copy()}
 
