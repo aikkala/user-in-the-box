@@ -7,6 +7,7 @@ wandb/
 
 #uitb/tasks/unity/apps/build_*/
 uitb/tasks/unity/apps/*/app_logs/
+uitb/tasks/unity/apps/
 
 simulators/
 #simulators/mobl_arms_index_choice_reaction
