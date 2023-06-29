@@ -1,0 +1,3 @@
+[submodule "uitb/sim2vr"]
+	path = uitb/sim2vr
+	url = git@github.com:fl0fischer/sim2vr.git
