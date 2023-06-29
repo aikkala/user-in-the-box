@@ -48,7 +48,10 @@ namespace UserInTheBox
 
                 // Disable the TrackedPoseDriver as well, otherwise XR Origin will always
                 // try to reset position of camera to (0,0,0)?
-                mainCamera.GetComponent<TrackedPoseDriver>().enabled = false;
+                if(mainCamera.GetComponent<TrackedPoseDriver>() != null)
+                {
+                    mainCamera.GetComponent<TrackedPoseDriver>().enabled = false;
+                }
             }
             else
             {

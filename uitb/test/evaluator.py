@@ -101,18 +101,24 @@ if __name__ == "__main__":
     print(f"run parameters are: {simulator.run_parameters}")
 
     # Load latest model if filename not given
+    _policy_loaded = False
     if args.checkpoint is not None:
         model_file = args.checkpoint
     else:
-        files = natural_sort(os.listdir(checkpoint_dir))
-        model_file = files[-1]
+        try:
+            files = natural_sort(os.listdir(checkpoint_dir))
+            model_file = files[-1]
+            _policy_loaded = True
+        except FileNotFoundError:
+            print("No checkpoint found. Will continue evaluation with randomly sampled controls.")
 
-    # Load policy TODO should create a load method for uitb.rl.BaseRLModel
-    print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}\n')
-    model = PPO.load(os.path.join(checkpoint_dir, model_file))
+    if _policy_loaded:
+        # Load policy TODO should create a load method for uitb.rl.BaseRLModel
+        print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}\n')
+        model = PPO.load(os.path.join(checkpoint_dir, model_file))
 
-    # Set callbacks to match the value used for this training point (if the simulator had any)
-    simulator.update_callbacks(model.num_timesteps)
+        # Set callbacks to match the value used for this training point (if the simulator had any)
+        simulator.update_callbacks(model.num_timesteps)
 
     if args.logging:
         # Initialise log
@@ -142,8 +148,12 @@ if __name__ == "__main__":
             # #print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
             # print(reward)
 
-            # Get actions from policy
-            action, _states = model.predict(obs, deterministic=deterministic)
+            if _policy_loaded:
+                # Get actions from policy
+                action, _internal_policy_state = model.predict(obs, deterministic=deterministic)
+            else:
+                # choose random action from action space
+                action = simulator.action_space.sample()    
 
             # Take a step
             obs, r, terminated, truncated, info = simulator.step(action)
