@@ -16,7 +16,9 @@ class UnityClient:
 
     # If a port number hasn't been given, grab one randomly
     if port is None:
-      port = self._find_free_port()
+      self.port = self._find_free_port()
+    else:
+      self.port = port
 
     self._app = None
 
@@ -41,13 +43,13 @@ class UnityClient:
       # Open the app
       self._app = subprocess.Popen([unity_executable,
                                     '-simulated',
-                                    '-port', f'{port}',
+                                    '-port', f'{self.port}',
                                     '-logFile', f'{os.path.join(log_path, log_name)}'] + app_args, env=env_with_display)
 
     # Create zmq client
     self._context = zmq.Context()
     self._client = self._context.socket(zmq.REQ)
-    self._client.connect(f"tcp://localhost:{port}")
+    self._client.connect(f"tcp://localhost:{self.port}")
 
   def close(self):
     if self._client:
@@ -81,7 +83,7 @@ class UnityClient:
 
   def handshake(self, time_options):
     # Send time options, receive an empty msg
-    print("Attempting to connect to Unity app")
+    print(f"Attempting to connect to Unity app on port {self.port}")
     self._client.send_json(time_options)
     msg = self._client.recv_json()
     print("Connection confirmed")
