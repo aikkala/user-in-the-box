@@ -43,7 +43,7 @@ class BaseBMModel(ABC):
 
     # Get actuator names (muscle and motor)
     self._actuator_names = [mujoco.mj_id2name(bm_model, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(bm_model.nu)]
-    self._muscle_actuator_names = set(np.array(self._actuator_names)[model.actuator_trntype==3])
+    self._muscle_actuator_names = set(np.array(self._actuator_names)[bm_model.actuator_trntype==3])
     self._motor_actuator_names = set(self._actuator_names) - self._muscle_actuator_names
 
     # Sort the names to preserve original ordering (not really necessary but looks nicer)
