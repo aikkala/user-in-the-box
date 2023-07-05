@@ -123,8 +123,8 @@ class Unity(BaseTask):
     if gear not in self.offsets:
       raise NotImplementedError(f"Offset has not been defined for VR gear {gear}")
 
-    # We may need to override headset orientation in some cases
-    self._override_headset_orientation = kwargs.get("override_headset_orientation", None)
+    # # We may need to override headset orientation in some cases
+    # self._override_headset_orientation = kwargs.get("override_headset_orientation", None)
 
     # Set camera angle
     model.cam_pos[mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, 'for_testing')] = np.array([1.2, -0.8, 0.95])
@@ -271,8 +271,8 @@ class Unity(BaseTask):
     # Get position and rotation of headset
     headset_pos, headset_quat = \
       self._transform_to_unity(data.body("headset").xpos,
-                               data.body("headset").xquat if self._override_headset_orientation is None else
-                               self._override_headset_orientation)
+                               data.body("headset").xquat) # if self._override_headset_orientation is None else
+                              #  self._override_headset_orientation)
 
     # Create the state
     state = {
