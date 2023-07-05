@@ -62,6 +62,7 @@ if __name__ == "__main__":
                         help='filename of a specific checkpoint (default: None, latest checkpoint is used)')
     parser.add_argument('--num_episodes', type=int, default=10,
                         help='how many episodes are evaluated (default: 10)')
+    parser.add_argument('--uncloned', dest="cloned", action='store_false', help='use source code instead of files from cloned simulator module')
     parser.add_argument('--record', action='store_true', help='enable recording')
     parser.add_argument('--out_file', type=str, default='evaluate.mp4',
                         help='output file for recording if recording is enabled (default: ./evaluate.mp4)')
@@ -93,7 +94,7 @@ if __name__ == "__main__":
     deterministic = False
 
     # Initialise simulator
-    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array_list", run_parameters=run_params, use_cloned=True)
+    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array_list", run_parameters=run_params, use_cloned=args.cloned)
 
     # ## Change effort model #TODO: delete
     # simulator.bm_model._effort_model = CumulativeFatigue3CCr(simulator.bm_model, dt=simulator._run_parameters["dt"])
