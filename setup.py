@@ -32,5 +32,6 @@ setup(
        "numpy", "matplotlib", "scipy",
        "opencv-python",
        "ruamel.yaml",
+       "zmq"
    ],
 )
