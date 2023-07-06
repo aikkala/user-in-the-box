@@ -63,6 +63,8 @@ if __name__ == "__main__":
     parser.add_argument('--num_episodes', type=int, default=10,
                         help='how many episodes are evaluated (default: 10)')
     parser.add_argument('--uncloned', dest="cloned", action='store_false', help='use source code instead of files from cloned simulator module')
+    parser.add_argument('--app_condition', type=str, default=None,
+                        help="can be used to override the 'condition' argument passed to a Unity app")
     parser.add_argument('--record', action='store_true', help='enable recording')
     parser.add_argument('--out_file', type=str, default='evaluate.mp4',
                         help='output file for recording if recording is enabled (default: ./evaluate.mp4)')
@@ -88,6 +90,8 @@ if __name__ == "__main__":
     run_params["unity_record_gameplay"] = False
     run_params["unity_logging"] = True
     run_params["unity_output_folder"] = evaluate_dir
+    if args.app_condition is not None:
+        run_params["app_args"] = ['-condition', args.app_condition]
     # run_params["unity_random_seed"] = 123
 
     # Use deterministic actions?
@@ -110,7 +114,7 @@ if __name__ == "__main__":
             files = natural_sort(os.listdir(checkpoint_dir))
             model_file = files[-1]
             _policy_loaded = True
-        except FileNotFoundError:
+        except (FileNotFoundError, IndexError):
             print("No checkpoint found. Will continue evaluation with randomly sampled controls.")
 
     if _policy_loaded:
@@ -129,7 +133,7 @@ if __name__ == "__main__":
         action_logger = ActionLogger(args.num_episodes)
 
     # Visualise evaluations
-    statistics = defaultdict(list)
+    # statistics = defaultdict(list)
     for episode_idx in range(args.num_episodes):
 
         print(f"Run episode {episode_idx + 1}/{args.num_episodes}.")
@@ -154,7 +158,7 @@ if __name__ == "__main__":
                 action, _internal_policy_state = model.predict(obs, deterministic=deterministic)
             else:
                 # choose random action from action space
-                action = simulator.action_space.sample()    
+                action = simulator.action_space.sample()
 
             # Take a step
             obs, r, terminated, truncated, info = simulator.step(action)
