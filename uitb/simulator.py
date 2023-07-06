@@ -435,7 +435,7 @@ class Simulator(gym.Env):
 
     # Add any stateful information that is required
     stateful_information = self.task.get_stateful_information(self._model, self._data)
-    if stateful_information is not None:
+    if stateful_information.size > 0:  #TODO: define stateful_information (and encoder) that can be used as default, if no stateful information is provided (zero-size arrays do not work with sb3 currently...)
       observation["stateful_information"] = stateful_information
 
     return observation
