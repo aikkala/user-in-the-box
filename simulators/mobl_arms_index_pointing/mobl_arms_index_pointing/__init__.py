@@ -1,6 +1,6 @@
 from .simulator import Simulator
 
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
 import pathlib
 
 module_folder = pathlib.Path(__file__).parent

@@ -395,7 +395,8 @@ class Simulator(gym.Env):
     return spaces.Box(low=np.float32(actuator_limits[:, 0]), high=np.float32(actuator_limits[:, 1]))
 
   def _initialise_HRL_action_space(self):
-    bm_jnt_range = np.ones((num_actuators,2)) * np.array([-1.0, 1.0])
+    bm_nu = self.bm_model.nu
+    bm_jnt_range = np.ones((bm_nu,2)) * np.array([-1.0, 1.0])
     perception_nu = self.perception.nu
     perception_jnt_range = np.ones((perception_nu,2)) * np.array([-1.0, 1.0])
     jnt_range = np.concatenate((bm_jnt_range, perception_jnt_range), axis=0)
@@ -531,7 +532,7 @@ class Simulator(gym.Env):
 
     # Add any stateful information that is required
     stateful_information = self.task.get_stateful_information(self._model, self._data)
-    if stateful_information is not None:
+    if stateful_information.size > 0:  #TODO: define stateful_information (and encoder) that can be used as default, if no stateful information is provided (zero-size arrays do not work with sb3 currently...)
       observation["stateful_information"] = stateful_information
 
     return observation

@@ -10,6 +10,8 @@ import importlib
 from typing import final
 
 from ..utils.functions import parent_path
+from ..utils.functions import importer
+from ..rl.encoders import BaseEncoder
 
 
 class BaseTask(ABC):
@@ -60,8 +62,14 @@ class BaseTask(ABC):
     super().__init_subclass__(*args, **kwargs)
     def init_with_hook(self, model, data, init=cls.__init__, **init_kwargs):
       init(self, model, data, **init_kwargs)
-      stateful_information = self.get_stateful_information(model, data)
-      self._stateful_information_shape = None if stateful_information is None else stateful_information.shape
+
+      # Set stateful information shape
+      self._stateful_information_shape = self.get_stateful_information(model, data).shape
+
+      # Initialise encoder: use Identity encoder by default (which is no-op) if encoder has not been defined in config
+      encoder_info = init_kwargs.get("stateful_information_encoder", None) or self._default_stateful_information_encoder
+      self._initialise_stateful_information_encoder(encoder_info)
+
     cls.__init__ = init_with_hook
 
 
@@ -102,12 +110,12 @@ class BaseTask(ABC):
       data: Mujoco data instance of the simulator.
 
     Returns:
-      * None if no stateful information is used for RL training
+      * An empty array if no stateful information is used for RL training
       * A numpy array, typically a vector but can be higher dimensional as well. If higher dimensional, then the
         property 'stateful_information_encoder' must be overwritten to map the higher dimensional array into a vector.
 
     """
-    return None
+    return np.array([])
 
   def _get_stateful_information_range(self):
     """ Return limits for stateful information. These limits aren't currently used for anything (AFAIK, not in gym or
@@ -122,10 +130,10 @@ class BaseTask(ABC):
     return {"low": float('-inf'), "high": float('inf')}
 
   @property
-  def stateful_information_encoder(self):
-    """ If 'get_stateful_information' returns a higher dimensional numpy array, then this method must return an encoder
-      (e.g. a PyTorch neural network) to map it into a vector. """
-    return None
+  def _default_stateful_information_encoder(self):
+    """ Returns default encoder info as a dict. Overwrite this property in derived task class to use different default
+     encoders for stateful information. """
+    return {"module": "rl.encoders", "cls": "Identity"}
 
   def _get_state(self, model, data):
     """ Return the state of the task/environment. These states are used only for logging/evaluation, not for RL
@@ -229,7 +237,20 @@ class BaseTask(ABC):
   @final
   def get_stateful_information_space_params(self):
     """ Returns stateful information space parameters. """
-    if self._stateful_information_shape is None:
-      return None
-    else:
-      return {**self._get_stateful_information_range(), "shape": self._stateful_information_shape}
+    return {**self._get_stateful_information_range(), "shape": self._stateful_information_shape}
+
+  @final
+  def _initialise_stateful_information_encoder(self, encoder_info):
+    """ Import an encoder. We assume the encoder inherits from uitb.rl.encoders.BaseEncoder. """
+    encoder_cls = importer(encoder_info)
+    if not issubclass(encoder_cls, BaseEncoder):
+      raise RuntimeError(f"Encoder {encoder_cls} does not inherit from uitb.rl.encoders.BaseEncoder")
+    self._stateful_information_encoder = \
+      encoder_cls(observation_shape=self._stateful_information_shape, **encoder_info.get("kwargs", {}))
+
+  @final
+  @property
+  def stateful_information_encoder(self):
+    """ If 'get_stateful_information' returns a higher dimensional numpy array, then this method must return an encoder
+      (e.g. a PyTorch neural network) to map it into a vector. """
+    return self._stateful_information_encoder

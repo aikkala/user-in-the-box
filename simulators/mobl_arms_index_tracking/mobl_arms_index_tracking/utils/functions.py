@@ -6,6 +6,7 @@ import select
 import numpy as np
 import re
 from ruamel.yaml import YAML
+import importlib
 
 
 def parent_path(file):
@@ -63,3 +64,27 @@ def img_history(imgs, k=0.9):
     norm += coeff
 
   return img / (255*norm)
+
+def importer(import_info):
+  """ Imports a class or a function from given module and returns it.
+
+  Args:
+    import_info: A dict, must contain keyword 'module'. If neither keywords 'cls' nor 'function' are defined, the module
+      is returned. Otherwise, if 'cls' or 'function' is defined, the importer tries to import and return either an
+      object of the given class, or a function from the given module
+  """
+
+  # Make sure "module" is defined
+  if "module" not in import_info:
+    raise RuntimeError(f"The import info {import_info} is missing keyword 'module'")
+
+  # Import the module
+  module = importlib.import_module(f"{__package__.split('.')[0]}.{import_info['module']}")
+
+  # Check whether "cls" or "function" is defined
+  if not any(k in import_info for k in {"cls", "function"}):
+    return module
+  else:
+    imp = import_info["cls"] if "cls" in import_info else import_info["function"]
+    instance = getattr(module, imp)
+    return instance

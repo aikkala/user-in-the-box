@@ -107,7 +107,7 @@
           <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
           <joint name="unrotscap_r3" pos="0 0 0" axis="-0.994473 0 -0.104997" limited="false" range="-99999.9 99999.9"/>
           <joint name="unrotscap_r2" pos="0 0 0" axis="0.0153 0.989299 -0.1451" limited="false" range="-99999.9 99999.9"/>
-          <body name="scapula" pos="0 0 0">
+          <body name="scapula">
             <inertial pos="-0.054694 -0.035032 -0.043734" quat="0.453021 0.77921 0.0744129 0.426692" mass="0.70396" diaginertia="0.00199576 0.00103993 0.001"/>
             <joint name="acromioclavicular_r2" pos="0 0 0" axis="0.157095 0.947269 -0.279291" limited="false" range="-99999.9 99999.9"/>
             <joint name="acromioclavicular_r3" pos="0 0 0" axis="-0.754084 0.297594 0.585487" limited="false" range="-99999.9 99999.9"/>
@@ -145,14 +145,14 @@
               <joint name="unrothum_r1" pos="0 0 0" axis="0.6377 0.1186 0.7611" limited="false" range="-99999.9 99999.9"/>
               <joint name="unrothum_r3" pos="0 0 0" axis="-0.754084 0.297594 0.585487" limited="false" range="-99999.9 99999.9"/>
               <joint name="unrothum_r2" pos="0 0 0" axis="0.157095 0.947269 -0.279291" limited="false" range="-99999.9 99999.9"/>
-              <body name="humphant" pos="0 0 0">
+              <body name="humphant">
                 <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
                 <joint name="elv_angle" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.5708 2.26893" user="1"/>
-                <body name="humphant1" pos="0 0 0">
+                <body name="humphant1">
                   <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
                   <joint name="shoulder_elv" pos="0 0 0" axis="-0.998261 0.0023 0.058898" range="0 3.14159" user="1"/>
                   <joint name="shoulder1_r2" pos="0 0 0" axis="0.0048 0.999089 0.0424" limited="false" range="-99999.9 99999.9"/>
-                  <body name="humerus" pos="0 0 0">
+                  <body name="humerus">
                     <inertial pos="0.018064 -0.140141 -0.012746" quat="0.407851 0.343714 -0.567755 0.627034" mass="1.99757" diaginertia="0.0128576 0.0121576 0.00239265"/>
                     <joint name="shoulder_rot" pos="0 0 0" axis="0.0048 0.999089 0.0424" range="-1.57 0.349066" user="1"/>
                     <geom name="humerus" type="mesh" mesh="humerus"/>
@@ -454,16 +454,16 @@
                             <site name="APL-P8" pos="0.02878 -0.00674 -0.0187"/>
                             <site name="APL-P9" pos="0.03076 -0.01583 -0.01885"/>
                             <site name="APL-P6" pos="0.0332244 0.00608975 -0.00870125"/>
-                            <body name="index0" pos="0 0 0">
+                            <body name="index0">
                               <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                               <geom name="sdfast_1seg_hand_fr_c_2mc" type="mesh" mesh="sdfast_1seg_hand_fr_c_2mc"/>
-                              <body name="index1" pos="0 0 0">
+                              <body name="index1">
                                 <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                                 <geom name="hand_2proxph" type="mesh" mesh="hand_2proxph"/>
-                                <body name="index2" pos="0 0 0">
+                                <body name="index2">
                                   <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                                   <geom name="hand_2midph" type="mesh" mesh="hand_2midph"/>
-                                  <body name="index3" pos="0 0 0">
+                                  <body name="index3">
                                     <inertial pos="0 0 0" mass="0.001" diaginertia="0.001 0.001 0.001"/>
                                     <geom name="hand_2distph" type="mesh" mesh="hand_2distph"/>
                                     <site name="fingertip" pos="0.024 -0.149 -0.0065" size="0.004" rgba="0.1 0.8 0.1 0"/>
