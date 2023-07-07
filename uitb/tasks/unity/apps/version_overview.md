@@ -7,3 +7,6 @@ v1.1.1 [non-permanent changes!]
 
 v1.1.0l [non-permanent changes!]
 - variant of v1.1.0 which only spawns targets in the first column of the target grid (i.e., only on the left)
+
+v1.1.2 [non-permanent changes!]
+- variant of v1.1.0, where the target contact bonus term is scaled by the hitting velocity (which is defined as z-axis velocity of hammer)
