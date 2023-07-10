@@ -38,7 +38,7 @@ class PPO(BaseRLModel):
         self.training_resumed = True
     else:
         # Add feature and stateful information encoders to policy_kwargs
-        encoders = simulator.perception.encoders    
+        encoders = simulator.perception.encoders
         if simulator.task.get_stateful_information_space_params()["shape"] != (0,):
           #TODO: define stateful_information (and encoder) that can be used as default, if no stateful information is provided (zero-size array do not work with sb3 currently...)
           encoders["stateful_information"] = simulator.task.stateful_information_encoder
