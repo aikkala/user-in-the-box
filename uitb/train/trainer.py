@@ -52,7 +52,7 @@ if __name__=="__main__":
       existing_checkpoints = [os.path.join(checkpoint_dir, f) for f in os.listdir(checkpoint_dir) if
               os.path.isfile(os.path.join(checkpoint_dir, f))]
     else:
-      raise FileNotFoundError(f"Checkpoint directory does not exist: {checkpoint_dir}")
+      raise FileNotFoundError(f"Checkpoint directory does not exist: {checkpoint_dir}\nTry to run without --checkpoint or --resume.")
 
     if checkpoint is not None:
       checkpoint_path = os.path.join(checkpoint_dir, checkpoint)
