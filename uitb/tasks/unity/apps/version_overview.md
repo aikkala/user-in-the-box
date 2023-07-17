@@ -10,3 +10,6 @@ v1.1.0l [non-permanent changes!]
 
 v1.1.2 [non-permanent changes!]
 - variant of v1.1.0, where the target contact bonus term is scaled by the hitting velocity (which is defined as z-axis velocity of hammer)
+
+v1.1.3
+- new game option: allow to automatically increase probability of targets with low hitting rate in previous run/episode
