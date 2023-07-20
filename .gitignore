@@ -16,6 +16,7 @@ simulators/
 #simulators/mobl_arms_index_tracking
 datasets/
 trained/
+simulators_nasAI8/
 
 _builds/
 simulators_OLD/
