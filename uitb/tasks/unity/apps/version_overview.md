@@ -8,8 +8,11 @@ v1.1.1 [non-permanent changes!]
 - use splines to define distance reward to currently shown targets and ensure that distance reward terms are non-negative
 - NOTE: in subsequent versions, distance reward terms were reset to the original exponential definition
 
-v1.1.2 [non-permanent changes ?!]
+v1.1.2 [DEFAULT BEHAVIOR: was used later on also in updated versions of v1.1.0 etc. ...]
 - variant of v1.1.0, where the target contact bonus term is scaled by the hitting velocity (which is defined as z-axis velocity of hammer)
 
 v1.1.3
 - new game option: allow to automatically increase probability of targets with low hitting rate in previous run/episode
+
+v1.1.4
+- as v1.1.0, but with options to v1.1.3 and sparse rewards (i.e., purely extrinsic game rewards) (-> use "-adaptive" and "-sparse" flags in built apps, respectively)
