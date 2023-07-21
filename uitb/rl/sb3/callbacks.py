@@ -2,6 +2,7 @@ import numpy as np
 import torch
 
 from typing import Any, Dict, Optional
+import os
 import warnings
 
 from stable_baselines3.common.callbacks import BaseCallback, EventCallback
