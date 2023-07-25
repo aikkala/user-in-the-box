@@ -227,6 +227,7 @@ class Camera:
     self._fps = int(np.round(1.0 / dt))
 
   def write_video(self, imgs, filepath):
+    # DEPRECATED -> use write_video_set_path(filepath), write_video_add_frame(img), and write_video_close() instead
     """Writes a video from images.
     Args:
       imgs: A list of images.
@@ -244,3 +245,35 @@ class Camera:
     for img in imgs:
       out.write(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     out.release()
+
+  def write_video_set_path(self, filepath):
+    """Creates a video writer instance that can be used online to add frames
+    (might be less memory consuming than write_video()).
+    Args:
+      filepath: Path where the video will be saved.
+    Raises:
+      ValueError: If frames per second (fps) is not set (set_fps is not called)
+    """
+
+    # Make sure fps has been set
+    if self._fps is None:
+      raise ValueError("set_fps must be called before writing a video.")
+
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    self._write_video_out = cv2.VideoWriter(filepath, fourcc, self._fps, tuple(self._resolution))
+
+  def write_video_add_frame(self, img):
+    """Adds the given frame to the video writer instance
+    (might be less memory consuming than write_video()).
+    Args:
+      img: The image to write.
+    """
+    assert hasattr(self, "_write_video_out"), "Call 'write_video_set_path(filepath)' first to create a video writer instance."
+    self._write_video_out.write(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+
+  def write_video_close(self):
+    """Closes the existing video writer instance
+    (might be less memory consuming than write_video()).
+    """
+    assert hasattr(self, "_write_video_out"), "Call 'write_video_set_path(filepath)' first to create a video writer instance."
+    self._write_video_out.release()

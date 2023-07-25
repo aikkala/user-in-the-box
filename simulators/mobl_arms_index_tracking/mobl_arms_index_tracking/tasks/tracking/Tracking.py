@@ -32,7 +32,7 @@ class Tracking(BaseTask):
     self._freq_curriculum = freq_curriculum.value
 
     # For logging
-    self._info = {"termination": False, "inside_target": False}
+    self._info = {"terminated": False, "truncated": False, "termination": False, "inside_target": False}
 
     # Define a default reward function
     self._reward_function = NegativeDistance()
@@ -66,7 +66,9 @@ class Tracking(BaseTask):
 
   def _update(self, model, data):
 
-    finished = False
+    # Set defaults
+    terminated = False
+    truncated = False
     self._info = {"termination": False}
 
     # Get end-effector position
@@ -83,7 +85,7 @@ class Tracking(BaseTask):
 
     # Check if time limit has been reached
     if self._steps >= self._max_episode_steps:
-      finished = True
+      truncated = True
       self._info["termination"] = "time_limit_reached"
 
     # Calculate reward; note, inputting distance to surface into reward function, hence distance can be negative if
@@ -93,7 +95,7 @@ class Tracking(BaseTask):
     # Update target location
     self._update_target_location(model, data)
 
-    return reward, finished, self._info.copy()
+    return reward, terminated, truncated, self._info.copy()
 
   def _get_state(self, model, data):
     state = dict()
@@ -102,13 +104,15 @@ class Tracking(BaseTask):
 
   def _reset(self, model, data):
 
-    self._info = {"termination": False, "inside_target": False}
+    self._info = {"terminated": False, "truncated": False, "termination": False, "inside_target": False}
 
     # Generate a new trajectory
     self._sin_y, self._sin_z = self._generate_trajectory()
 
     # Update target location
     self._update_target_location(model, data)
+
+    return self._info
 
   def _generate_trajectory(self):
     sin_y = self._generate_sine_wave(self._target_limits_y, num_components=5)

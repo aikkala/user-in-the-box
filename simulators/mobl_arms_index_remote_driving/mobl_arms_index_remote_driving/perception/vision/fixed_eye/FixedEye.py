@@ -5,7 +5,7 @@ from collections import deque
 
 from ...base import BaseModule
 from ....utils.rendering import Camera
-from ..encoders import small_cnn
+
 
 class FixedEye(BaseModule):
 
@@ -52,8 +52,13 @@ class FixedEye(BaseModule):
     self._context = kwargs["rendering_context"]
 
     # Initialise camera
-    self._camera = Camera(context=self._context, model=model, data=data,
+    self.camera_fixed_eye = Camera(context=self._context, model=model, data=data,
                           resolution=resolution, rgb=True, depth=True, camera_id="fixed-eye")
+    self._camera_active = True
+
+    # Append all cameras to self._cameras to be able to display
+    # their outputs in human-view/GUI mode (used by simulator.py)
+    self._cameras.append(self.camera_fixed_eye)
 
     # Define a vision buffer for including previous visual observations
     self._buffer = None
@@ -97,7 +102,7 @@ class FixedEye(BaseModule):
   def get_observation(self, model, data):
 
     # Get rgb and depth arrays
-    rgb, depth = self._camera.render()
+    rgb, depth = self.camera_fixed_eye.render()
     assert not np.all(rgb==0), "There's still something wrong with rendering"
 
     # Normalise
@@ -123,10 +128,14 @@ class FixedEye(BaseModule):
 
     return obs
 
+  @property
+  def camera_active(self):
+    return self._camera_active
+
+  @property
+  def _default_encoder(self):
+    return {"module": "rl.encoders", "cls": "SmallCNN", "kwargs": {"out_features": 256}}
+
   def _reset(self, model, data):
     if self._buffer is not None:
       self._buffer.clear()
-
-  @property
-  def encoder(self):
-    return small_cnn(observation_shape=self._observation_shape, out_features=256)

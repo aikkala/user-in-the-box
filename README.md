@@ -17,6 +17,7 @@ Please cite this paper if you use this *User-in-the-Box* repository in your rese
 
 ```
 @inproceedings{ikkala2022,
+
 author = {Ikkala, Aleksi and Fischer, Florian and Klar, Markus and Bachinski, Miroslav and Fleig, Arthur and Howes, Andrew and H\"{a}m\"{a}l\"{a}inen, Perttu and M\"{u}ller, J\"{o}rg and Murray-Smith, Roderick and Oulasvirta, Antti},
 title = {Breathing Life Into Biomechanical User Models},
 year = {2022},
@@ -93,18 +94,18 @@ Once a simulator has been built as shown above, you can initialise the simulator
 simulator = Simulator.get(simulator_folder)
 ```
 
-and `simulator` can be run in the same way as any OpenAI Gym environment (i.e. by calling methods `simulator.step(action)`, `simulator.reset()`). **IF** the simulator folder is in Python path, one can also import a simulator with its name, and initialise it with `gym`. E.g. if config["simulator_name"] = "mobl_arms_index_pointing"
+and `simulator` can be run in the same way as any OpenAI Gym environment (i.e. by calling methods `simulator.step(action)`, `simulator.reset()`). **IF** the simulator folder is in Python path, one can also import a simulator with its name, and initialise it with `gymnasium`. E.g. if config["simulator_name"] = "mobl_arms_index_pointing"
 
 ```python
 # Import the simulator
 import mobl_arms_index_pointing
 
-# Initialise a simulator with gym
-import gym
+# Initialise a simulator with gym(nasium)
+import gymnasium as gym
 simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 ```
 
-Note the prefix `uitb:` and suffix `-v0` that must be used to satisfy OpenAI Gym's naming conventions. Alternatively, you can programmatically import a simulator and then initialise with gym
+Note the prefix `uitb:` and suffix `-v0` that must be used to satisfy OpenAI Gym's naming conventions. Alternatively, you can programmatically import a simulator and then initialise with gymnasium
 
 ```python
 # Add simulator_folder to Python path
@@ -115,8 +116,8 @@ sys.path.insert(0, simulator_folder)
 import importlib
 importlib.import_module("mobl_arms_index_pointing")
 
-# Initialise a simulator with gym
-import gym
+# Initialise a simulator with gym(nasium)
+import gymnasium as gym
 simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 ```
 
@@ -126,6 +127,11 @@ simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 - The conda environment defined in `conda_env.yml` should contain all required packages. Create a new conda env with `conda env create -f conda_env.yml` and activate it with `conda activate uitb`.
 
 - Alternatively, you can install the `uitb` python package from the main directory via
+  ```bash
+  pip install .
+  ```
+  or (editable)
+  
   ```bash
   pip install -e .
   ```
@@ -142,9 +148,17 @@ simulator = gym.make("uitb:mobl_arms_index_pointing-v0")
 
 ## Training
 
-The script [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/train/trainer.py) takes as a input a config file, then calls `Simulation.build(config)` to build the simulator, and then starts running the RL training using stable-baselines3. Other RL libraries can be defined in [uitb/rl](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl), and they must inherit from the base class **[uitb.rl.base.BaseRLModel](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl/base.py)**. Weights & Biases is used for logging.
+The script [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/train/trainer.py) takes as a input a config file, then calls `Simulation.build(config)` to build the simulator, and then starts running the RL training using stable-baselines3. Other RL libraries can be defined in [uitb/rl](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl), and they must inherit from the base class **[uitb.rl.base.BaseRLModel](https://github.com/aikkala/user-in-the-box/blob/main/uitb/rl/base.py)**. Weights & Biases is used for logging. 
 
 Note that you need to define a reward function when creating new interaction tasks. The implementation details of the reward function are (at least for now) left for users to decide. 
+
+The simulation data directory can be set from the config file using the `simulator_folder` tag. By default, simulation data is stored at `SIMULATORS_DIR` as defined in uitb/utils/\_\_simulatorsdir__.py, if this file exists (which is usually created during installation), or at [simulators](https://github.com/aikkala/user-in-the-box/blob/main/simulators).
+
+To resume training at a stored checkpoint, either pass `--resume` to [uitb/train/trainer.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/train/trainer.py) to use the latest checkpoint stored, or `--checkpoint <checkpoint_filename>` to use a specific checkpoint. If training is started from the scratch, the checkpoint directory (if existing) is backed up and cleared for the sake of clarity. 
+
+Regular evaluations can be added to the training loop by passing the `--eval` flag. This flag takes the number of steps after which an evaluation is performed as optional argument. In addition, the `--eval_info_keywords` flag allows to log custom environment variables during evaluation, as long as these are included in the "info" dict returned by the step function. At the moment, the logs only include (mean) values at the end of an episode, i.e., when `terminated` or `truncated` is True. For example, to log the percentage of evaluation episodes at which the end-effector is inside the target and/or has succesfully "hit" the target at the end of the episode, `--eval_info_keywords inside_target target_hit` can be used.
+
+**Important**: To create a modified simulation task and/or environment to run training with, do **NOT** change the Python code inside the [simulators](https://github.com/aikkala/user-in-the-box/blob/main/simulators) directory, but always modify the original source code inside the [uitb](https://github.com/aikkala/user-in-the-box/blob/main/uitb) directory (e.g., by copying a task directory, modifying the code accordingly, and registering the new task in [uitb/tasks/\_\_init__.py](https://github.com/aikkala/user-in-the-box/blob/main/uitb/tasks/__init__.py).
 
 
 ## Pre-trained simulators
@@ -191,8 +205,6 @@ The above runs the pre-trained simulator `mobl_arms_index_pointing` for 10 episo
 ## TODO list
 - cameras, lighting
 - separate Task class into World and Task classes, where the former defines the world and the latter defines only the interactive task?
-- create a setup.py for the simulators so they (and required packages) can be easily installed?
-
 
 ## Troubleshooting
 No currently known issues.

@@ -8,7 +8,8 @@ from ..base import BaseTask
 class RemoteDriving(BaseTask):
   """ A task where the goal is to control a remote driving car via a joystick and move the car to a target area.
 
-  Authors: Florian Fischer, Markus Klar, Aleksi Ikkala
+  Authors: Florian Fischer, Markus Klar, Aleksi Ikkala; Dominik Ermer, Jannic Herrmann, Lisa Müller and Ferdinand Schäffler (initial model of the gamepad and the car)
+
   """
 
   def __init__(self, model, data, end_effector, **kwargs):
@@ -59,6 +60,7 @@ class RemoteDriving(BaseTask):
 
     # For logging
     self._info = {"target_hit": False, "inside_target": False, "car_moving": False,
+                  "terminated": False, "truncated": False,
                   "extratime_given": False}
 
     # Get the reward function
@@ -123,7 +125,8 @@ class RemoteDriving(BaseTask):
   def _update(self, model, data):
 
     # Set defaults
-    finished = False
+    terminated = False
+    truncated = False
     self._info = {"extratime_given": False}
 
     # Update car dynamics
@@ -154,21 +157,21 @@ class RemoteDriving(BaseTask):
 
     # Check if target is inside target area with (close to) zero velocity
     if self._info["inside_target"] and np.abs(data.body(self._car_body).cvel[4]) <= self._car_velocity_threshold:
-      finished = True
+      terminated = True
       self._info["target_hit"] = True
     else:
       self._info["target_hit"] = False
 
     # Check if time limit has been reached
     if self._steps >= self._max_episode_steps_with_extratime:
-      finished = True
+      truncated = True
       self._info["termination"] = "time_limit_reached"
 
     # Calculate reward
     reward = self._reward_function.get(self._dist_ee_to_joystick, self._dist_car_to_target, self._info.copy(),
                                        model, data)
 
-    return reward, finished, self._info.copy()
+    return reward, terminated, truncated, self._info.copy()
 
   def _spawn_car(self, model, data):
     # Choose qpos value of slide joint in x-direction uniformly from joint angle range
@@ -211,6 +214,7 @@ class RemoteDriving(BaseTask):
     # Reset counters
     self._max_episode_steps_with_extratime = self._max_episode_steps
     self._info = {"target_hit": False, "inside_target": False, "car_moving": False,
+                  "terminated": False, "truncated": False,
                   "extratime_given": False}
 
     # Reset reward function
@@ -221,3 +225,5 @@ class RemoteDriving(BaseTask):
 
     # Spawn a new target location (depending on current car location)
     self._spawn_target(model, data)
+
+    return self._info
