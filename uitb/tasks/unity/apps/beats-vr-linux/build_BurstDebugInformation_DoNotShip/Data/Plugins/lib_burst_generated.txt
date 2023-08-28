@@ -153,6 +153,7 @@ Library: lib_burst_generated
 --compilation-defines=INCLUDE_UGUI
 --compilation-defines=INCLUDE_INPUT_SYSTEM
 --compilation-defines=INCLUDE_LEGACY_INPUT_HELPERS
+--compilation-defines=INPUT_SYSTEM_POSE_VALID
 --compilation-defines=TIMELINE_FRAMEACCURATE
 --generate-link-xml=Temp/burst.link.xml
 --output=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Plugins/lib_burst_generated
@@ -180,6 +181,7 @@ Library: lib_burst_generated
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.SecurityStub.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Internal.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.CoreUtils.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Timeline.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Mathematics.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Scheduler.dll
@@ -196,14 +198,19 @@ Library: lib_burst_generated
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.XR.LegacyInputHelpers.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Networking.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.ConformanceAutomation.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Registration.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.MockRuntime.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Subsystem.Registration.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.MetaQuestSupport.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.AppleMacosStub.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.Codeless.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.RenderPipelines.Core.ShaderLibrary.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.RuntimeDebugger.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.AppleStub.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.RenderPipelines.Universal.Shaders.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.OculusQuestSupport.dll
 --assembly-folder=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/
 --pdb-search-paths=Temp/ManagedSymbols/
 --method=Unity.Jobs.IJobForExtensions+ForJobStruct`1[[UnityEngine.Rendering.Universal.ZBinningJob, Unity.RenderPipelines.Universal.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::Execute(UnityEngine.Rendering.Universal.ZBinningJob&, Unity.RenderPipelines.Universal.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|Unity.Jobs.LowLevel.Unsafe.JobRanges&, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)--77fc393cb521ac129b1392d4eb94d29a
@@ -378,6 +385,7 @@ Library: lib_burst_generated
 --compilation-defines=INCLUDE_UGUI
 --compilation-defines=INCLUDE_INPUT_SYSTEM
 --compilation-defines=INCLUDE_LEGACY_INPUT_HELPERS
+--compilation-defines=INPUT_SYSTEM_POSE_VALID
 --compilation-defines=TIMELINE_FRAMEACCURATE
 --generate-link-xml=Temp/burst.link.xml
 --output=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Plugins/lib_burst_generated
@@ -405,6 +413,7 @@ Library: lib_burst_generated
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.SecurityStub.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Internal.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.CoreUtils.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Timeline.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Mathematics.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Scheduler.dll
@@ -421,14 +430,19 @@ Library: lib_burst_generated
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.XR.LegacyInputHelpers.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Networking.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.ConformanceAutomation.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Services.Core.Registration.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.MockRuntime.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.Subsystem.Registration.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.MetaQuestSupport.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.AppleMacosStub.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.Codeless.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.RenderPipelines.Core.ShaderLibrary.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.RuntimeDebugger.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/UnityEngine.Purchasing.AppleStub.dll
 --root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.RenderPipelines.Universal.Shaders.dll
+--root-assembly=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/Unity.XR.OpenXR.Features.OculusQuestSupport.dll
 --assembly-folder=/home/florian/uitb-sim2vr/beats-vr/VR Interaction Test/Temp/StagingArea/Data/Managed/
 --pdb-search-paths=Temp/ManagedSymbols/
 --method=Unity.Jobs.IJobForExtensions+ForJobStruct`1[[UnityEngine.Rendering.Universal.ZBinningJob, Unity.RenderPipelines.Universal.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null::Execute(UnityEngine.Rendering.Universal.ZBinningJob&, Unity.RenderPipelines.Universal.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|System.IntPtr, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089|Unity.Jobs.LowLevel.Unsafe.JobRanges&, UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null|System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089)--77fc393cb521ac129b1392d4eb94d29a
