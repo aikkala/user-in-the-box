@@ -4,6 +4,9 @@ from scipy.spatial.transform import Rotation
 import xml.etree.ElementTree as ET
 import os
 import pathlib
+import json
+import wandb
+
 
 from ..base import BaseTask
 from ...utils.transformations import transformation_matrix
@@ -217,7 +220,8 @@ class Unity(BaseTask):
     #   info["termination"] = "max_steps_reached"
 
     # Send end effector position and rotation to unity, get reward and image from camera
-    obs, reward, is_app_finished = self._unity_client.step(self._create_state(model, data), is_finished)
+    obs, reward, is_app_finished, log_dict = self._unity_client.step(self._create_state(model, data), is_finished)
+    log_dict = json.loads(log_dict)  #TODO: improve json serializer such that it directly unpacks json dict correctly
     self._time = obs["time"]
 
     if is_finished and not is_app_finished:
@@ -229,6 +233,10 @@ class Unity(BaseTask):
     self._info["terminated"] = terminated
     self._info["truncated"] = truncated
     self._info["unity_image"] = obs["image"]
+    self._info["log_dict"] = log_dict
+
+    if wandb.run is not None:
+      wandb.log(log_dict)
 
     return reward, terminated, truncated, self._info 
 

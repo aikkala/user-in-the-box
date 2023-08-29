@@ -16,3 +16,7 @@ v1.1.3
 
 v1.1.4
 - as v1.1.0, but with options to v1.1.3 and sparse rewards (i.e., purely extrinsic game rewards) (-> use "-adaptive" and "-sparse" flags in built apps, respectively)
+
+v1.1.5
+- bugfixes in contact bonus reward term introduced in v1.1.2 (use correct hitting velocity for low conditions; provide contact bonus only once per target spawned)
+- allow to send arbitrary Unity variables accessible from RLEnv to Python and log them their using WandB
