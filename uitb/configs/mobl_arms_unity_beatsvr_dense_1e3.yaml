@@ -1,4 +1,4 @@
-simulator_name: "unity_beatsvr_1e3"
+simulator_name: "unity_beatsvr_dense_1e3"
 project: "unity"
 
 simulation:
