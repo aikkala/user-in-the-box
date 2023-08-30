@@ -42,6 +42,8 @@ simulation:
         end_effector: ["geom", "hand_2distph"]
   run_parameters:
     action_sample_freq: 20
+    info_keywords: [["Points", "final"], ["EffortCost", "sum"],
+      ["AccumulatedErrors", "final"], ["AccumulatedCorrectSlices", "final"]]
 
 rl:
   algorithm: "PPO"
