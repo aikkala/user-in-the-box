@@ -41,7 +41,7 @@ simulation:
         end_effector: ["geom", "hand_2distph"]
   run_parameters:
     action_sample_freq: 20
-    info_keywords: [["Points", "final"], ["RewardUnsuccessfulContact", "sum"], ["DistanceReward", "sum"], ["EffortCost", "sum"],
+    info_keywords: [["Points", "final"], ["EffortCost", "sum"],
       ["failrateTarget0", "final"], ["failrateTarget1", "final"], ["failrateTarget2", "final"],
       ["failrateTarget3", "final"], ["failrateTarget4", "final"], ["failrateTarget5", "final"],
       ["failrateTarget6", "final"], ["failrateTarget7", "final"], ["failrateTarget8", "final"]]
