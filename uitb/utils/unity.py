@@ -69,7 +69,7 @@ class UnityClient:
     # Convert BGRA format to RGBA format
     image = cv2.cvtColor(image, cv2.COLOR_BGRA2RGBA)
 
-    return {"image": image, "time": msg["timeFeature"]}, msg["reward"], msg["isFinished"], msg["logDict"]
+    return {"image": image, "time": msg["timeFeature"]}, msg["reward"], msg["isFinished"], msg.get("logDict", "{}")
 
   def step(self, state, is_finished):
     msg = {**state, "isFinished": is_finished, "reset": False}
