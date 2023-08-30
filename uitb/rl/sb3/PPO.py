@@ -172,7 +172,7 @@ class PPO_sb3_customlogs(PPO_sb3):
                     self.logger.record("rollout/ep_rew_mean", safe_mean([ep_info["r"] for ep_info in self.ep_info_buffer]))
                     self.logger.record("rollout/ep_len_mean", safe_mean([ep_info["l"] for ep_info in self.ep_info_buffer]))
                     for keyword, operation in info_keywords:
-                      self.logger.record(f"rollout/ep_{keyword}_{operation}", safe_mean([ep_info[keyword] for ep_info in self.ep_info_buffer]))
+                          self.logger.record(f"rollout/ep_{keyword}_{operation}", safe_mean([ep_info[keyword] for ep_info in self.ep_info_buffer if keyword in ep_info]))
                 self.logger.record("time/fps", fps)
                 self.logger.record("time/time_elapsed", int(time_elapsed), exclude="tensorboard")
                 self.logger.record("time/total_timesteps", self.num_timesteps, exclude="tensorboard")
