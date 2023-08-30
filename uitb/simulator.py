@@ -411,7 +411,7 @@ class Simulator(gym.Env):
 
     # Add an effort cost to reward
     effort_cost = self.bm_model.get_effort_cost(self._model, self._data)
-    info["effortCost"] = effort_cost
+    info["EffortCost"] = effort_cost
     reward -= effort_cost
 
     # Get observation
