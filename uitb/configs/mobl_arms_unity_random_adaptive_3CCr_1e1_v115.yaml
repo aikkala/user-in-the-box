@@ -41,6 +41,10 @@ simulation:
         end_effector: ["geom", "hand_2distph"]
   run_parameters:
     action_sample_freq: 20
+    info_keywords: [["Points", "final"], ["RewardGame", "sum"], ["RewardUnsuccessfulContact", "sum"]]
+    # callbacks:
+    #   - name: "custom_train_logger"
+    #     cls: "rl.sb3.callbacks.CustomTrainLogCallback"
 
 rl:
   algorithm: "PPO"

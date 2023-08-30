@@ -233,7 +233,8 @@ class Unity(BaseTask):
     self._info["terminated"] = terminated
     self._info["truncated"] = truncated
     self._info["unity_image"] = obs["image"]
-    self._info["log_dict"] = log_dict
+    # self._info["log_dict"] = log_dict
+    self._info.update(log_dict)
 
     if wandb.run is not None:
       wandb.log(log_dict)

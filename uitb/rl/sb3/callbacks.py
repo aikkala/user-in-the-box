@@ -92,6 +92,36 @@ class LinearCurriculum(BaseCallback):
     pass
 
 
+# class CustomTrainLogCallback(BaseCallback):
+#     """
+#     Log custom values from training envs at each time step.
+#     """
+
+#     def __init__(self, name, verbose: int = 0):
+#         super().__init__(verbose=verbose)
+#         self.name = name
+
+#     def _on_rollout_start(self) -> None:
+#         # Get list of logging variables
+#         # self._log_variables = self.training_env.get_attr("task")[0]._info["log_dict"].keys()
+#         self._log_variables = self.training_env.env_method("get_logdict_keys")[0]
+#         # print(f"LOG VARIABLES: {self._log_variables}")
+    
+#     def _on_step(self) -> bool:
+#         # Check that the `_info` local variable is defined
+#         for log_var_key in self._log_variables:
+#           log_var_val = self.training_env.env_method("get_logdict_value", key=log_var_key)
+#           # print(f"rollout/{log_var_key}: {log_var_val}")
+#           log_var_val = np.mean(log_var_val)  #TODO: does not work correctly (sometimes None values are returned...)
+          
+#           self.logger.record(f"rollout/{log_var_key}", log_var_val)
+
+#         return True
+
+#     def update(self, num_timesteps):
+#         pass
+
+
 class EvalCallback(EventCallback):
   """
     A custom callback for evaluating an agent that derives from ``EventCallback``.

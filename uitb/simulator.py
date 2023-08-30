@@ -568,6 +568,12 @@ class Simulator(gym.Env):
     for callback_name in self.callbacks:
       self.callback(callback_name, num_timesteps)
 
+  # def get_logdict_keys(self):
+  #   return list(self.task._info["log_dict"].keys())
+
+  # def get_logdict_value(self, key):
+  #   return self.task._info["log_dict"].get(key)
+
   @property
   def config(self):
     """ Return config. """

@@ -55,6 +55,12 @@ class BaseTask(ABC):
     # Keep track of simulated steps
     self._steps = 0
 
+    # # Used for logging states
+    # self._info = {"terminated": False,
+    #               "truncated": False,
+    #               "log_dict": {}}
+
+
   def __init_subclass__(cls, *args, **kwargs):
     """ Define a new __init__ method with a hook that automatically sets stateful information shape after a child
     instance has been initialised. This is only for convenience, otherwise we would need to set the stateful information
