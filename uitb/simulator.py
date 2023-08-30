@@ -410,7 +410,9 @@ class Simulator(gym.Env):
     reward, terminated, truncated, info = self.task.update(self._model, self._data)
 
     # Add an effort cost to reward
-    reward -= self.bm_model.get_effort_cost(self._model, self._data)
+    effort_cost = self.bm_model.get_effort_cost(self._model, self._data)
+    info["effortCost"] = effort_cost
+    reward -= effort_cost
 
     # Get observation
     obs = self.get_observation(info)
