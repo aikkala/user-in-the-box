@@ -85,7 +85,7 @@ class PPO(BaseRLModel):
 
     return config
 
-  def learn(self, wandb_callback, with_evaluation=False, eval_freq=10000, n_eval_episodes=5, eval_info_keywords=()):
+  def learn(self, wandb_callback, with_evaluation=False, eval_freq=400000, n_eval_episodes=5, eval_info_keywords=()):
     if with_evaluation:
         self.eval_env = Monitor(self.eval_env, info_keywords=eval_info_keywords)
         self.eval_freq = eval_freq // self.n_envs
