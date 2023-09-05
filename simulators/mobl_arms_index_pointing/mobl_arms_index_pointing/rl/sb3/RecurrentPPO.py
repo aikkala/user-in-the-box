@@ -30,7 +30,9 @@ class RecurrentPPO(BaseModel):
     checkpoint_folder = os.path.join(run_folder, 'checkpoints')
     self.checkpoint_callback = CheckpointCallback(save_freq=save_freq,
                                                   save_path=checkpoint_folder,
-                                                  name_prefix='model')
+                                                  name_prefix='model',
+                                                  save_replay_buffer=True,
+                                                  save_vecnormalize=True)
 
   def learn(self, wandb_callback):
     self.model.learn(total_timesteps=self.config["total_timesteps"],
