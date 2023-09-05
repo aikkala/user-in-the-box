@@ -109,6 +109,7 @@ if __name__ == "__main__":
     _policy_loaded = False
     if args.checkpoint is not None:
         model_file = args.checkpoint
+        _policy_loaded = True
     else:
         try:
             files = natural_sort(os.listdir(checkpoint_dir))
