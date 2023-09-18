@@ -13,6 +13,7 @@ import inspect
 import pathlib
 from datetime import datetime
 import copy
+from collections import defaultdict
 
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
@@ -251,7 +252,7 @@ class Simulator(gym.Env):
     return model, data, task, bm_model, perception, callbacks
 
   @classmethod
-  def get(cls, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None, use_cloned=True):
+  def get(cls, simulator_folder, render_mode="rgb_array", render_mode_perception="embed", render_show_depths=False, run_parameters=None, use_cloned=True):
     """ Returns a Simulator that is located in given folder.
 
     Args:
@@ -262,6 +263,7 @@ class Simulator(gym.Env):
         or None while the frames in a separate PyGame window are updated directly when calling
         step() or reset() (render_mode="human";
         adapted from https://github.com/openai/gym/blob/master/gym/wrappers/human_rendering.py)).
+      render_mode_perception: Whether images of visual perception modules should be directly embedded into main camera view ("embed"), stored as separate videos ("separate"), or not used at all [which allows to watch vision in Unity Editor if debug mode is enabled/standalone app is disabled] (None)
       render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
       use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
@@ -307,13 +309,13 @@ class Simulator(gym.Env):
     if _legacy_mode:
       _simulator = gen_cls(simulator_folder, run_parameters=run_parameters)
     else:
-      _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
+      _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_mode_perception=render_mode_perception, render_show_depths=render_show_depths,
                           run_parameters=run_parameters)
 
     # Return Simulator object
     return _simulator
 
-  def __init__(self, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None):
+  def __init__(self, simulator_folder, render_mode="rgb_array", render_mode_perception="embed", render_show_depths=False, run_parameters=None):
     """ Initialise a new `Simulator`.
 
     Args:
@@ -324,6 +326,7 @@ class Simulator(gym.Env):
         or None while the frames in a separate PyGame window are updated directly when calling
         step() or reset() (render_mode="human";
         adapted from https://github.com/openai/gym/blob/master/gym/wrappers/human_rendering.py)).
+      render_mode_perception: Whether images of visual perception modules should be directly embedded into main camera view ("embed"), stored as separate videos ("separate"), or not used at all [which allows to watch vision in Unity Editor if debug mode is enabled/standalone app is disabled] (None)
       render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
     """
@@ -358,7 +361,9 @@ class Simulator(gym.Env):
                          dt=self._run_parameters["dt"])
 
     self._render_mode = render_mode
+    self._render_mode_perception = render_mode_perception  #whether perception camera views should be directly embedded into camera view of camera_id ("embed"), stored in self._render_stack_perception ("separate"), or not used at all "separate"), or not used at all [which allows to watch vision in Unity Editor if debug mode is enabled/standalone app is disabled] (None)
     self._render_stack = []  #only used if render_mode == "rgb_array_list"
+    self._render_stack_perception = defaultdict(list)  #only used if render_mode == "rgb_array_list" and self._render_mode_perception == "separate"
     self._render_stack_pop = True  #If True, clear the render stack after .render() is called.
     self._render_stack_clean_at_reset = True  #If True, clear the render stack when .reset() is called.
     self._render_show_depths = render_show_depths  #If True, depth images of visual perception modules are included in GUI rendering.
@@ -461,6 +466,7 @@ class Simulator(gym.Env):
     if self._render_mode == "rgb_array_list":
       if self._render_stack_clean_at_reset:
         self._render_stack = []
+        self._render_stack_perception = defaultdict(list)
       self._render_stack.append(self._GUI_rendering())
     elif self._render_mode == "human":
       self._GUI_rendering_pygame()
@@ -477,6 +483,12 @@ class Simulator(gym.Env):
       return self._GUI_rendering()
     else:
       return None
+    
+  def get_render_stack_perception(self):
+      render_stack_perception = self._render_stack_perception
+      # if self._render_stack_pop:
+      #   self._render_stack_perception = defaultdict(list)
+      return render_stack_perception
 
   def _GUI_rendering(self):
     # Grab an image from the 'for_testing' camera and grab all GUI-prepared images from included visual perception modules, and display them 'picture-in-picture'
@@ -484,44 +496,53 @@ class Simulator(gym.Env):
     # Grab images
     img, _ = self._GUI_camera.render()
 
-    perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
+    if self._render_mode_perception == "embed":
+      # Embed perception camera images into main camera image
+    
+      perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
                                 for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
-    # TODO: add text annotations to perception camera images
-    if len(perception_camera_images) > 0:
-      _img_size = img.shape[:2]  #(height, width)
+    
+      # TODO: add text annotations to perception camera images
+      if len(perception_camera_images) > 0:
+        _img_size = img.shape[:2]  #(height, width)
 
-      # Vertical alignment of perception camera images, from bottom right to top right
-      ## TODO: allow for different inset locations
-      _desired_subwindow_height = np.round(_img_size[0] / len(perception_camera_images)).astype(int)
-      _maximum_subwindow_width = np.round(0.2 * _img_size[1]).astype(int)
+        # Vertical alignment of perception camera images, from bottom right to top right
+        ## TODO: allow for different inset locations
+        _desired_subwindow_height = np.round(_img_size[0] / len(perception_camera_images)).astype(int)
+        _maximum_subwindow_width = np.round(0.2 * _img_size[1]).astype(int)
 
-      perception_camera_images_resampled = []
-      for ocular_img in perception_camera_images:
-        # Convert 2D depth arrays to 3D heatmap arrays
-        if ocular_img.ndim == 2:
-          if self._render_show_depths:
-            ocular_img = matplotlib.pyplot.imshow(ocular_img, cmap=matplotlib.pyplot.cm.jet, interpolation='bicubic').make_image('TkAgg', unsampled=True)[0][
-            ..., :3]
-            matplotlib.pyplot.close()  #delete image
-          else:
-            continue
+        perception_camera_images_resampled = []
+        for ocular_img in perception_camera_images:
+          # Convert 2D depth arrays to 3D heatmap arrays
+          if ocular_img.ndim == 2:
+            if self._render_show_depths:
+              ocular_img = matplotlib.pyplot.imshow(ocular_img, cmap=matplotlib.pyplot.cm.jet, interpolation='bicubic').make_image('TkAgg', unsampled=True)[0][
+              ..., :3]
+              matplotlib.pyplot.close()  #delete image
+            else:
+              continue
 
-        resample_factor = min(_desired_subwindow_height / ocular_img.shape[0], _maximum_subwindow_width / ocular_img.shape[1])
+          resample_factor = min(_desired_subwindow_height / ocular_img.shape[0], _maximum_subwindow_width / ocular_img.shape[1])
 
-        resample_height = np.round(ocular_img.shape[0] * resample_factor).astype(int)
-        resample_width = np.round(ocular_img.shape[1] * resample_factor).astype(int)
-        resampled_img = np.zeros((resample_height, resample_width, ocular_img.shape[2]), dtype=np.uint8)
-        for channel in range(ocular_img.shape[2]):
-          resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+          resample_height = np.round(ocular_img.shape[0] * resample_factor).astype(int)
+          resample_width = np.round(ocular_img.shape[1] * resample_factor).astype(int)
+          resampled_img = np.zeros((resample_height, resample_width, ocular_img.shape[2]), dtype=np.uint8)
+          for channel in range(ocular_img.shape[2]):
+            resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 
-        perception_camera_images_resampled.append(resampled_img)
+          perception_camera_images_resampled.append(resampled_img)
 
-      # Embed perception camera images into main camera image:
-      ocular_img_bottom = _img_size[0]
-      for ocular_img_idx, ocular_img in enumerate(perception_camera_images_resampled):
-        #print(f"Modify ({ocular_img_bottom - ocular_img.shape[0]}, { _img_size[1] - ocular_img.shape[1]})-({ocular_img_bottom}, {img.shape[1]}).")
-        img[ocular_img_bottom - ocular_img.shape[0]:ocular_img_bottom, _img_size[1] - ocular_img.shape[1]:] = ocular_img
-        ocular_img_bottom -= ocular_img.shape[0]
+        ocular_img_bottom = _img_size[0]
+        for ocular_img_idx, ocular_img in enumerate(perception_camera_images_resampled):
+          #print(f"Modify ({ocular_img_bottom - ocular_img.shape[0]}, { _img_size[1] - ocular_img.shape[1]})-({ocular_img_bottom}, {img.shape[1]}).")
+          img[ocular_img_bottom - ocular_img.shape[0]:ocular_img_bottom, _img_size[1] - ocular_img.shape[1]:] = ocular_img
+          ocular_img_bottom -= ocular_img.shape[0]
+        # input((len(perception_camera_images_resampled), perception_camera_images_resampled[0].shape, img.shape))
+    elif self._render_mode_perception == "separate":
+      for camera in self.perception.cameras:
+        for rgb_or_depth_array in camera.render():
+          if rgb_or_depth_array is not None:
+            self._render_stack_perception[f"{camera.modality}/{type(camera).__name__}"].append(rgb_or_depth_array)
 
     return img
 
