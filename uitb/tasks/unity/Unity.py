@@ -54,9 +54,10 @@ class Unity(BaseTask):
         app_args.extend(["-fixedSeed", f"{kwargs['unity_random_seed']}"])
 
       # Start a Unity client
+      self._standalone = kwargs.get("standalone", True)
       self._unity_client = UnityClient(unity_executable=app_path,
                                        port=kwargs.get("port", None),
-                                       standalone=kwargs.get("standalone", True),
+                                       standalone=self._standalone,
                                        app_args=kwargs.get("app_args", []))
 
       # Wait until app is up and running. Send time options to unity app
@@ -320,7 +321,9 @@ class Unity(BaseTask):
 
     # If we were recording, create videos from images
     if self._record:
-
-      recording_folder = os.path.join(self._output_folder, "recording")
+      if self._standalone:
+        recording_folder = os.path.join(self._output_folder, "recording")
+      else:
+        return  #TODO: get correct recording_folder (should be "$HOME/.config/unity3d/<company-name>/<application-name>/recording")
 
       images_to_video(recording_folder, self._action_sample_freq, self._resolution, evaluate_dir)
