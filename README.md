@@ -171,7 +171,7 @@ Regular evaluations can be added to the training loop by passing the `--eval` fl
 | Controlling an RC Car Via Joystick | [simulators/mobl_arms_index_remote_driving](https://github.com/aikkala/user-in-the-box/tree/main/simulators/mobl_arms_index_remote_driving) | [uitb/configs/mobl_arms_index_remote_driving.yaml](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs/mobl_arms_index_remote_driving.yaml) |
 
 
-- The simulators that were trained, evaluated, and analysed in our [UIST paper](TODO-add-a-working-link) are found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
+- The simulators that were trained, evaluated, and analysed in our [UIST paper](TODO-add-a-working-link) as well as a script to re-create all plots from this paper can be found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
 
 ### Pointing examples
 
