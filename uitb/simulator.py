@@ -309,7 +309,11 @@ class Simulator(gym.Env):
     if _legacy_mode:
       _simulator = gen_cls(simulator_folder, run_parameters=run_parameters)
     else:
-      _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_mode_perception=render_mode_perception, render_show_depths=render_show_depths,
+      try:
+        _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_mode_perception=render_mode_perception, render_show_depths=render_show_depths,
+                          run_parameters=run_parameters)
+      except TypeError:
+        _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
                           run_parameters=run_parameters)
 
     # Return Simulator object
