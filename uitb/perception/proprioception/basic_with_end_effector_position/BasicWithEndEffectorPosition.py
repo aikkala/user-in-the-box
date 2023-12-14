@@ -13,13 +13,24 @@ class BasicWithEndEffectorPosition(BaseModule):
       model: Mujoco model instance of the simulator.
       data: Mujoco data instance of the simulator.
       bm_model: An instance inheriting from uitb.bm_models.base.BaseBMModel class.
-      end_effector (list): A list with first element representing type of mujoco element (geom, body, site), and second
-        element is the name of the element
+      end_effector (list of lists): Each list must have two elements, with first element representing type of mujoco
+        element (geom, body, site), and second element is the name of the element
       kwargs: may contain "rng" seed
     """
     super().__init__(model, data, bm_model, **kwargs)
-    if not isinstance(end_effector, list) and len(end_effector) != 2:
+
+    if not isinstance(end_effector, list):
+      raise RuntimeError("end_effector must be a list of size two, or a nested list with each list of size two")
+
+    # Simple check if the list is nested
+    if isinstance(end_effector[0], str):
+      # Make nested
+      end_effector = [end_effector]
+
+    # Make sure all nested lists have two elements
+    if any(len(pair) != 2 for pair in end_effector):
       raise RuntimeError("end_effector must be a list of size two")
+
     self._end_effector = end_effector
 
   @staticmethod
@@ -43,7 +54,10 @@ class BasicWithEndEffectorPosition(BaseModule):
     qacc = data.qacc[self._bm_model.independent_dofs].copy()
 
     # Get end-effector position; not normalised
-    ee_position = getattr(data, self._end_effector[0])(self._end_effector[1]).xpos.copy()
+    ee_position = []
+    for pair in self._end_effector:
+      ee_position.append(getattr(data, pair[0])(pair[1]).xpos.copy())
+    ee_position = np.hstack(ee_position)
 
     # Normalise act
     act = (data.act.copy() - 0.5) * 2
@@ -54,6 +68,8 @@ class BasicWithEndEffectorPosition(BaseModule):
     return proprioception
 
   def _get_state(self, model, data):
-    state = {f"{self._end_effector[1]}_xpos": getattr(data, self._end_effector[0])(self._end_effector[1]).xpos.copy(),
-             f"{self._end_effector[1]}_xmat": getattr(data, self._end_effector[0])(self._end_effector[1]).xmat.copy()}
+    state = {}
+    for pair in self._end_effector:
+      state[f"{pair[1]}_xpos"] = getattr(data, pair[0])(pair[1]).xpos.copy()
+      state[f"{pair[1]}_xmat"] = getattr(data, pair[0])(pair[1]).xmat.copy()
     return state
