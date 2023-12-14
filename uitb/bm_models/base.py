@@ -197,7 +197,7 @@ class BaseBMModel(ABC):
         else:
             raise NotImplementedError(f"{self._constantnoise_type}")
     
-    data.ctrl[self._motor_actuators] = np.clip(_selected_motor_control, 0, 1)
+    data.ctrl[self._motor_actuators] = np.clip(_selected_motor_control, -1, 1)
     data.ctrl[self._muscle_actuators] = np.clip(_selected_muscle_control, 0, 1)
     
     # Update smoothed online estimate of motor actuation
