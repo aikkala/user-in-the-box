@@ -14,6 +14,7 @@ import pathlib
 from datetime import datetime
 import copy
 from collections import defaultdict
+import xml.etree.ElementTree as ET
 
 from .perception.base import Perception
 from .utils.rendering import Camera, Context
@@ -107,6 +108,18 @@ class Simulator(gym.Env):
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
     task_cls.clone(simulator_folder, config["package_name"], app_executable=config["simulation"]["task"].get("kwargs", {}).get("unity_executable", None))
     simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
+
+    # Set some compiler options
+    # TODO: would make more sense to have a separate "environment" class / xml file that defines all these defaults,
+    #  including e.g. cameras, lighting, etc., so that they could be easily changed. Task and biomechanical model would
+    #  be integrated into that object
+    compiler_defaults = {"inertiafromgeom": "auto", "balanceinertia": "true", "boundmass": "0.001",
+                         "boundinertia": "0.001", "inertiagrouprange": "0 1"}
+    compiler = simulation.find("compiler")
+    if compiler is None:
+      ET.SubElement(simulation, "compiler", compiler_defaults)
+    else:
+      compiler.attrib.update(compiler_defaults)
 
     # Load biomechanical model class
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
