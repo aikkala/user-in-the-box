@@ -27,7 +27,7 @@
    default joint positions set !-->
   <size njmax="1000" nconmax="400" nuser_jnt="1" nkey="1"/>
   <worldbody>
-    <camera name="for_testing" pos="-0.8 -0.6 1.5" euler="0.7 -1.0 -0.7"/>
+    <camera name="for_testing" pos="-1.0 -0.8 0.5" euler="0.7 -1.0 -0.7"/>
     <!-- The converter script assumes a body named 'ground' exists as a child element of worldbody -->
     <body name="ground" euler="1.571 0 0"/>
     <light directional="true"/>
