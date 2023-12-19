@@ -32,7 +32,10 @@
     <body name="ground" euler="1.571 0 0"/>
     <light directional="true"/>
     <body name="thorax" pos="0 0 0" euler="1.571 0 0">
-      <inertial mass="0" pos="0 0 0"/>
+      <geom name="spine" type="mesh" mesh="spine" rgba="1 1 1 1"/>
+      <body name="skull">
+        <geom name="skull" type="mesh" mesh="skull" rgba="1 1 1 1"/>
+      </body>
       <geom name="thorax_geom_1" type="mesh" mesh="thorax_geom_1_thorax" rgba="1 1 1 1" group="0"/>
       <geom name="Thorax_r_ellipsoid" type="sphere" euler="0.04346 -0.332 0.1899" pos="-0.0386 -0.1273 0.0709" size="0.08" rgba="0.19 0.83 0.78 0.2" group="2"/>
       <geom name="Thorax_l_ellipsoid" type="sphere" euler="-0.04346 0.332 0.1899" pos="-0.0386 -0.1273 -0.0709" size="0.08" rgba="0.19 0.83 0.78 0.2" group="2"/>
@@ -1814,6 +1817,8 @@
   </worldbody>
   <asset>
     <texture type="skybox" builtin="gradient" rgb1="1 1 1" rgb2="0.6 0.8 1" width="256" height="256"/>
+    <mesh name="skull" file="assets/skull.stl" />
+    <mesh name="spine" file="assets/spine.stl" />
     <mesh name="thorax_geom_1_thorax" file="assets/thorax.stl" scale="1 1 1"/>
     <mesh name="clavicle_r_geom_1_clavicle" file="assets/clavicle.stl" scale="1 1 1"/>
     <mesh name="scapula_r_geom_1_scapula" file="assets/scapula.stl" scale="1 1 1"/>
