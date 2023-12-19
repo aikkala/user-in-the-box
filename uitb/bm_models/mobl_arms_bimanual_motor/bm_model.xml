@@ -14,13 +14,6 @@
     <joint limited="true" damping="0.05" armature="0.00001" stiffness="0"/>
     <geom rgba="0.8 0.6 .4 1" margin="0.001"/>
     <site size="0.001"/>
-    <tendon width="0.005" rgba=".95 .3 .3 1" limited="false"/>
-    <default class="muscle">
-      <muscle ctrllimited="true" ctrlrange="0 1" scale="200"/>
-    </default>
-    <default class="motor">
-      <general gainprm="5 0 0 0 0 0 0 0 0 0" ctrllimited="true" ctrlrange="-1 1"/>
-    </default>
   </default>
   <option timestep="0.002"/>
   <!-- nuser_jnt=1, the parameter is used to store default value of the joint, and nkey=1 to store keyframe with
@@ -290,7 +283,7 @@
   </tendon>
   <actuator>
     <!-- Leave this comment here to make 'actuator' element pretty printed !-->
-    <general name="elv_angle_motor_r" joint="elv_angle_r" class="motor" gainprm="50 0 0 0 0 0 0 0 0 0" />
+    <!--general name="elv_angle_motor_r" joint="elv_angle_r" class="motor" gainprm="50 0 0 0 0 0 0 0 0 0" />
     <general name="shoulder_elv_motor_r" joint="shoulder_elv_r" class="motor" gainprm="50 0 0 0 0 0 0 0 0 0" />
     <general name="shoulder_rot_motor_r" joint="shoulder_rot_r" class="motor" gainprm="5 0 0 0 0 0 0 0 0 0" />
     <general name="elbow_flexion_motor_r" joint="elbow_flexion_r" class="motor" gainprm="10 0 0 0 0 0 0 0 0 0" />
@@ -303,7 +296,21 @@
     <general name="elbow_flexion_motor_l" joint="elbow_flexion_l" class="motor" gainprm="10 0 0 0 0 0 0 0 0 0" />
     <general name="pro_sup_motor_l" joint="pro_sup_l" class="motor" gainprm="2 0 0 0 0 0 0 0 0 0" />
     <general name="deviation_motor_l" joint="deviation_l" class="motor" gainprm="2 0 0 0 0 0 0 0 0 0" />
-    <general name="flexion_motor_l" joint="flexion_l" class="motor" gainprm="2 0 0 0 0 0 0 0 0 0" />
+    <general name="flexion_motor_l" joint="flexion_l" class="motor" gainprm="2 0 0 0 0 0 0 0 0 0" /!-->
+    <general name="elv_angle_motor_r" joint="elv_angle_r" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="100 0 0" biastype="affine" biasprm="0 -100 -30 0" ctrllimited="true" ctrlrange="-1.658 2.269" />
+    <general name="shoulder_elv_motor_r" joint="shoulder_elv_r" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="100 0 0" biastype="affine" biasprm="0 -100 -20 0" ctrllimited="true" ctrlrange="0 3.14" />
+    <general name="shoulder_rot_motor_r" joint="shoulder_rot_r" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="20 0 0" biastype="affine" biasprm="0 -20 -2 0" ctrllimited="true" ctrlrange="-1.571 2.094" />
+    <general name="elbow_flexion_motor_r" joint="elbow_flexion_r" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="20 0 0" biastype="affine" biasprm="0 -20 -2 0" ctrllimited="true" ctrlrange="0 2.269" />
+    <general name="pro_sup_motor_r" joint="pro_sup_r" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="20 0 0" biastype="affine" biasprm="0 -20 -1 0" ctrllimited="true" ctrlrange="-1.571 1.571" />
+    <general name="deviation_motor_r" joint="deviation_r" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="10 0 0" biastype="affine" biasprm="0 -10 -0.5 0" ctrllimited="true" ctrlrange="-0.1745 0.4363" />
+    <general name="flexion_motor_r" joint="flexion_r" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="10 0 0" biastype="affine" biasprm="0 -10 -0.5 0" ctrllimited="true" ctrlrange="-0.6109 0.6109" />
+    <general name="elv_angle_motor_l" joint="elv_angle_l" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="100 0 0" biastype="affine" biasprm="0 -100 -30 0" ctrllimited="true" ctrlrange="-1.658 2.269" />
+    <general name="shoulder_elv_motor_l" joint="shoulder_elv_l" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="100 0 0" biastype="affine" biasprm="0 -100 -20 0" ctrllimited="true" ctrlrange="0 3.14" />
+    <general name="shoulder_rot_motor_l" joint="shoulder_rot_l" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="20 0 0" biastype="affine" biasprm="0 -20 -2 0" ctrllimited="true" ctrlrange="-1.571 2.094" />
+    <general name="elbow_flexion_motor_l" joint="elbow_flexion_l" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="20 0 0" biastype="affine" biasprm="0 -20 -2 0" ctrllimited="true" ctrlrange="0 2.269" />
+    <general name="pro_sup_motor_l" joint="pro_sup_l" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="20 0 0" biastype="affine" biasprm="0 -20 -1 0" ctrllimited="true" ctrlrange="-1.571 1.571" />
+    <general name="deviation_motor_l" joint="deviation_l" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="10 0 0" biastype="affine" biasprm="0 -10 -0.5 0" ctrllimited="true" ctrlrange="-0.1745 0.4363" />
+    <general name="flexion_motor_l" joint="flexion_l" dyntype="none" dynprm="1 0 0" gaintype="fixed" gainprm="10 0 0" biastype="affine" biasprm="0 -10 -0.5 0" ctrllimited="true" ctrlrange="-0.6109 0.6109" />
   </actuator>
   <equality>
     <!-- Leave this comment here to make 'equality' element pretty printed !-->

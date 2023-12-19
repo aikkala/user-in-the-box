@@ -38,7 +38,7 @@ class BaseBMModel(ABC):
 
     # Number of motor actuators
     self._nm = self._nu - self._na
-    self._motor_smooth_avg = np.zeros((self._nm,))
+    self._motor_act = np.zeros((self._nm,))
     self._motor_alpha = 0.9
 
     # Get actuator names (muscle and motor)
@@ -136,9 +136,9 @@ class BaseBMModel(ABC):
     data.qvel[self._independent_dofs] = qvel
     data.act[self._muscle_actuators] = act
 
-    # Reset smoothed average of motor actuator activation
-    self._motor_smooth_avg = np.zeros((self._nm,))
-    
+    # Sample random initial values for motor activation
+    self._motor_act = self._rng.uniform(low=np.zeros((self._nm,)), high=np.ones((self._nm,)))
+
     # Reset accumulative noise
     self._sigdepnoise_acc = 0
     self._constantnoise_acc = 0
@@ -171,7 +171,7 @@ class BaseBMModel(ABC):
 
     """
     
-    _selected_motor_control = self._motor_smooth_avg + action[:self._nm]
+    _selected_motor_control = np.clip(self._motor_act + action[:self._nm], 0, 1)
     _selected_muscle_control = np.clip(data.act[self._muscle_actuators] + action[self._nm:], 0, 1)
     
     if self._sigdepnoise_type is not None:
@@ -196,13 +196,14 @@ class BaseBMModel(ABC):
             _selected_muscle_control += self._constantnoise_acc
         else:
             raise NotImplementedError(f"{self._constantnoise_type}")
-    
-    data.ctrl[self._motor_actuators] = np.clip(_selected_motor_control, -1, 1)
+
+    # Update smoothed online estimate of motor actuation
+    self._motor_act = (1 - self._motor_alpha) * self._motor_act \
+                             + self._motor_alpha * np.clip(_selected_motor_control, 0, 1)
+
+    data.ctrl[self._motor_actuators] = model.actuator_ctrlrange[self._motor_actuators,0] + self._motor_act*(model.actuator_ctrlrange[self._motor_actuators, 1] - model.actuator_ctrlrange[self._motor_actuators, 0])
     data.ctrl[self._muscle_actuators] = np.clip(_selected_muscle_control, 0, 1)
     
-    # Update smoothed online estimate of motor actuation
-    self._motor_smooth_avg = (1 - self._motor_alpha) * self._motor_smooth_avg \
-                             + self._motor_alpha * data.ctrl[self._motor_actuators]
 
   @classmethod
   def get_xml_file(cls):
@@ -355,3 +356,8 @@ class BaseBMModel(ABC):
   def nu(self):
     """ Returns number of actuators (both muscle and motor). """
     return self._nu
+
+  @property
+  def motor_act(self):
+    """ Returns (smoothed average of) motor actuation. """
+    return self._motor_act

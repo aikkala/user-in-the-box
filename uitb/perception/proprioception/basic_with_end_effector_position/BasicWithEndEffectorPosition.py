@@ -62,8 +62,11 @@ class BasicWithEndEffectorPosition(BaseModule):
     # Normalise act
     act = (data.act.copy() - 0.5) * 2
 
+    # Smoothed average of motor actuation (only for motor actuators); normalise
+    motor_act = (self._bm_model.motor_act.copy() - 0.5) * 2
+
     # Proprioception features
-    proprioception = np.concatenate([qpos, qvel, qacc, ee_position, act])
+    proprioception = np.concatenate([qpos, qvel, qacc, ee_position, act, motor_act])
 
     return proprioception
 
