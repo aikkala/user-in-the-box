@@ -1,9 +1,9 @@
-simulator_name: "bimanual_unity_beatsvr_1e3"
+simulator_name: "bimanual_unity_beatsvr_muscles_1e3"
 project: "unity"
 
 simulation:
   bm_model:
-    cls: "MoblArmsBimanualMotor"
+    cls: "MoblArmsBimanual"
     kwargs:
       shoulder_variant: "none"
       #skull_rotation: [0.9961947, 0, 0, -0.0871557]
