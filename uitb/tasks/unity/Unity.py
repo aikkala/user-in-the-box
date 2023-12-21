@@ -90,7 +90,7 @@ class Unity(BaseTask):
     self._current_timestep = 0
 
     # Use early termination if target is not hit in time
-    self._max_steps = self._action_sample_freq*20
+    self._max_steps = self._action_sample_freq*kwargs.get("max_episode_length_seconds", 1000)
 
     # Unity returns a time feature to indicate how much of episode is left, scaled [-1, 1]
     self._time = -1
@@ -211,14 +211,16 @@ class Unity(BaseTask):
   def _update(self, model, data):
 
     is_finished = False
+    truncated = False  #TODO: should we allow for truncation (using self._max_trials)?
 
     # Update timestep
     self._current_timestep = data.time
 
-    # Let Unity app know that the episode has terminated
-    # if self._steps >= self._max_steps:
-    #   is_finished = True
-    #   info["termination"] = "max_steps_reached"
+    # Check if episode length has been exceeded
+    if self._steps >= self._max_steps:
+      is_finished = True
+      truncated = True
+      self._info["termination"] = "max_steps_reached"
 
     # Send end effector position and rotation to unity, get reward and image from camera
     obs, reward, is_app_finished, log_dict = self._unity_client.step(self._create_state(model, data), is_finished)
@@ -229,8 +231,7 @@ class Unity(BaseTask):
       raise RuntimeError("User simulation has terminated an episode but Unity app has not")
 
     terminated = is_app_finished
-    truncated = False  #TODO: should we allow for truncation (using self._max_trials)?
-  
+
     self._info["terminated"] = terminated
     self._info["truncated"] = truncated
     self._info["unity_image"] = obs["image"]
