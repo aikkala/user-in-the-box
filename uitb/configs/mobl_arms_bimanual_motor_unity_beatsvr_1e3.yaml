@@ -22,6 +22,7 @@ simulation:
       standalone: true # set to False for debugging (open the app in Unity editor)
       # port: 5555 # uncomment for debugging (connects to this port instead of finding a random open one)
       time_scale: 5
+      max_episode_length_seconds: 20
       gear: "oculus-quest-1"
       left_controller_enabled: true
       left_controller_body: "hand_l"
@@ -34,9 +35,9 @@ simulation:
     - cls: "vision.UnityHeadset"
       kwargs:
         resolution: [120, 80] # must match dimensions used in unity
-        channels: [0,2,3]
-#        buffer: 0.1
-#        use_buffer_difference: true
+        channels: [0,2]
+        buffer: 0.2
+        use_buffer_difference: false
     - cls: "proprioception.BasicWithEndEffectorPosition"
       kwargs:
         end_effector: [["geom", "controller-left"], ["geom", "controller-right"]]
@@ -50,8 +51,8 @@ rl:
   policy_type: "policies.MultiInputActorCriticPolicyTanhActions"
   policy_kwargs:
     activation_fn: "torch.nn.LeakyReLU"
-    net_arch: [256, 256]
-    log_std_init: 0.0
+    net_arch: [256, 256, 128]
+    log_std_init: -0.7
     features_extractor_class: "feature_extractor.FeatureExtractor"
     normalize_images: False
   lr: 
