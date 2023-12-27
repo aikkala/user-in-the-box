@@ -58,7 +58,7 @@ class Unity(BaseTask):
       self._unity_client = UnityClient(unity_executable=app_path,
                                        port=kwargs.get("port", None),
                                        standalone=self._standalone,
-                                       app_args=kwargs.get("app_args", []))
+                                       app_args=app_args)
 
       # Wait until app is up and running. Send time options to unity app
       time_options = {"timestep": model.opt.timestep, "sampleFrequency": kwargs["action_sample_freq"],
