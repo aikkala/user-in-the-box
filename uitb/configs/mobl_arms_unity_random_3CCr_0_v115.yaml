@@ -12,7 +12,7 @@ simulation:
         kwargs:
           weight: 0
   task:
-    cls: "Unity"
+    cls: "UnityEnv"
     kwargs:
       unity_executable: "apps/whac-a-mole-v1.1.5-linux/build.x86_64"
       app_args: ["-condition", "random"]

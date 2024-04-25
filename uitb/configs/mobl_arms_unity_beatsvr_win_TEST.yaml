@@ -12,7 +12,7 @@ simulation:
         kwargs:
           weight: 1e-3
   task:
-    cls: "Unity"
+    cls: "UnityEnv"
     kwargs:
       unity_executable: "interactiontest/New Unity Project.exe"
       app_args: ["-condition", "easy"]

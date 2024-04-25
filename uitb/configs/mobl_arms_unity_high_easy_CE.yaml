@@ -12,7 +12,7 @@ simulation:
         kwargs:
           weight: 0.01
   task:
-    cls: "Unity"
+    cls: "UnityEnv"
     kwargs:
       unity_executable: "build/build.x86_64"
       app_args: ["-condition", "high-easy"]

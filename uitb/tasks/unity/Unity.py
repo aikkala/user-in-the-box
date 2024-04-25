@@ -14,7 +14,7 @@ from ...utils.unity import UnityClient, images_to_video
 from ...utils.functions import initialise_pos_and_quat
 
 
-class Unity(BaseTask):
+class UnityEnv(BaseTask):
   # IMPORTANT: This task expects that in Unity Z is forward, Y is up, and X is to the right, and
   # that in MuJoCo Z is up, Y is to the left, and X is forward. If these don't hold, then the
   # transformations will not be correct
