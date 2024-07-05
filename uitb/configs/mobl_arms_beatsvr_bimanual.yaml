@@ -12,7 +12,7 @@ simulation:
         kwargs:
           weight: 1e-3
   task:
-    cls: "Unity"
+    cls: "UnityEnv"
     kwargs:
 #      app_args: ["-right_hand_only"]
       unity_executable: "apps/beats-vr-linux/build.x86_64"
