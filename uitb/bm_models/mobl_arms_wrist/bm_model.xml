@@ -46,7 +46,7 @@
         <mesh name="hand_1mc" file="assets/hand_1mc.stl" />
     </asset>
     <worldbody>
-        <camera name="for_testing" pos="-0.8 -0.6 1.5" euler="0.7 -1.0 -0.7"/>
+        <camera name="for_testing" pos="-1.0 -0.8 0.5" euler="0.7 -1.0 -0.7"/>
         <body name="thorax" pos="       0 6.12323e-17        1" quat="0.7071067811865475 0.7071067811865475 0.0 0.0" childclass="mobl-arms">
             <!-- The original inertial properties are commented out because I have added a spine and a skull into this body. MuJoCo will estimate the inertial properties !-->
             <!--inertial pos="-0.0194693 -0.124635 3.52071e-05" quat="0.982593 0.00053772 0.000250291 0.185769" mass="8.01418" diaginertia="0.0768128 0.0574863 0.0458735" /!-->
