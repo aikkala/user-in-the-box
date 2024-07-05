@@ -1,5 +1,5 @@
 **/__pycache__/
-.ipynb_checkpoints
+**/.ipynb_checkpoints
 MUJOCO_LOG.TXT
 uitb.egg-info/
 uitb/utils/__simulatorsdir__.py
@@ -10,10 +10,6 @@ uitb/tasks/unity/apps/*/app_logs/
 uitb/tasks/unity/apps/
 
 simulators/
-#simulators/mobl_arms_index_choice_reaction
-#simulators/mobl_arms_index_pointing
-#simulators/mobl_arms_index_remote_driving
-#simulators/mobl_arms_index_tracking
 datasets/
 trained/
 simulators_nasAI8/
@@ -23,3 +19,16 @@ simulators_OLD/
 nohup_*
 uitb/tasks/unity/build_v2/
 uitb/tasks/unity/build_v2_COPY/
+simulators/*/evaluate
+simulators/wandb/
+
+simulators/mobl_arms_index_pointing_timereward
+simulators/mobl_arms_index_pointing_whitenoise
+simulators/mobl_arms_llc
+
+simulators/*/checkpoints/
+simulators/*/PPO_*/
+
+tutorial/
+
+UIST22/study/

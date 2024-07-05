@@ -17,6 +17,7 @@ Please cite this paper if you use this *User-in-the-Box* repository in your rese
 
 ```
 @inproceedings{ikkala2022,
+
 author = {Ikkala, Aleksi and Fischer, Florian and Klar, Markus and Bachinski, Miroslav and Fleig, Arthur and Howes, Andrew and H\"{a}m\"{a}l\"{a}inen, Perttu and M\"{u}ller, J\"{o}rg and Murray-Smith, Roderick and Oulasvirta, Antti},
 title = {Breathing Life Into Biomechanical User Models},
 year = {2022},
@@ -170,7 +171,7 @@ Regular evaluations can be added to the training loop by passing the `--eval` fl
 | Controlling an RC Car Via Joystick | [simulators/mobl_arms_index_remote_driving](https://github.com/aikkala/user-in-the-box/tree/main/simulators/mobl_arms_index_remote_driving) | [uitb/configs/mobl_arms_index_remote_driving.yaml](https://github.com/aikkala/user-in-the-box/blob/main/uitb/configs/mobl_arms_index_remote_driving.yaml) |
 
 
-- The simulators that were trained, evaluated, and analysed in our [UIST paper](TODO-add-a-working-link) are found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
+- The simulators that were trained, evaluated, and analysed in our [UIST paper](TODO-add-a-working-link) as well as a script to re-create all plots from this paper can be found in a [separate branch](https://github.com/aikkala/user-in-the-box/tree/uist-submission-aleksi).
 
 ### Pointing examples
 

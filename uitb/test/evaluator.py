@@ -87,7 +87,7 @@ if __name__ == "__main__":
     run_params = dict()
     run_params["action_sample_freq"] = args.action_sample_freq
     run_params["evaluate"] = True
-    
+
     run_params["unity_record_gameplay"] = args.record  #False
     run_params["unity_logging"] = True
     run_params["unity_output_folder"] = evaluate_dir
@@ -195,13 +195,13 @@ if __name__ == "__main__":
 
     if args.record:
         simulator._GUI_camera.write_video_set_path(os.path.join(evaluate_dir, args.out_file))
-        
+
         # Write the video
         # simulator._camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
         _imgs = simulator.render()
         for _img in _imgs:
             simulator._GUI_camera.write_video_add_frame(_img)
-        
+
         simulator._GUI_camera.write_video_close()
         print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')
 
@@ -210,7 +210,7 @@ if __name__ == "__main__":
             _perception_imgs = simulator.get_render_stack_perception()
             for _module_name, _imgs in _perception_imgs.items():
                 _out_file = os.path.splitext(args.out_file)[0] + f"_{_module_name.replace('/', '-')}" + os.path.splitext(args.out_file)[1]
-                
+
                 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
                 out = cv2.VideoWriter(os.path.join(evaluate_dir, _out_file), fourcc, simulator._GUI_camera._fps, (_imgs[0].shape[1], _imgs[0].shape[0]))
                 # out.open(_out_file)

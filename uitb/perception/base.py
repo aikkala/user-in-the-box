@@ -15,7 +15,7 @@ from ..rl.encoders import BaseEncoder
 class BaseModule(ABC):
 
   def __init__(self, model, data, bm_model, **kwargs):
-    """ Initialises a new `BaseModule`. One module represents one perception capability.
+    """ Initialises aF new `BaseModule`. One module represents one perception capability.
 
     Args:
       model: Mujoco model instance of the simulator.
@@ -264,7 +264,7 @@ class Perception:
     self.encoders = dict()
 
     self.perception_modules = []
-    self._cameras = []
+    self._cameras = {}
     for module_cls, kwargs in perception_modules.items():
       module = module_cls(model, data, bm_model, **{**kwargs, **run_parameters})
       self.perception_modules.append(module)
@@ -273,7 +273,7 @@ class Perception:
       self.encoders[module.modality] = module.encoder
 
       if module.modality == "vision":
-        self._cameras.extend(module._cameras)
+        self._cameras[module] = module._cameras
 
     # Find actuators in the simulation
     self._actuators = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR, actuator_name)
@@ -328,8 +328,27 @@ class Perception:
     for module in self.perception_modules:
       module.close(**kwargs)
 
+  def get_renders(self):
+    """ Return rgb and/or depth arrays from all registered cameras."""
+    perception_camera_images = []
+    # Use self.cameras_dict to have access to the module where a camera lives
+    for module in self.cameras_dict:
+      for camera in self.cameras_dict[module]:
+        for rgb_or_depth_array in camera.render():
+          # camera.render() returns a tuple (rgb_array, depth_array), with entries set to None if not available
+          if rgb_or_depth_array is not None:
+            if hasattr(module, "camera_active") and module.camera_active == False:
+              # return zero (black) array if module.camera_active == False (can be used to temporarily disable visual input)
+              rgb_or_depth_array *= 0
+            perception_camera_images.append(rgb_or_depth_array)
+    return perception_camera_images
+
   @property
   def cameras(self):
+    return [_cam for cameras in self._cameras.values() for _cam in cameras]
+
+  @property
+  def cameras_dict(self):
     return self._cameras
 
   @property
