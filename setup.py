@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(__file__), "uitb/utils/__simulatorsdir__.
 
 setup(
    name='uitb',
-   version='0.4.2',
+   version='2.0.0',
    author='Aleksi Ikkala',
    author_email='aleksi.ikkala@gmail.com',
    packages=['uitb'],
@@ -21,19 +21,17 @@ setup(
    long_description=open('README.md').read(),
    python_requires='>=3.8',
    install_requires=[
-       #"gym>=0.26.0",
        "gymnasium>=0.28",
        "pygame",
        "pynput",
        "mujoco>=2.2.0",
        "imageio",
-       #"stable_baselines3>=1.4.0",
-       #"stable_baselines3 @ git+https://github.com/carlosluis/stable-baselines3.git@fix_tests#egg=stable_baselines3-2.0.0a0",
        "stable_baselines3>=2.0.0a1",
        "torch",
        "wandb", "tensorboard",
        "numpy", "matplotlib", "scipy",
        "opencv-python",
        "ruamel.yaml",
+       "zmq"
    ],
 )

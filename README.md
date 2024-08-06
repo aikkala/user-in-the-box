@@ -61,11 +61,13 @@ Related to the biomechanical models, in file [uitb/bm_models/effort_models.py](h
 
 Interaction tasks are defined in [uitb/tasks](https://github.com/aikkala/user-in-the-box/tree/main/uitb/tasks). When creating new tasks, one must inherit from the base class **[uitb.tasks.base.BaseTask](https://github.com/aikkala/user-in-the-box/blob/main/uitb/tasks/base.py)**. In addition to implementing a Python class, the interaction task must be defined as a (standalone) MuJoCo xml file.
 
+_[v2.0 and later only:]_ To interact with a Unity VR Environment using the [SIM2VR System](https://github.com/fl0fischer/sim2vr), use the [UnityTask](https://github.com/aikkala/user-in-the-box/tree/main/uitb/tasks/unity/Unity.py) task class. For further details, see the [SIM2VR README](https://github.com/fl0fischer/sim2vr).
 
 ### Perception models
 
 A perception model is composed of a set of perception modules, where each module is a specific perception capability, such as vision (egocentric camera) or proprioception (positions, speeds, accelerations of the biomechanical model's joints etc.). The perception modules are defined in [uitb/perception](https://github.com/aikkala/user-in-the-box/blob/main/uitb/perception)/[modality], where [modality] refers to a specific modality like "vision" or "proprioception". Note that this extra [modality] layer might be removed in the future. The base class that must be inherited when creating new perception modules is **[uitb.perception.base.BaseModule](https://github.com/aikkala/user-in-the-box/blob/main/uitb/perception/base.py)**.
 
+_[v2.0 and later only:]_ To interact with a Unity VR Environment using the [SIM2VR System](https://github.com/fl0fischer/sim2vr), use the [UnityHeadset](https://github.com/aikkala/user-in-the-box/tree/main/uitb/perception/vision/unity_headset/UnityHeadset.py)) vision module. For further details, see the [SIM2VR README](https://github.com/fl0fischer/sim2vr).
 
 ### Building a simulator
 
