@@ -70,6 +70,6 @@ rl:
   target_kl: 1.0
   save_freq: 5_000_000
 version: 1.1.0
-package_name: whacamole_adaptive_unconstrained
-gym_name: uitb:whacamole_adaptive_unconstrained-v0
+package_name: unity_random_adaptive_unc_3ccr_1e1_v115
+gym_name: uitb:unity_random_adaptive_unc_3ccr_1e1_v115-v0
 built: '2024-07-17 15:57:48'
