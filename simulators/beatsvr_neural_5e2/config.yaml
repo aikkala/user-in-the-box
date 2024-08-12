@@ -1,4 +1,4 @@
-simulator_name: beatsvr_early_termination_bimanual_neural_1e2_contact
+simulator_name: beatsvr_neural_5e2
 project: unity
 
 simulation:
@@ -10,7 +10,7 @@ simulation:
       effort_model:
         cls: Neural
         kwargs:
-          weight: 1e-2
+          weight: 5e-2
   task:
     cls: Unity
     kwargs:
@@ -67,6 +67,6 @@ rl:
   target_kl: 1.0
   save_freq: 5_000_000
 version: 1.1.0
-package_name: beatsvr_early_termination_bimanual_neural_1e2_contact
-gym_name: uitb:beatsvr_early_termination_bimanual_neural_1e2_contact-v0
-built: '2024-03-01 08:38:22'
+package_name: beatsvr_early_termination_bimanual_neural_5e2_contact
+gym_name: uitb:beatsvr_early_termination_bimanual_neural_5e2_contact-v0
+built: '2024-03-04 17:56:44'

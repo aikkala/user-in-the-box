@@ -1,4 +1,4 @@
-simulator_name: beatsvr_early_termination_bimanual_neural_1e3_contact
+simulator_name: beatsvr_neural_1e3
 project: unity
 
 simulation:
