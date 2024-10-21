@@ -55,6 +55,12 @@ class BaseTask(ABC):
     # Keep track of simulated steps
     self._steps = 0
 
+    # # Used for logging states
+    # self._info = {"terminated": False,
+    #               "truncated": False,
+    #               "log_dict": {}}
+
+
   def __init_subclass__(cls, *args, **kwargs):
     """ Define a new __init__ method with a hook that automatically sets stateful information shape after a child
     instance has been initialised. This is only for convenience, otherwise we would need to set the stateful information
@@ -97,7 +103,7 @@ class BaseTask(ABC):
     Returns:
       A dict containing information about the states of the task/environment
     """
-    pass
+    return dict()
 
 
   ############ The methods below are overwritable but often don't need to be overwritten ############
@@ -167,12 +173,14 @@ class BaseTask(ABC):
     return getattr(module, specs["cls"])(**specs.get("kwargs", {}))
 
   @classmethod
-  def clone(cls, simulator_folder, package_name):
+  def clone(cls, simulator_folder, package_name, app_executable=None):
     """ Clones (i.e. copies) the relevant python files into a new location.
 
     Args:
        simulator_folder: Location of the simulator.
        package_name: Name of the simulator (which is a python package)
+       app_executable: (relative) path of app executable, if an external application
+        is used by the task instance (e.g., a Unity app)
     """
 
     # Create 'tasks' folder
@@ -188,9 +196,15 @@ class BaseTask(ABC):
     with open(os.path.join(dst, "__init__.py"), "w") as file:
       file.write("from ." + ".".join(modules[2:]) + " import " + cls.__name__)
 
-    # Copy env folder
+    # Copy env folder (without apps subdirectory)
     src = parent_path(inspect.getfile(cls))
-    shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
+    # shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True)
+    shutil.copytree(src, os.path.join(dst, src.stem), dirs_exist_ok=True, ignore=shutil.ignore_patterns('apps'))
+
+    # Copy application subdir (optional)
+    if app_executable is not None:
+      src_app = parent_path(os.path.join(src, app_executable))
+      shutil.copytree(src_app, os.path.join(dst, src.stem, os.path.dirname(app_executable)), dirs_exist_ok=True)
 
     # Copy assets if they exist
     if os.path.isdir(os.path.join(src, "assets")):
@@ -211,6 +225,8 @@ class BaseTask(ABC):
     # Parse xml file and return the tree
     return ET.parse(cls.get_xml_file())
 
+  def close(self, **kwargs):
+    pass
 
   ############ The methods below you should not overwrite ############
 
@@ -225,7 +241,9 @@ class BaseTask(ABC):
   def reset(self, model, data):
     """ Resets the number of steps taken and the task/environment. """
     self._steps = 0
-    self._reset(model, data)
+    info = self._reset(model, data)
+    mujoco.mj_forward(model, data)
+    return info
 
   @final
   def get_state(self, model, data):

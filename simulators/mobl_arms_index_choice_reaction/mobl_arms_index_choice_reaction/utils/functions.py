@@ -1,3 +1,4 @@
+from scipy.spatial.transform import Rotation
 import pathlib
 import os
 from datetime import datetime
@@ -5,8 +6,11 @@ import sys
 import select
 import numpy as np
 import re
+
 from ruamel.yaml import YAML
 import importlib
+
+from .transformations import transformation_matrix
 
 
 def parent_path(file):
@@ -88,3 +92,12 @@ def importer(import_info):
     imp = import_info["cls"] if "cls" in import_info else import_info["function"]
     instance = getattr(module, imp)
     return instance
+
+
+def initialise_pos_and_quat(model, data, aux_body, relpose, body):
+  """ Initialise pos and quat of body according to the relpose wrt to aux_body"""
+  T1 = transformation_matrix(pos=data.body(aux_body).xpos, quat=data.body(aux_body).xquat)
+  T2 = transformation_matrix(pos=relpose[:3], quat=relpose[3:])
+  T = np.matmul(T1, np.linalg.inv(T2))
+  model.body(body).pos = T[:3, 3]
+  model.body(body).quat = np.roll(Rotation.from_matrix(T[:3, :3]).as_quat(), 1)

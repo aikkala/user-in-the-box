@@ -38,7 +38,7 @@ class BaseBMModel(ABC):
 
     # Number of motor actuators
     self._nm = self._nu - self._na
-    self._motor_smooth_avg = np.zeros((self._nm,))
+    self._motor_act = np.zeros((self._nm,))
     self._motor_alpha = 0.9
 
     # Get actuator names (muscle and motor)
@@ -72,6 +72,21 @@ class BaseBMModel(ABC):
                              for joint_name in self._dependent_joint_names]
     self._independent_joints = [mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, joint_name)
                                for joint_name in self._independent_joint_names]
+
+    # If there are 'free' type of joints, we'll need to be more careful with which dof corresponds to
+    # which joint, for both qpos and qvel/qacc. There should be exactly one dof per independent/dependent joint.
+    def get_dofs(joint_indices):
+      qpos = []
+      dofs = []
+      for joint_idx in joint_indices:
+        if model.jnt_type[joint_idx] not in [mujoco.mjtJoint.mjJNT_HINGE, mujoco.mjtJoint.mjJNT_SLIDE]:
+          raise NotImplementedError(f"Only 'hinge' and 'slide' joints are supported, joint "
+                                    f"{self._joint_names[joint_idx]} is of type {mujoco.mjtJoint(model.jnt_type[joint_idx]).name}")
+        qpos.append(model.jnt_qposadr[joint_idx])
+        dofs.append(model.jnt_dofadr[joint_idx])
+      return qpos, dofs
+    self._dependent_qpos, self._dependent_dofs = get_dofs(self._dependent_joints)
+    self._independent_qpos, self._independent_dofs = get_dofs(self._independent_joints)
 
     # Get the effort model; some models might need to know dt
     self._effort_model = self.get_effort_model(kwargs.get("effort_model", {"cls": "Zero"}), dt=kwargs["dt"])
@@ -109,18 +124,20 @@ class BaseBMModel(ABC):
     """ Resets the biomechanical model. """
 
     # Randomly sample qpos, qvel, act around zero values
-    nq = len(self._independent_joints)
+    nq = len(self._independent_qpos)
     qpos = self._rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
     qvel = self._rng.uniform(low=np.ones((nq,))*-0.05, high=np.ones((nq,))*0.05)
     act = self._rng.uniform(low=np.zeros((self._na,)), high=np.ones((self._na,)))
 
     # Set qpos and qvel
-    data.qpos[self._dependent_joints] = 0
-    data.qpos[self._independent_joints] = qpos
-    data.qvel[self._dependent_joints] = 0
-    data.qvel[self._independent_joints] = qvel
+    data.qpos[self._dependent_qpos] = 0
+    data.qpos[self._independent_qpos] = qpos
+    data.qvel[self._dependent_dofs] = 0
+    data.qvel[self._independent_dofs] = qvel
     data.act[self._muscle_actuators] = act
 
+    # Sample random initial values for motor activation
+    self._motor_act = self._rng.uniform(low=np.zeros((self._nm,)), high=np.ones((self._nm,)))
     # Reset smoothed average of motor actuator activation
     self._motor_smooth_avg = np.zeros((self._nm,))
 
@@ -155,7 +172,7 @@ class BaseBMModel(ABC):
 
     """
 
-    _selected_motor_control = self._motor_smooth_avg + action[:self._nm]
+    _selected_motor_control = np.clip(self._motor_act + action[:self._nm], 0, 1)
     _selected_muscle_control = np.clip(data.act[self._muscle_actuators] + action[self._nm:], 0, 1)
 
     if self._sigdepnoise_type is not None:
@@ -181,12 +198,13 @@ class BaseBMModel(ABC):
         else:
             raise NotImplementedError(f"{self._constantnoise_type}")
 
-    data.ctrl[self._motor_actuators] = np.clip(_selected_motor_control, 0, 1)
+    # Update smoothed online estimate of motor actuation
+    self._motor_act = (1 - self._motor_alpha) * self._motor_act \
+                             + self._motor_alpha * np.clip(_selected_motor_control, 0, 1)
+
+    data.ctrl[self._motor_actuators] = model.actuator_ctrlrange[self._motor_actuators,0] + self._motor_act*(model.actuator_ctrlrange[self._motor_actuators, 1] - model.actuator_ctrlrange[self._motor_actuators, 0])
     data.ctrl[self._muscle_actuators] = np.clip(_selected_muscle_control, 0, 1)
 
-    # Update smoothed online estimate of motor actuation
-    self._motor_smooth_avg = (1 - self._motor_alpha) * self._motor_smooth_avg \
-                             + self._motor_alpha * data.ctrl[self._motor_actuators]
 
   @classmethod
   def get_xml_file(cls):
@@ -283,6 +301,9 @@ class BaseBMModel(ABC):
     # Add equality constraints
     ETutils.copy_children("equality", bm_root, simulator_root)
 
+  def close(self, **kwargs):
+    """ Perform any necessary clean up. """
+    pass
 
   ############ The methods below you should not overwrite ############
 
@@ -298,12 +319,14 @@ class BaseBMModel(ABC):
     self._reset(model, data)
     self._effort_model.reset(model, data)
     self.update(model, data)
+    mujoco.mj_forward(model, data)
 
   @final
   def get_state(self, model, data):
     """ Returns the state of the biomechanical model (as a dict). """
     state = dict()
     state.update(self._get_state(model, data))
+    state.update(self._effort_model._get_state(model, data))
     return state
 
   @final
@@ -319,6 +342,23 @@ class BaseBMModel(ABC):
 
   @property
   @final
+  def independent_qpos(self):
+    """ Returns qpos indices of independent joints. """
+    return self._independent_qpos.copy()
+
+  @property
+  @final
+  def independent_dofs(self):
+    """ Returns qvel/qacc indices of independent joints. """
+    return self._independent_dofs.copy()
+
+  @property
+  @final
   def nu(self):
     """ Returns number of actuators (both muscle and motor). """
     return self._nu
+
+  @property
+  def motor_act(self):
+    """ Returns (smoothed average of) motor actuation. """
+    return self._motor_act

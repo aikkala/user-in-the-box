@@ -6,9 +6,12 @@ import argparse
 import scipy.ndimage
 from collections import defaultdict
 import matplotlib.pyplot as pp
+import cv2
 
 from uitb.utils.logger import StateLogger, ActionLogger
 from uitb.simulator import Simulator
+
+#from uitb.bm_models.effort_models import CumulativeFatigue3CCr, ConsumedEndurance
 
 
 def natural_sort(l):
@@ -60,6 +63,9 @@ if __name__ == "__main__":
                         help='filename of a specific checkpoint (default: None, latest checkpoint is used)')
     parser.add_argument('--num_episodes', type=int, default=10,
                         help='how many episodes are evaluated (default: 10)')
+    parser.add_argument('--uncloned', dest="cloned", action='store_false', help='use source code instead of files from cloned simulator module')
+    parser.add_argument('--app_condition', type=str, default=None,
+                        help="can be used to override the 'condition' argument passed to a Unity app")
     parser.add_argument('--record', action='store_true', help='enable recording')
     parser.add_argument('--out_file', type=str, default='evaluate.mp4',
                         help='output file for recording if recording is enabled (default: ./evaluate.mp4)')
@@ -82,13 +88,26 @@ if __name__ == "__main__":
     run_params["action_sample_freq"] = args.action_sample_freq
     run_params["evaluate"] = True
 
+    run_params["unity_record_gameplay"] = args.record  #False
+    run_params["unity_logging"] = True
+    run_params["unity_output_folder"] = evaluate_dir
+    if args.app_condition is not None:
+        run_params["app_args"] = ['-condition', args.app_condition]
+    # run_params["unity_random_seed"] = 123
+
+    # Embed visual observations into main mp4 or store as separate mp4 files
+    render_mode_perception = "separate" if run_params["unity_record_gameplay"] else "embed"
+
     # Use deterministic actions?
     deterministic = False
 
     # Initialise simulator
-    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array", run_parameters=run_params)
+    simulator = Simulator.get(args.simulator_folder, render_mode="rgb_array_list", render_mode_perception=render_mode_perception, run_parameters=run_params, use_cloned=args.cloned)
 
-    print(f"run parameters are: {simulator.run_parameters}\n")
+    # ## Change effort model #TODO: delete
+    # simulator.bm_model._effort_model = CumulativeFatigue3CCr(simulator.bm_model, dt=simulator._run_parameters["dt"])
+
+    print(f"run parameters are: {simulator.run_parameters}")
 
     # Load latest model if filename not given
     _policy_loaded = False
@@ -102,7 +121,7 @@ if __name__ == "__main__":
             _policy_loaded = True
         except (FileNotFoundError, IndexError):
             print("No checkpoint found. Will continue evaluation with randomly sampled controls.")
-    
+
     if _policy_loaded:
         # Load policy TODO should create a load method for uitb.rl.BaseRLModel
         print(f'Loading model: {os.path.join(checkpoint_dir, model_file)}\n')
@@ -118,11 +137,8 @@ if __name__ == "__main__":
         # Actions are logged separately to make things easier
         action_logger = ActionLogger(args.num_episodes)
 
-    if args.record:
-        simulator._GUI_camera.write_video_set_path(os.path.join(evaluate_dir, args.out_file))
-
     # Visualise evaluations
-    statistics = defaultdict(list)
+    # statistics = defaultdict(list)
     for episode_idx in range(args.num_episodes):
 
         print(f"Run episode {episode_idx + 1}/{args.num_episodes}.")
@@ -137,11 +153,10 @@ if __name__ == "__main__":
             state = simulator.get_state()
             state_logger.log(episode_idx, state)
 
-        if args.record:
-            simulator._GUI_camera.write_video_add_frame(simulator.render())
-
         # Loop until episode ends
         while not terminated and not truncated:
+            # #print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
+            # print(reward)
 
             if _policy_loaded:
                 # Get actions from policy
@@ -162,9 +177,6 @@ if __name__ == "__main__":
                 state.update(info)
                 state_logger.log(episode_idx, state)
 
-            if args.record and not terminated and not truncated:
-                simulator._GUI_camera.write_video_add_frame(simulator.render())
-
         # print(f"Episode {episode_idx}: {simulator.get_episode_statistics_str()}")
 
         # episode_statistics = simulator.get_episode_statistics()
@@ -182,6 +194,29 @@ if __name__ == "__main__":
               f'{os.path.join(evaluate_dir, args.action_log_file)}.pickle')
 
     if args.record:
+        simulator._GUI_camera.write_video_set_path(os.path.join(evaluate_dir, args.out_file))
+
         # Write the video
+        # simulator._camera.write_video(imgs, os.path.join(evaluate_dir, args.out_file))
+        _imgs = simulator.render()
+        for _img in _imgs:
+            simulator._GUI_camera.write_video_add_frame(_img)
+
         simulator._GUI_camera.write_video_close()
         print(f'A recording has been saved to file {os.path.join(evaluate_dir, args.out_file)}')
+
+        # Write additional videos for each perception module camera (only if simulator._render_mode_perception == "separate")
+        if simulator._render_mode_perception == "separate":
+            _perception_imgs = simulator.get_render_stack_perception()
+            for _module_name, _imgs in _perception_imgs.items():
+                _out_file = os.path.splitext(args.out_file)[0] + f"_{_module_name.replace('/', '-')}" + os.path.splitext(args.out_file)[1]
+
+                fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                out = cv2.VideoWriter(os.path.join(evaluate_dir, _out_file), fourcc, simulator._GUI_camera._fps, (_imgs[0].shape[1], _imgs[0].shape[0]))
+                # out.open(_out_file)
+                for img in _imgs:
+                    out.write(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+                out.release()
+                print(f'A recording has been saved to file {os.path.join(evaluate_dir, _out_file)}')
+
+    simulator.close()

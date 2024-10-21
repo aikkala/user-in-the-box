@@ -13,6 +13,8 @@ import inspect
 import pathlib
 from datetime import datetime
 import copy
+from collections import defaultdict
+import xml.etree.ElementTree as ET
 
 from stable_baselines3 import PPO  #required to load a trained LLC policy in HRL approach
 
@@ -106,8 +108,20 @@ class Simulator(gym.Env):
 
     # Load task class
     task_cls = cls.get_class("tasks", config["simulation"]["task"]["cls"])
-    task_cls.clone(simulator_folder, config["package_name"])
+    task_cls.clone(simulator_folder, config["package_name"], app_executable=config["simulation"]["task"].get("kwargs", {}).get("unity_executable", None))
     simulation = task_cls.initialise(config["simulation"]["task"].get("kwargs", {}))
+
+    # Set some compiler options
+    # TODO: would make more sense to have a separate "environment" class / xml file that defines all these defaults,
+    #  including e.g. cameras, lighting, etc., so that they could be easily changed. Task and biomechanical model would
+    #  be integrated into that object
+    compiler_defaults = {"inertiafromgeom": "auto", "balanceinertia": "true", "boundmass": "0.001",
+                         "boundinertia": "0.001", "inertiagrouprange": "0 1"}
+    compiler = simulation.find("compiler")
+    if compiler is None:
+      ET.SubElement(simulation, "compiler", compiler_defaults)
+    else:
+      compiler.attrib.update(compiler_defaults)
 
     # Load biomechanical model class
     bm_cls = cls.get_class("bm_models", config["simulation"]["bm_model"]["cls"])
@@ -133,7 +147,7 @@ class Simulator(gym.Env):
 
     # Initialise the simulator
     model, _, _, _, _, _ = \
-      cls._initialise(config, simulator_folder, run_parameters)
+      cls._initialise(config, simulator_folder, {**run_parameters, "build": True})
 
     # Now that simulator has been initialised, everything should be set. Now we want to save the xml file again, but
     # mujoco only is able to save the latest loaded xml file (which is either the task or bm model xml files which are
@@ -215,11 +229,18 @@ class Simulator(gym.Env):
       module_kwargs = module_cfg.get("kwargs", {})
       perception_modules[module_cls] = module_kwargs
 
-    # Get xml file
-    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation.xml")
+    # Get simulation file
+    simulation_file = os.path.join(simulator_folder, config["package_name"], "simulation")
 
-    # Load the mujoco model
-    model = mujoco.MjModel.from_xml_path(simulation_file)
+    # Load the mujoco model; try first with the binary model (faster, contains some parameters that may be lost when
+    # re-saving xml files like body mass). For some reason the binary model fails to load in some situations (like
+    # when the simulator has been built on a different computer)
+    # TODO loading from binary disabled, weird problems (like a body not found from model when loaded from binary, but
+    #  found correctly when model loaded from xml)
+    # try:
+    #  model = mujoco.MjModel.from_binary_path(simulation_file + ".mjcf")
+    # except: # TODO what was the exception type
+    model = mujoco.MjModel.from_xml_path(simulation_file + ".xml")
 
     # Initialise MjData
     data = mujoco.MjData(model)
@@ -246,7 +267,7 @@ class Simulator(gym.Env):
     return model, data, task, bm_model, perception, callbacks
 
   @classmethod
-  def get(cls, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None, use_cloned=True):
+  def get(cls, simulator_folder, render_mode="rgb_array", render_mode_perception="embed", render_show_depths=False, run_parameters=None, use_cloned=True):
     """ Returns a Simulator that is located in given folder.
 
     Args:
@@ -257,6 +278,7 @@ class Simulator(gym.Env):
         or None while the frames in a separate PyGame window are updated directly when calling
         step() or reset() (render_mode="human";
         adapted from https://github.com/openai/gym/blob/master/gym/wrappers/human_rendering.py)).
+      render_mode_perception: Whether images of visual perception modules should be directly embedded into main camera view ("embed"), stored as separate videos ("separate"), or not used at all [which allows to watch vision in Unity Editor if debug mode is enabled/standalone app is disabled] (None)
       render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
       use_cloned: Can be useful for debugging. Set to False to use original files instead of the ones that have been
@@ -280,7 +302,12 @@ class Simulator(gym.Env):
 
     # Get Simulator class
     gen_cls_cloned = getattr(importlib.import_module(config["package_name"]), "Simulator")
-    gen_cls_cloned_version = gen_cls_cloned.version.split("-v")[-1]
+    if hasattr(gen_cls_cloned, "version"):
+      _legacy_mode = False
+      gen_cls_cloned_version = gen_cls_cloned.version.split("-v")[-1]
+    else:
+      _legacy_mode = True
+      gen_cls_cloned_version = gen_cls_cloned.id.split("-v")[-1]  #deprecated
     if use_cloned:
       gen_cls = gen_cls_cloned
     else:
@@ -294,13 +321,20 @@ class Simulator(gym.Env):
         print(
           f"""WARNING: Version mismatch. The simulator '{config["simulator_name"]}' has version {gen_cls_cloned_version}, while your uitb package has version {gen_cls_version}.\nTo run with version {gen_cls_version}, set 'use_cloned=True'.""")
 
-    _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
-                         run_parameters=run_parameters)
+    if _legacy_mode:
+      _simulator = gen_cls(simulator_folder, run_parameters=run_parameters)
+    else:
+      try:
+        _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_mode_perception=render_mode_perception, render_show_depths=render_show_depths,
+                          run_parameters=run_parameters)
+      except TypeError:
+        _simulator = gen_cls(simulator_folder, render_mode=render_mode, render_show_depths=render_show_depths,
+                          run_parameters=run_parameters)
 
     # Return Simulator object
     return _simulator
 
-  def __init__(self, simulator_folder, render_mode="rgb_array", render_show_depths=False, run_parameters=None):
+  def __init__(self, simulator_folder, render_mode="rgb_array", render_mode_perception="embed", render_show_depths=False, run_parameters=None):
     """ Initialise a new `Simulator`.
 
     Args:
@@ -311,6 +345,7 @@ class Simulator(gym.Env):
         or None while the frames in a separate PyGame window are updated directly when calling
         step() or reset() (render_mode="human";
         adapted from https://github.com/openai/gym/blob/master/gym/wrappers/human_rendering.py)).
+      render_mode_perception: Whether images of visual perception modules should be directly embedded into main camera view ("embed"), stored as separate videos ("separate"), or not used at all [which allows to watch vision in Unity Editor if debug mode is enabled/standalone app is disabled] (None)
       render_show_depths: Whether depth images of visual perception modules should be included in rendering.
       run_parameters: Can be used to override parameters during run time.
     """
@@ -345,7 +380,9 @@ class Simulator(gym.Env):
                          dt=self._run_parameters["dt"])
 
     self._render_mode = render_mode
+    self._render_mode_perception = render_mode_perception  #whether perception camera views should be directly embedded into camera view of camera_id ("embed"), stored in self._render_stack_perception ("separate"), or not used at all "separate"), or not used at all [which allows to watch vision in Unity Editor if debug mode is enabled/standalone app is disabled] (None)
     self._render_stack = []  #only used if render_mode == "rgb_array_list"
+    self._render_stack_perception = defaultdict(list)  #only used if render_mode == "rgb_array_list" and self._render_mode_perception == "separate"
     self._render_stack_pop = True  #If True, clear the render stack after .render() is called.
     self._render_stack_clean_at_reset = True  #If True, clear the render stack when .reset() is called.
     self._render_show_depths = render_show_depths  #If True, depth images of visual perception modules are included in GUI rendering.
@@ -379,14 +416,14 @@ class Simulator(gym.Env):
           self._independent_joints.append(joint_id)
         self._jnt_range = self._model.jnt_range[self._independent_joints]
 
-    
+
     #To normalize joint ranges for llc
   def _normalise_qpos(self, qpos):
     # Normalise to [0, 1]
     qpos = (qpos - self._jnt_range[:, 0]) / (self._jnt_range[:, 1] - self._jnt_range[:, 0])
     # Normalise to [-1, 1]
     qpos = (qpos - 0.5) * 2
-    return qpos  
+    return qpos
 
   def _initialise_action_space(self):
     """ Initialise action space. """
@@ -429,9 +466,9 @@ class Simulator(gym.Env):
         self.task._target_qpos = action # action to pass to LLC
         self._steps = 0 # Initialise loop control to 0
         #acc_reward = 0 #To be used when rewards are being accumulated in llc steps
-    
+
         while self._steps < self._max_steps: # loop for llc controls based on llc_ratio
-        
+
             llc_action, _states = self.llc_model.predict(self.get_llcobservation(action), deterministic=True) # Get BM action from LLC
             # Set control for the bm model
             self.bm_model.set_ctrl(self._model, self._data, llc_action)
@@ -447,7 +484,7 @@ class Simulator(gym.Env):
 
             # Update perception modules
             self.perception.update(self._model, self._data)
-   
+
             dist = np.abs(action - self._get_qpos(self._model, self._data))
 
             # Update environment        
@@ -455,9 +492,9 @@ class Simulator(gym.Env):
 
             # Add an effort cost to reward
             reward -= self.bm_model.get_effort_cost(self._model, self._data)
-        
+
             #acc_reward += reward #To be used when rewards are being accumulated in llc steps
-                        
+
             # Get observation
             obs = self.get_observation()
 
@@ -466,24 +503,24 @@ class Simulator(gym.Env):
               self._render_stack.append(self._GUI_rendering())
             elif self._render_mode == "human":
               self._GUI_rendering_pygame()
-                
+
             if truncated or terminated:
                 break
-        
+
             # Pointing
-            if "target_spawned" in info: 
+            if "target_spawned" in info:
                 if info["target_spawned"] or info["target_hit"]:
                     break
-            
+
             # Choice Reaction
-            elif "new_button_generated" in info: 
+            elif "new_button_generated" in info:
                 if info["new_button_generated"] or info["target_hit"]:
                     break
-            
+
             self._steps += 1
             if np.all(dist < self._target_radius):
                 break
-   
+
         return obs, reward, terminated, truncated, info
 
     else:
@@ -506,10 +543,12 @@ class Simulator(gym.Env):
         reward, terminated, truncated, info = self.task.update(self._model, self._data)
 
         # Add an effort cost to reward
-        reward -= self.bm_model.get_effort_cost(self._model, self._data)
+        effort_cost = self.bm_model.get_effort_cost(self._model, self._data)
+        info["EffortCost"] = effort_cost
+        reward -= effort_cost
 
         # Get observation
-        obs = self.get_observation()
+        obs = self.get_observation(info)
 
         # Add frame to stack
         if self._render_mode == "rgb_array_list":
@@ -518,9 +557,9 @@ class Simulator(gym.Env):
           self._GUI_rendering_pygame()
 
         return obs, reward, terminated, truncated, info
-  
 
-  def get_observation(self):
+
+  def get_observation(self, info=None):
     """ Returns an observation from the perception model.
 
     Returns:
@@ -528,7 +567,7 @@ class Simulator(gym.Env):
     """
 
     # Get observation from perception
-    observation = self.perception.get_observation(self._model, self._data)
+    observation = self.perception.get_observation(self._model, self._data, info)
 
     # Add any stateful information that is required
     stateful_information = self.task.get_stateful_information(self._model, self._data)
@@ -579,6 +618,7 @@ class Simulator(gym.Env):
     if self._render_mode == "rgb_array_list":
       if self._render_stack_clean_at_reset:
         self._render_stack = []
+        self._render_stack_perception = defaultdict(list)
       self._render_stack.append(self._GUI_rendering())
     elif self._render_mode == "human":
       self._GUI_rendering_pygame()
@@ -589,12 +629,18 @@ class Simulator(gym.Env):
     if self._render_mode == "rgb_array_list":
       render_stack = self._render_stack
       if self._render_stack_pop:
-        self.render_stack = []
+        self._render_stack = []
       return render_stack
     elif self._render_mode == "rgb_array":
       return self._GUI_rendering()
     else:
       return None
+    
+  def get_render_stack_perception(self):
+      render_stack_perception = self._render_stack_perception
+      # if self._render_stack_pop:
+      #   self._render_stack_perception = defaultdict(list)
+      return render_stack_perception
 
   def _GUI_rendering(self):
     # Grab an image from the 'for_testing' camera and grab all GUI-prepared images from included visual perception modules, and display them 'picture-in-picture'
@@ -602,46 +648,55 @@ class Simulator(gym.Env):
     # Grab images
     img, _ = self._GUI_camera.render()
 
-    # perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
-    #                             for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
-    perception_camera_images = self.perception.get_renders()
+    if self._render_mode_perception == "embed":
+      # Embed perception camera images into main camera image
+        
+      # perception_camera_images = [rgb_or_depth_array for camera in self.perception.cameras
+      #                             for rgb_or_depth_array in camera.render() if rgb_or_depth_array is not None]
+      perception_camera_images = self.perception.get_renders()
 
-    # TODO: add text annotations to perception camera images
-    if len(perception_camera_images) > 0:
-      _img_size = img.shape[:2]  #(height, width)
+      # TODO: add text annotations to perception camera images
+      if len(perception_camera_images) > 0:
+        _img_size = img.shape[:2]  #(height, width)
 
-      # Vertical alignment of perception camera images, from bottom right to top right
-      ## TODO: allow for different inset locations
-      _desired_subwindow_height = np.round(_img_size[0] / len(perception_camera_images)).astype(int)
-      _maximum_subwindow_width = np.round(0.2 * _img_size[1]).astype(int)
 
-      perception_camera_images_resampled = []
-      for ocular_img in perception_camera_images:
-        # Convert 2D depth arrays to 3D heatmap arrays
-        if ocular_img.ndim == 2:
-          if self._render_show_depths:
-            ocular_img = matplotlib.pyplot.imshow(ocular_img, cmap=matplotlib.pyplot.cm.jet, interpolation='bicubic').make_image('TkAgg', unsampled=True)[0][
-            ..., :3]
-            matplotlib.pyplot.close()  #delete image
-          else:
-            continue
+        # Vertical alignment of perception camera images, from bottom right to top right
+        ## TODO: allow for different inset locations
+        _desired_subwindow_height = np.round(_img_size[0] / len(perception_camera_images)).astype(int)
+        _maximum_subwindow_width = np.round(0.2 * _img_size[1]).astype(int)
 
-        resample_factor = min(_desired_subwindow_height / ocular_img.shape[0], _maximum_subwindow_width / ocular_img.shape[1])
+        perception_camera_images_resampled = []
+        for ocular_img in perception_camera_images:
+          # Convert 2D depth arrays to 3D heatmap arrays
+          if ocular_img.ndim == 2:
+            if self._render_show_depths:
+              ocular_img = matplotlib.pyplot.imshow(ocular_img, cmap=matplotlib.pyplot.cm.jet, interpolation='bicubic').make_image('TkAgg', unsampled=True)[0][
+              ..., :3]
+              matplotlib.pyplot.close()  #delete image
+            else:
+              continue
 
-        resample_height = np.round(ocular_img.shape[0] * resample_factor).astype(int)
-        resample_width = np.round(ocular_img.shape[1] * resample_factor).astype(int)
-        resampled_img = np.zeros((resample_height, resample_width, ocular_img.shape[2]), dtype=np.uint8)
-        for channel in range(ocular_img.shape[2]):
-          resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
+          resample_factor = min(_desired_subwindow_height / ocular_img.shape[0], _maximum_subwindow_width / ocular_img.shape[1])
 
-        perception_camera_images_resampled.append(resampled_img)
+          resample_height = np.round(ocular_img.shape[0] * resample_factor).astype(int)
+          resample_width = np.round(ocular_img.shape[1] * resample_factor).astype(int)
+          resampled_img = np.zeros((resample_height, resample_width, ocular_img.shape[2]), dtype=np.uint8)
+          for channel in range(ocular_img.shape[2]):
+            resampled_img[:, :, channel] = scipy.ndimage.zoom(ocular_img[:, :, channel], resample_factor, order=0)
 
-      # Embed perception camera images into main camera image:
-      ocular_img_bottom = _img_size[0]
-      for ocular_img_idx, ocular_img in enumerate(perception_camera_images_resampled):
-        #print(f"Modify ({ocular_img_bottom - ocular_img.shape[0]}, { _img_size[1] - ocular_img.shape[1]})-({ocular_img_bottom}, {img.shape[1]}).")
-        img[ocular_img_bottom - ocular_img.shape[0]:ocular_img_bottom, _img_size[1] - ocular_img.shape[1]:] = ocular_img
-        ocular_img_bottom -= ocular_img.shape[0]
+          perception_camera_images_resampled.append(resampled_img)
+
+        ocular_img_bottom = _img_size[0]
+        for ocular_img_idx, ocular_img in enumerate(perception_camera_images_resampled):
+          #print(f"Modify ({ocular_img_bottom - ocular_img.shape[0]}, { _img_size[1] - ocular_img.shape[1]})-({ocular_img_bottom}, {img.shape[1]}).")
+          img[ocular_img_bottom - ocular_img.shape[0]:ocular_img_bottom, _img_size[1] - ocular_img.shape[1]:] = ocular_img
+          ocular_img_bottom -= ocular_img.shape[0]
+        # input((len(perception_camera_images_resampled), perception_camera_images_resampled[0].shape, img.shape))
+    elif self._render_mode_perception == "separate":
+      for camera in self.perception.cameras:
+        for rgb_or_depth_array in camera.render():
+          if rgb_or_depth_array is not None:
+            self._render_stack_perception[f"{camera.modality}/{type(camera).__name__}"].append(rgb_or_depth_array)
 
     return img
 
@@ -690,6 +745,12 @@ class Simulator(gym.Env):
     for callback_name in self.callbacks:
       self.callback(callback_name, num_timesteps)
 
+  # def get_logdict_keys(self):
+  #   return list(self.task._info["log_dict"].keys())
+
+  # def get_logdict_value(self, key):
+  #   return self.task._info["log_dict"].get(key)
+
   @property
   def config(self):
     """ Return config. """
@@ -723,11 +784,12 @@ class Simulator(gym.Env):
       A dict with one float or numpy vector per keyword.
     """
 
-    # Get time, qpos, qvel, qacc, act, ctrl of the current simulation
+    # Get time, qpos, qvel, qacc, act_force, act, ctrl of the current simulation
     state = {"timestep": self._data.time,
              "qpos": self._data.qpos.copy(),
              "qvel": self._data.qvel.copy(),
              "qacc": self._data.qacc.copy(),
+             "act_force": self._data.actuator_force.copy(),
              "act": self._data.act.copy(),
              "ctrl": self._data.ctrl.copy()}
 
@@ -741,3 +803,13 @@ class Simulator(gym.Env):
     state.update(self.perception.get_state(self._model, self._data))
 
     return state
+
+  def close(self, **kwargs):
+    """ Perform any necessary clean up.
+
+    This function is inherited from gym.Env. It should be automatically called when this object is garbage collected
+     or the program exists, but that doesn't seem to be the case. This function will be called if this object has been
+     initialised in the context manager fashion (i.e. using the 'with' statement). """
+    self.task.close(**kwargs)
+    self.perception.close(**kwargs)
+    self.bm_model.close(**kwargs)
