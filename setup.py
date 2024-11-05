@@ -26,7 +26,7 @@ setup(
        "pynput",
        "mujoco==2.3.5",
        "imageio",
-       "stable_baselines3>=2.0.0a1",
+       "stable_baselines3==2.2.1",
        "torch",
        "wandb", "tensorboard",
        "numpy", "matplotlib", "scipy",
