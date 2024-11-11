@@ -556,10 +556,11 @@ class Simulator(gym.Env):
           ocular_img_bottom -= ocular_img.shape[0]
         # input((len(perception_camera_images_resampled), perception_camera_images_resampled[0].shape, img.shape))
     elif self._render_mode_perception == "separate":
-      for camera in self.perception.cameras:
-        for rgb_or_depth_array in camera.render():
-          if rgb_or_depth_array is not None:
-            self._render_stack_perception[f"{camera.modality}/{type(camera).__name__}"].append(rgb_or_depth_array)
+      for module, camera_list in self.perception.cameras_dict.items():
+        for camera in camera_list:
+          for rgb_or_depth_array in camera.render():
+            if rgb_or_depth_array is not None:
+              self._render_stack_perception[f"{module.modality}/{type(camera).__name__}"].append(rgb_or_depth_array)
 
     return img
 
