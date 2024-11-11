@@ -22,3 +22,9 @@
 - create virtual display and let it run in background
   - `export DISPLAY=:1`
   - `xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1920x1090x24 &`
+
+### Troubleshooting
+- Error: XDG_RUNTIME_DIR is invalid or not set in the environment
+  - set this env variable permanently (TODO: verify that this fixes the issue)
+    - `echo "export XDG_RUNTIME_DIR=/run/user/$(id -u)" >> ~/.bashrc`
+    - `source ~/.bashrc`
