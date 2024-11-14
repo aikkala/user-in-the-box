@@ -7,7 +7,7 @@
 
 ## Papers
 
-### [Breathing Life into Biomechanical User Models (UIST2022)](http://users.comnet.aalto.fi/oulasvir/uist22a-sub1886-cam-i32.pdf)
+### [Breathing Life into Biomechanical User Models (UIST2022)](https://dl.acm.org/doi/abs/10.1145/3526113.3545689)
 
 https://user-images.githubusercontent.com/7627254/184347198-2d7f8852-d50b-457f-8eaa-07720b9522eb.mp4
 
