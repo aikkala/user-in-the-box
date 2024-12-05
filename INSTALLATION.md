@@ -18,10 +18,12 @@
 - make sure that `$DISPLAY` is set to ':0' or ':1' if remote desktop should be used (a list of running user sessions can be obtained via `w -oush`)
 - TODO: check if `xhost +local:` is required
 
-### Run via SSH on virtual display (using Xvfb)
-- create virtual display and let it run in background
+### Run via SSH on virtual display (using Xvfb; only works on Linux!)
+- create virtual display (the 1 below is just a placeholder for any previously unused display ID) and let it run in background
   - `export DISPLAY=:1`
   - `xdpyinfo -display $DISPLAY > /dev/null || Xvfb $DISPLAY -screen 0 1920x1090x24 &`
+- to check which display IDs are already in use (e.g., on an HPC):
+  - `ls -l /tmp/.X11-unix/`
 
 ### Troubleshooting
 - Error: XDG_RUNTIME_DIR is invalid or not set in the environment
